@@ -84,8 +84,9 @@ public class Pose {
     @SuppressLint("DefaultLocale")
     @NonNull
     public String toString() {
-        return String.format("Pose{x=%.2f,y=%.2f,h=%.2f", position.getX(),
+        return String.format("Pose{x=%.2f,y=%.2f,h=%.2f}", position.getX(),
                              position.getY(),
-                             heading);
+                             heading == null ? null :
+                                 Math.toDegrees(heading));
     }
 }

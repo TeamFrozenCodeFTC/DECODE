@@ -14,7 +14,7 @@ public class FollowVectorTest extends LinearOpMode {
         Follower follower = new Follower(hardwareMap);
         waitForStart();
         
-        follower.drivetrain.followVector(new Vector(0.6, 0.7), 0);
+        follower.drivetrain.followVector(new Vector(1, 0), 0);
         
         while (opModeIsActive()) idle();
     }

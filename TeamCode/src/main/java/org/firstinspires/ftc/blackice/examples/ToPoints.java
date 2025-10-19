@@ -16,7 +16,7 @@ public class ToPoints extends LinearOpMode {
         
         PathRoutine path = follower.pathRoutineBuilder()
             .toPose(48, 0)
-            .toPose(48+24, 24)
+            .toPose(48, 24)
             .stop()
             .build();
         

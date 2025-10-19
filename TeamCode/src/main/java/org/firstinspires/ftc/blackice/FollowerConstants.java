@@ -20,13 +20,13 @@ public final class FollowerConstants {
     public static LocalizerConfig localizerConfig = new PinpointConfig()
         .distanceUnit(DistanceUnit.INCH)
         .podDirection(
-            GoBildaPinpointDriver.EncoderDirection.REVERSED,
-            GoBildaPinpointDriver.EncoderDirection.REVERSED)
-        .podOffset(-36, 0);
+            GoBildaPinpointDriver.EncoderDirection.FORWARD,
+            GoBildaPinpointDriver.EncoderDirection.FORWARD)
+        .podOffset(84, -168);
     
     public static DrivetrainConfig drivetrainConfig = new MecanumConfig()
         .frontLeft("frontLeft", DcMotorSimple.Direction.REVERSE)
-        .backLeft("backLeft", DcMotorSimple.Direction.REVERSE)
+        .backLeft("backLeft", DcMotorSimple.Direction.FORWARD)
         .frontRight("frontRight", DcMotorSimple.Direction.REVERSE)
         .backRight("backRight", DcMotorSimple.Direction.FORWARD)
         .maxForwardSpeed(65.37) // Tuned for 312 rpm

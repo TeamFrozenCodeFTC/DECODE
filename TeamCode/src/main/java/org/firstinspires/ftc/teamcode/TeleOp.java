@@ -2,46 +2,75 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends OpMode {
-    Intake intake;
-    Shooter shooter;
-    Follower follower;
-    
+    Robot robot;
+    AllianceColor allianceColor;
+
     @Override
     public void init() {
-        intake = new Intake(hardwareMap);
-        shooter = new Shooter(hardwareMap);
+        robot = new Robot(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
         
-        follower = new Follower(hardwareMap);
-        follower.setCurrentPose(((Pose) blackboard.get("currentPose")));
+        if (blackboard.get("currentPose") != null) {
+            robot.follower.setCurrentPose(((Pose) blackboard.get("currentPose")));
+        }
+        if (blackboard.get("allianceColor") != null) {
+            allianceColor = (AllianceColor) blackboard.get("allianceColor");
+        } else {
+            allianceColor = AllianceColor.BLUE;
+        }
+        
+        telemetry.update();
     }
     
     @Override
     public void loop() {
         if (gamepad1.rightBumperWasPressed()) {
-            shooter.revUpShooterTo(1);
+            robot.shooter.setRPM(3500);
         }
         if (gamepad1.leftBumperWasPressed()) {
-            shooter.stop();
+            robot.shooter.stop();
         }
         
-        intake.motor.setPower(gamepad1.right_stick_y);
-        shooter.setPower(shooter.getCurrentPower() + gamepad1.right_stick_y * 0.005);
+        if (gamepad1.right_trigger > 0.1) {
+            robot.intake.intake();
+        }
+        if (gamepad1.left_trigger > 0.1) {
+            robot.intake.outtake();
+        }
+        if (gamepad1.triangle) {
+            robot.intake.stop();
+        }
         
-        telemetry.addData("velocity", "%.2f", shooter.getVelocity());
-        telemetry.addData("power", "%.2f", shooter.getCurrentPower());
-        telemetry.addData("currentPose", follower.getCurrentPose());
+        if (gamepad1.dpad_down) {
+            robot.shooter.setRPM(robot.shooter.getTargetRPM() - 50);
+        }
+        if (gamepad1.dpad_up) {
+            robot.shooter.setRPM(robot.shooter.getTargetRPM() + 50);
+        }
+        
+        telemetry.addData("current rpm", "%.2f", robot.shooter.getRpm());
+        telemetry.addData("target rpm", "%.2f", robot.shooter.getTargetRPM());
+        
+        telemetry.addData("currentPose", robot.follower.getCurrentPose());
+        telemetry.addData("voltage", robot.follower.getVoltage());
+        
         telemetry.update();
-        follower.update();
+        
+        robot.follower.fieldCentricTeleOpDrive(
+            gamepad1.left_stick_x,
+            -gamepad1.left_stick_y,
+            -gamepad1.right_stick_x
+        );
+        robot.update();
     }
 }

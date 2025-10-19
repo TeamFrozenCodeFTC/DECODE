@@ -23,11 +23,13 @@ public class Robot {
         intake = new Intake(hardwareMap);
         indexer = new Indexer(hardwareMap);
         shooter = new Shooter(hardwareMap);
+        
+        double voltageCompensation = follower.drivePowerController.getVoltagePowerCompensation();
+        //shooter.updateFeedforwardByVoltage(voltageCompensation);
     }
     
     public void update() {
-        double voltageCompensation = 12 / follower.getVoltage();
-        shooter.update(voltageCompensation);
+        shooter.update(follower.getMotionState().deltaTime);
         
         if (isIntaking && indexer.artifactIsDetected() && !indexer.isAtMaxCapacity()) {
             indexer.rotateToNextEmptySlot();
@@ -35,7 +37,7 @@ public class Robot {
         if (indexer.isAtMaxCapacity()) {
             indexer.lockArtifacts();
             stopIntake();
-            shooter.revUpShooterTo(1);
+            shooter.setRPM(5000);
         }
         
         if (isReadyToShoot() && !artifactBeingShot) {

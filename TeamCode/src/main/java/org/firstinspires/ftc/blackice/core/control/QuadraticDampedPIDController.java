@@ -24,10 +24,10 @@ public class QuadraticDampedPIDController extends PIDFController {
     public double runFromVelocity(double error, double derivative) {
         double velocity = -derivative;
         double predictedBrakingDisplacement = velocity * Math.abs(velocity) * kFriction + velocity *
-            kBraking + kStaticFriction * Math.signum(velocity);
+            kBraking;
         return super.runFromVelocity(
             error - predictedBrakingDisplacement,
             derivative
-        );
+        ) + kStaticFriction * Math.signum(velocity);
     }
 }

@@ -22,8 +22,6 @@ public abstract class DistanceTuner extends LinearOpMode {
      * The braking distance predictions will be more accurate the more points.
      */
     public static int POINTS = 10;
-    public static double kBRAKE = 0.015;
-    public static double MAX_POWER_REVERSAL = 0.3;
 
     @SuppressLint("DefaultLocale")
     public List<double[]> run(double heading) {
@@ -58,29 +56,12 @@ public abstract class DistanceTuner extends LinearOpMode {
                 .plus(follower.getMotionState().velocity.times(follower.getMotionState().deltaTime));
             double maxVelocity = Math.abs(follower.getMotionState().robotRelativeVelocity.getX());
             double sign = Math.signum(follower.getMotionState().robotRelativeVelocity.getX());
-            
-            // targetAccel * k, zero power float,
-            // decelerating with targetVelocity*k - (targetAcceleration+40)*kA
-            
-            // 40 * kA = -targetVelocity*kV
-            
-//            while (follower.getMotionState().velocity.computeMagnitude() > 0.005) {
+
             while (Math.signum(follower.getMotionState().velocity.getX()) == sign) {
                 follower.update();
                 follower.drivetrain.followVector(new Vector(-0.0001 * sign, 0), 0);
             }
-            
-            // -0.0001 not quadratic or linear, roughly equal to zero power brake mode, 0
-            // 0.001x^2+0.07x. prob why (x-brakingDis) works but max can be -0.0001 only if it
-            // isnt split into tangent and translational cause otherwise translational will eat
-            // it up. just set to -0.3 as the max
-            
-            // -0.0001 y = 0.001x^2 + 0.08x
-            
-            // -0.3 ? y = 0.00142x^2 + 0.03178x // 0.00142xx + 0.03x
-            // -velocity * k, mostly linear?
-            // -abs(velocity) * velocity * k?
-            
+ 
             follower.update();
             Vector newDistance = follower.getMotionState().position;
 

@@ -53,6 +53,11 @@ public class Menu {
         options.add(new Option(name, action, onExit));
     }
     
+    public void confirmOption(int index) {
+        confirmedIndex = index;
+        confirmed = true;
+    }
+    
     public void addSubmenu(String name, Menu submenu) {
         addOption(name, () -> {
                       this.currentSubmenu = submenu;

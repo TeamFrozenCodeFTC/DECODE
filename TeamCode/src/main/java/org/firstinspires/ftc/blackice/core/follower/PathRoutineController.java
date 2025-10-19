@@ -36,10 +36,10 @@ public class PathRoutineController {
     private double previousPathPointTValue;
     private @Nullable Path currentPath;
     
-    ArrayList<Double> pathXValues;
-    ArrayList<Double> pathYValues;
-    ArrayList<Double> robotXValues;
-    ArrayList<Double> robotYValues;
+    ArrayList<Double> pathXValues = new ArrayList<>();
+    ArrayList<Double> pathYValues = new ArrayList<>();
+    ArrayList<Double> robotXValues = new ArrayList<>();
+    ArrayList<Double> robotYValues = new ArrayList<>();
     
     public enum FollowingState {
         /** The follower is currently following a path. */
@@ -338,6 +338,7 @@ public class PathRoutineController {
         
         TelemetryPacket packet = new TelemetryPacket();
         packet.fieldOverlay()
+            .setRotation(Math.toRadians(180))
             .setStroke("white")
             .strokePolyline(
                 pathXValues.stream().mapToDouble(Double::doubleValue).toArray(),
@@ -367,10 +368,10 @@ public class PathRoutineController {
             previousPathPointTValue
         );
         
-        pathXValues.add(closestPathPoint.point.getX());
-        pathYValues.add(closestPathPoint.point.getY());
-        robotXValues.add(motionState.nextPosition.getX());
-        robotYValues.add(motionState.nextPosition.getY());
+        pathXValues.add(closestPathPoint.point.getX() - 72);
+        pathYValues.add(closestPathPoint.point.getY() - 72);
+        robotXValues.add(motionState.nextPosition.getX() - 72);
+        robotYValues.add(motionState.nextPosition.getY() - 72);
         updateDashboardDrawingPoints();
         
         previousPathPointTValue = closestPathPoint.tValue;

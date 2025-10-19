@@ -2,6 +2,7 @@ package org.firstinspires.ftc.blackice.core.follower;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.ValueProvider;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -52,16 +53,23 @@ public class Follower extends PathRoutineController {
         Pose startingPose
     ) {
         super(new DrivePowerController(
-                config.headingPID,
-                config.positionalPID,
-                config.driveVelocityPIDF,
-                config.centripetalFeedforward,
-                config.maxReversalBrakingPower,
-                config.drivetrainConfig.build(hardwareMap),
-                config.naturalDeceleration,
-                config.tunedVoltage,
-                hardwareMap.getAll(VoltageSensor.class).iterator().next()
-            ), config.localizerConfig.createMotionTracker(hardwareMap)
+                  config.headingPID,
+                  config.positionalPID,
+                  config.driveVelocityPIDF,
+                  config.centripetalFeedforward,
+                  config.maxReversalBrakingPower,
+                  config.drivetrainConfig.build(hardwareMap),
+                  config.naturalDeceleration,
+                  config.tunedVoltage,
+                  () -> {
+                        double minV = Double.POSITIVE_INFINITY;
+                        for (VoltageSensor vs : hardwareMap.getAll(VoltageSensor.class)) {
+                            double v = vs.getVoltage();
+                            if (v > 0) minV = Math.min(minV, v);
+                        }
+                        if (minV == Double.POSITIVE_INFINITY) return config.tunedVoltage;
+                        return Math.max(9.0, Math.min(14.5, minV));}
+              ), config.localizerConfig.createMotionTracker(hardwareMap)
         );
         this.drivetrain = getDrivetrain();
         INSTANCE = this;
@@ -83,6 +91,10 @@ public class Follower extends PathRoutineController {
      */
     public Follower(HardwareMap hardwareMap) {
         this(hardwareMap, new Pose(0,0,0));
+    }
+    
+    public void holdPose(Pose pose) {
+        drivePowerController.holdPose(pose, getMotionState());
     }
     
     public Pose getCurrentPose() {
@@ -129,7 +141,7 @@ public class Follower extends PathRoutineController {
     }
     
     public double getVoltage() {
-        return voltage;
+        return drivePowerController.getVoltage();
     }
 
     /**

@@ -18,13 +18,13 @@ public class Auto extends OpMode {
     Robot robot;
     private PathRoutine currentRoutine;
     
-    PathRoutine shootPreload;
-    PathRoutine toArtifactGroup1;
-    PathRoutine toArtifactGroup2;
-    PathRoutine toArtifactGroup3;
-    PathRoutine shootArtifactGroup1;
-    PathRoutine shootArtifactGroup2;
-    PathRoutine shootArtifactGroup3;
+    public PathRoutine shootPreload;
+    public PathRoutine toArtifactGroup1;
+    public PathRoutine toArtifactGroup2;
+    public PathRoutine toArtifactGroup3;
+    public PathRoutine shootArtifactGroup1;
+    public PathRoutine shootArtifactGroup2;
+    public PathRoutine shootArtifactGroup3;
     
     public static final Pose startingPose = new Pose(24*3+12,
                                                      144-((double) 17/2), 180);
@@ -32,11 +32,6 @@ public class Auto extends OpMode {
     public static final Pose shootArtifactGroup1Pose = new Pose(108, 94, -118);
     
     public AllianceColor allianceColor = AllianceColor.BLUE;
-    
-    public enum AllianceColor {
-        RED,
-        BLUE
-    }
     
     public void buildPaths() {
         shootPreload = robot.follower.pathRoutineBuilder()
@@ -68,8 +63,9 @@ public class Auto extends OpMode {
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
-        robot.follower.setCurrentPose(startingPose);  // pretty sure this method was
-        // broken
+        robot.follower.setCurrentPose(startingPose);
+        
+        buildPaths();
 
         startingStateMenu = new Menu(gamepad1);
         for (Map<String, PathRoutine> map : getAllAccessiblePathRoutines()) {
@@ -78,30 +74,28 @@ public class Auto extends OpMode {
                 startingStateMenu.addOption(name, () -> {}, () -> currentRoutine = routine);
             }
         }
+        startingStateMenu.confirmOption(0);
         
         robot.indexer.slots = new Indexer.Slot[]{
             Indexer.Slot.PURPLE,
             Indexer.Slot.PURPLE,
             Indexer.Slot.PURPLE
         };
-        
-        buildPaths();
     }
     
     @Override
     public void init_loop() {
+        startingStateMenu.update();
+        
         if (gamepad1.triangleWasPressed()) {
             allianceColor = AllianceColor.BLUE == allianceColor ? AllianceColor.RED : AllianceColor.BLUE;
             gamepad1.rumble(Haptics.CONFIRM);
         }
-        
-        telemetry.addData("Alliance Color (Press △) - ", allianceColor);
-        telemetry.addData("Starting Position - ", robot.follower.getCurrentPose());
-        telemetry.addData("Starting State - ", startingStateMenu.getSelectedOption());
+
+        telemetry.addData("Alliance Color (Press △)", allianceColor);
+        telemetry.addData("Starting Position", robot.follower.getCurrentPose());
         telemetry.addLine(startingStateMenu.getDisplay());
-        
-        startingStateMenu.update();
-        
+
         telemetry.update();
     }
   
@@ -141,7 +135,7 @@ public class Auto extends OpMode {
     public List<Map<String, PathRoutine>> getAllAccessiblePathRoutines() {
         List<Map<String, PathRoutine>> routineList = new ArrayList<>();
         
-        for (Field field : getClass().getDeclaredFields()) {
+        for (Field field : getClass().getFields()) {
             if (PathRoutine.class.isAssignableFrom(field.getType())) {
                 field.setAccessible(true);
                 try {

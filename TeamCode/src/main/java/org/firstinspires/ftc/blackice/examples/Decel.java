@@ -31,17 +31,6 @@ public class Decel extends LinearOpMode {
         follower.follow(path);
         
         while (opModeIsActive()) {
-            double result = Double.POSITIVE_INFINITY;
-            for (VoltageSensor sensor : hardwareMap.getAll(VoltageSensor.class)) {
-                double voltage = sensor.getVoltage();
-                if (voltage > 0) {
-                    result = Math.min(result, voltage);
-                }
-            }
-            Logger.debug("CRASH DEBUG Voltage: ", result);
-            if (result < 7) {
-                Logger.warn("LOW VOLTAGE WARNING of " + result);
-            }
             follower.update();
         }
     }

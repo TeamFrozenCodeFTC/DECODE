@@ -1,18 +1,16 @@
 package org.firstinspires.ftc.blackice.core.follower;
 
-import androidx.annotation.NonNull;
-
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.blackice.core.control.ErrorController;
 import org.firstinspires.ftc.blackice.core.hardware.drivetrain.Drivetrain;
 import org.firstinspires.ftc.blackice.core.hardware.localization.MotionState;
 import org.firstinspires.ftc.blackice.util.Logger;
-import org.firstinspires.ftc.blackice.util.Validator;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import java.util.function.Supplier;
 
 /**
  * Uses error controllers to convert target velocities and positions into vectors and
@@ -43,7 +41,7 @@ public class DrivePowerController {
     public double maxReversalBrakingPower;
     
     public final Drivetrain drivetrain;
-    private final VoltageSensor voltageSensor;
+    private final Supplier<Double> voltageSupplier;
 
     double lastDrivePower = 1;
     boolean isBraking = false;
@@ -60,7 +58,7 @@ public class DrivePowerController {
                                 Drivetrain drivetrain,
                                 double naturalDeceleration,
                                 double tunedVoltage,
-                                VoltageSensor voltageSensor) {
+                                Supplier<Double> voltageSupplier) {
         this.headingController = headingController;
         this.positionalController = positionalController;
         this.centripetalScaling = centripetalScaling;
@@ -69,7 +67,7 @@ public class DrivePowerController {
         this.driveVelocityController = driveVelocityController;
         this.maxReversalBrakingPower = maxReversalBrakingPower;
         this.naturalDeceleration = naturalDeceleration;
-        this.voltageSensor = voltageSensor;
+        this.voltageSupplier = voltageSupplier;
         this.tunedVoltage = tunedVoltage;
     }
     
@@ -83,7 +81,7 @@ public class DrivePowerController {
     }
     
     public double getVoltage() {
-        return voltageSensor.getVoltage();
+        return voltageSupplier.get();
     }
     
     /**
@@ -103,7 +101,7 @@ public class DrivePowerController {
     public void followFieldVector(Vector drive, double turn, MotionState motionState) {
         drivetrain.followVector(
             motionState.makeRobotRelative(drive)
-                .times(getVoltagePowerCompensation())
+                //.times(getVoltagePowerCompensation())
                 .map(motionState.robotRelativeVelocity, this::clampReversePower),
             turn,
             false
@@ -121,7 +119,7 @@ public class DrivePowerController {
     public Vector computeHoldPower(Vector position, MotionState motionState) {
         Vector error =
             position.minus(motionState.position);
-        return error.map(motionState.velocity,
+        return error.map(motionState.velocity.times(-1),
                          positionalController::runFromVelocity);
     }
     

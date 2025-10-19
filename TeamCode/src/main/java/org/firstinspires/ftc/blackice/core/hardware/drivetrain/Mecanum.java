@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.blackice.core.hardware.drivetrain;
 
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 
-class Mecanum implements Drivetrain {
+public class Mecanum implements Drivetrain {
     public final double strafingEffortMultiplier;
     public final DcMotorEx[] motors;
 

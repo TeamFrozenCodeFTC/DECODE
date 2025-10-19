@@ -18,18 +18,12 @@ public class MotionTracker {
     
     private final ElapsedTime stuckDetectedTimer = new ElapsedTime(0);
     
-    private final List<LynxModule> allHubs;
-
     public MotionTracker(HardwareMap hardwareMap, Localizer localizer) {
         this.localizer = localizer;
-        
-        allHubs = hardwareMap.getAll(LynxModule.class);
-        
+
         // TODO fix heading not being able to be set at init to pinpoint
-//        for (LynxModule module : allHubs) {
-//            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//        }
-        for (LynxModule module : allHubs) {
+
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
     }
@@ -50,10 +44,6 @@ public class MotionTracker {
     }
     
     public void update() {
-//        for (LynxModule module : allHubs) {
-//            module.clearBulkCache();
-//        }
-        
         localizer.update();
 
         Vector position = new Vector(

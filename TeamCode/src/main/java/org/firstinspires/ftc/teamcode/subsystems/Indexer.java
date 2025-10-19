@@ -19,9 +19,9 @@ public class Indexer {
     public int currentSlot = 1;
     
     public Indexer(HardwareMap hardwareMap) {
-        motor = hardwareMap.get(DcMotorEx.class, "indexer");
-        motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        motor = hardwareMap.get(DcMotorEx.class, "indexer");
+//        motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+//        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
     
     public boolean artifactIsDetected() {
@@ -33,9 +33,10 @@ public class Indexer {
     }
     
     public int getNumberOfArtifacts() {
-        return (slots[0] != Slot.EMPTY ? 1 : 0)
-            + (slots[1] != Slot.EMPTY ? 1 : 0)
-            + (slots[2] != Slot.EMPTY ? 1 : 0);
+        return 3;
+//        return (slots[0] != Slot.EMPTY ? 1 : 0)
+//            + (slots[1] != Slot.EMPTY ? 1 : 0)
+//            + (slots[2] != Slot.EMPTY ? 1 : 0);
     }
     
     
@@ -60,11 +61,11 @@ public class Indexer {
     }
     
     public void rotateToNextEmptySlot() {
-        motor.setTargetPosition(motor.getTargetPosition() + 360/3);
+        //motor.setTargetPosition(motor.getTargetPosition() + 360/3);
     }
     
     public void lockArtifacts() {
-        motor.setTargetPosition(motor.getTargetPosition() + 360/3/2);
+       //motor.setTargetPosition(motor.getTargetPosition() + 360/3/2);
     }
     
     public Slot getCurrentSlot() {
