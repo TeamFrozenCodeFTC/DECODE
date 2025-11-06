@@ -61,7 +61,7 @@ public class PathBehavior implements Cloneable {
         return new ImmutablePathBehavior(
             actionLoop,
             getOrDefault(stop, StopMode.NONE),
-            getOrDefault(stoppedVelocityConstraint, 1.0),
+            getOrDefault(stoppedVelocityConstraint, 0.25),
             getOrDefault(stoppedAngularVelocityConstraint, Math.toRadians(1.0)),
             getOrDefault(stuckVelocityConstraint, 1.0),
             getOrDefault(stuckTimeoutSeconds, 3.0),

@@ -7,7 +7,7 @@ import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.core.paths.routines.PathRoutine;
 
-@Autonomous
+@Autonomous(group="Black-Ice Examples")
 public class Example extends LinearOpMode {
     @Override
     public void runOpMode() {

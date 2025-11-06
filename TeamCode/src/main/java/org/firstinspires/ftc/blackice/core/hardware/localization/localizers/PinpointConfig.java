@@ -13,6 +13,12 @@ public class PinpointConfig implements LocalizerConfig {
    DistanceUnit distanceUnit = DistanceUnit.INCH;
    GoBildaPinpointDriver. GoBildaOdometryPods podType =
        GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
+   String name = "odo";
+   
+   public PinpointConfig name(String name) {
+      this.name = name;
+      return this;
+   }
    
    /**
     * Can reverse the direction of each encoder.
@@ -61,7 +67,7 @@ public class PinpointConfig implements LocalizerConfig {
    }
    
    @Override
-   public Localizer build(HardwareMap hardwareMap) {
+   public Localizer build(HardwareMap hardwareMap) throws InterruptedException {
       return new PinpointLocalizer(hardwareMap, this);
    }
 }

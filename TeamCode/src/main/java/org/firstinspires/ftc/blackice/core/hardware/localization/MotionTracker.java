@@ -14,14 +14,12 @@ import java.util.List;
  * Updates the robot's {@link MotionState} based on the {@link Localizer}'s data.
  */
 public class MotionTracker {
-    private final Localizer localizer;
+    public final Localizer localizer;
     
     private final ElapsedTime stuckDetectedTimer = new ElapsedTime(0);
     
     public MotionTracker(HardwareMap hardwareMap, Localizer localizer) {
         this.localizer = localizer;
-
-        // TODO fix heading not being able to be set at init to pinpoint
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);

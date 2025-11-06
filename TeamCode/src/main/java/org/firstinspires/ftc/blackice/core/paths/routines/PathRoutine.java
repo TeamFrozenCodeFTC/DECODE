@@ -33,11 +33,28 @@ public class PathRoutine {
         this.endPose = endPose;
         this.amountOfSteps = this.steps.size();
     }
-    
+
     public PathRoutine reversed() {
         List<RoutineStep> reversedSteps = new ArrayList<>(this.steps);
+        for (int i = 0; i < steps.size(); i++) {
+            RoutineStep step = steps.get(i);
+            if (step instanceof Path) {
+                steps.set(i, ((Path) step).reversed());
+            }
+        }
         Collections.reverse(reversedSteps);
         return new PathRoutine(reversedSteps);
+    }
+    
+    public PathRoutine mirrored() {
+        List<RoutineStep> steps = new ArrayList<>(this.steps);
+        for (int i = 0; i < steps.size(); i++) {
+            RoutineStep step = steps.get(i);
+            if (step instanceof Path) {
+                steps.set(i, ((Path) step).mirrored());
+            }
+        }
+        return new PathRoutine(steps);
     }
     
     public static PathRoutine empty() {

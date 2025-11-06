@@ -122,28 +122,6 @@ public class PathRoutineBuilder {
         return builder;
     }
     
-    public PathRoutineBuilder copyReverse() {
-        PathRoutineBuilder builder = new PathRoutineBuilder(currentPoseSupplier);
-        for (int i = this.steps.size() - 1; i >= 0; i--) {
-            RoutineStepFactory step = this.steps.get(i);
-            if (!(step instanceof PathFactory)) {
-                this.steps.add(step);
-                builder.currentPathEditable = false;
-                continue;
-            }
-            PathFactory path = (PathFactory) step;
-            PathFactory copy = new PathFactory(
-                previousPoint -> path.geometrySupplier.get(previousPoint).reversed(),
-                (previousHeading,
-                targetHeading) -> path.headingInterpolatorSupplier.get(previousHeading,targetHeading).reversed(),
-                path.behavior.clone(),
-                path.targetHeading
-            );
-            builder.addPath(copy);
-        }
-        return builder;
-    }
-    
     private PathRoutineBuilder addPath(PathGeometry geometry) {
         return addPath(start -> geometry);
     }
@@ -366,13 +344,6 @@ public class PathRoutineBuilder {
     public PathRoutineBuilder lineToY(double y) {
         return addPath(previousPoint -> new LineSegment(previousPoint, previousPoint.withY(y)));
     }
-  
-    // TODO
-//    public PathSequence setCurrentPose(Pose currentPose) {
-//        this.previousEndPose = currentPose;
-//        drafts.add(new DeferredPath())
-//        return this;
-//    }
     
     private PathFactory getCurrentPath() {
         if (currentPath == null) {

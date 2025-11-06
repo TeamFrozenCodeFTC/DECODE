@@ -27,11 +27,10 @@ public class Pose {
     }
     
     public Pose addedX(double x) {
-        return new Pose(new Vector(position.getX() + x, position.getY()), heading);
+        return new Pose(position.withX(position.getX() + x), heading);
     }
-    
     public Pose addedY(double y) {
-        return new Pose(new Vector(position.getX(), position.getY() + y), heading);
+        return new Pose(position.withY(position.getY() + y), heading);
     }
     
     public Pose addedHeading(double heading) {

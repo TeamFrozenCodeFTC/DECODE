@@ -18,18 +18,14 @@ public class Intake {
     }
     
     public void outtake() {
-        motor.setPower(-0.5);
+        motor.setPower(-1);
     }
     
     public void spinIntoShooter() {
-        motor.setPower(-0.5);
+        motor.setPower(-1);
     }
     
     public void stop() {
         motor.setPower(0);
-    }
-    
-    public void maxPowerIntake() {
-        motor.setPower(1);
     }
 }

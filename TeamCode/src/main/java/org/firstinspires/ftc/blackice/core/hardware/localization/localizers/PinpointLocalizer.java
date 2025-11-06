@@ -23,10 +23,11 @@ public class PinpointLocalizer implements Localizer {
     private double xVelocity;
     private double yVelocity;
 
-    public PinpointLocalizer(HardwareMap hardwareMap, PinpointConfig config) {
+    public PinpointLocalizer(HardwareMap hardwareMap, PinpointConfig config)
+        throws InterruptedException {
         this.distanceUnit = config.distanceUnit;
         
-        odometry = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+        odometry = hardwareMap.get(GoBildaPinpointDriver.class, config.name);
 
         odometry.setOffsets(config.xPodOffset, config.yPodOffset);
         odometry.setEncoderResolution(config.podType);
@@ -35,8 +36,10 @@ public class PinpointLocalizer implements Localizer {
             config.xPodDirection,
             config.yPodDirection
         );
-        odometry.resetPosAndIMU(); // TODO test: if we don't do this, the robot could know where it is
-
+        odometry.resetPosAndIMU();
+        
+        Thread.sleep(300);
+        
         update();
     }
     
@@ -93,6 +96,7 @@ public class PinpointLocalizer implements Localizer {
             AngleUnit.DEGREES,
             heading
         ));
+        update();
     }
 
     @Override

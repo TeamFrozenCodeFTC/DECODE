@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.blackice.core.paths.routines.PathRoutine;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
-import org.firstinspires.ftc.teamcode.subsystems.Indexer;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -26,8 +26,8 @@ public class Auto extends OpMode {
     public PathRoutine shootArtifactGroup2;
     public PathRoutine shootArtifactGroup3;
     
-    public static final Pose startingPose = new Pose(24*3+12,
-                                                     144-((double) 17/2), 180);
+    public static Pose startingPose = new Pose(24*3+12,
+                                               144-((double) 17/2), 180);
     public static final Pose artifactGroup1Pose = new Pose(104-2, 3.5*24, 180);
     public static final Pose shootArtifactGroup1Pose = new Pose(108, 94, -118);
     
@@ -63,7 +63,6 @@ public class Auto extends OpMode {
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
-        robot.follower.setCurrentPose(startingPose);
         
         buildPaths();
 
@@ -76,10 +75,10 @@ public class Auto extends OpMode {
         }
         startingStateMenu.confirmOption(0);
         
-        robot.indexer.slots = new Indexer.Slot[]{
-            Indexer.Slot.PURPLE,
-            Indexer.Slot.PURPLE,
-            Indexer.Slot.PURPLE
+        robot.spindexer.slots = new Spindexer.Artifact[]{
+            Spindexer.Artifact.PURPLE,
+            Spindexer.Artifact.PURPLE,
+            Spindexer.Artifact.PURPLE
         };
     }
     
@@ -90,6 +89,7 @@ public class Auto extends OpMode {
         if (gamepad1.triangleWasPressed()) {
             allianceColor = AllianceColor.BLUE == allianceColor ? AllianceColor.RED : AllianceColor.BLUE;
             gamepad1.rumble(Haptics.CONFIRM);
+            startingPose = startingPose.mirroredAcrossYAxis();
         }
 
         telemetry.addData("Alliance Color (Press △)", allianceColor);
@@ -106,6 +106,7 @@ public class Auto extends OpMode {
     
     @Override
     public void start() {
+        robot.follower.setCurrentPose(startingPose);
         setRoutine(shootPreload);
     }
     

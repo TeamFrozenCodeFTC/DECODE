@@ -14,18 +14,21 @@ public class ToPoints extends LinearOpMode {
     public void runOpMode() {
         Follower follower = new Follower(hardwareMap);
         
-        PathRoutine path = follower.pathRoutineBuilder()
-            .toPose(48, 0)
-            .toPose(48, 24)
-            .stop()
-            .build();
-        
         waitForStart();
         
-        follower.follow(path);
-        
         while (opModeIsActive()) {
-            follower.update();
+            PathRoutine path = follower.pathRoutineBuilder()
+                .lineTo(48, 0)
+                .stop()
+                .lineTo(0,0)
+                .stop()
+                .build();
+            
+            follower.follow(path);
+            
+            while (opModeIsActive() && follower.isInProgress()) {
+                follower.update();
+            }
         }
     }
 }

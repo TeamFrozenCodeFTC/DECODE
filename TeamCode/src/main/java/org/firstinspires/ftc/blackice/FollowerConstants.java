@@ -19,6 +19,7 @@ import org.firstinspires.ftc.blackice.core.hardware.drivetrain.MecanumConfig;
 public final class FollowerConstants {
     public static LocalizerConfig localizerConfig = new PinpointConfig()
         .distanceUnit(DistanceUnit.INCH)
+        .name("odo")
         .podDirection(
             GoBildaPinpointDriver.EncoderDirection.FORWARD,
             GoBildaPinpointDriver.EncoderDirection.FORWARD)
@@ -29,8 +30,10 @@ public final class FollowerConstants {
         .backLeft("backLeft", DcMotorSimple.Direction.FORWARD)
         .frontRight("frontRight", DcMotorSimple.Direction.REVERSE)
         .backRight("backRight", DcMotorSimple.Direction.FORWARD)
-        .maxForwardSpeed(65.37) // Tuned for 312 rpm
-        .maxStrafeSpeed(46.22); // * 1/sqrt(2) for diagonal
+//        .maxForwardSpeed(65.37) // Tuned for 312 rpm
+//        .maxStrafeSpeed(46.22); // * 1/sqrt(2) for diagonal
+        .maxForwardSpeed(60) // Tuned for 312 rpm
+        .maxStrafeSpeed(45); // * 1/sqrt(2) for diagonal
     
     public static PathBehavior defaultPathBehavior = new PathBehavior()
         .continueMomentumAtEnd()
@@ -42,8 +45,9 @@ public final class FollowerConstants {
         .localizerConfig(localizerConfig)
         .drivetrainConfig(drivetrainConfig)
         .defaultPathBehavior(defaultPathBehavior)
-        .headingPID(new PIDFController(2, 0, 0.1, 0.01, 0))
-        .positionalPID(new QuadraticDampedPIDController(0.5, 0.07, 0.001, 0.015))
+        .headingPID(new PIDFController(3, 0, 0.15, 0, 0))
+//        .positionalPID(new QuadraticDampedPIDController(0.5, 0.07, 0.001, 0.015))
+        .positionalPID(new QuadraticDampedPIDController(0.5, 0.0881, 0.00117, 0))
         .driveVelocityController(new PIDFController(0.01, 0, 0, 0.04, 0.0159))
         .naturalDeceleration(40) // only needed for following velocity profiles.
         .maxReversalBrakingPower(0.2) // has crashed once at -0.3 but is a lot easier

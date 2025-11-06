@@ -35,6 +35,4 @@ public interface Localizer {
     default void setHeading(double heading) {
         setPose(getX(), getY(), heading);
     }
-    
-    
 }

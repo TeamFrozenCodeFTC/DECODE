@@ -1,13 +1,13 @@
-package org.firstinspires.ftc.blackice.examples.tests;
+package org.firstinspires.ftc.blackice.examples;
 
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 
-@TeleOp(group="Black-Ice Examples")
+@Autonomous(group="Black-Ice Examples")
 public class FollowVectorTest extends LinearOpMode {
     @Override
     public void runOpMode() {

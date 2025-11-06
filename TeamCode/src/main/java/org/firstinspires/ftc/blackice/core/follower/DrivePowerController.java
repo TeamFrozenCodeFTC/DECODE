@@ -103,15 +103,22 @@ public class DrivePowerController {
             motionState.makeRobotRelative(drive)
                 //.times(getVoltagePowerCompensation())
                 .map(motionState.robotRelativeVelocity, this::clampReversePower),
-            turn,
-            false
+            turn
         );
     }
     
     public void holdPose(Pose pose, MotionState motionState) {
         Vector holdPower = computeHoldPower(pose.getPosition(), motionState);
         
+        if (motionState.speed < 0.1 && holdPower.computeMagnitude() < 0.1) {
+            holdPower = new Vector(0,0);
+        }
+
         double turnPower = computeHeadingCorrectionPower(pose.getHeading(), motionState);
+        
+        if (motionState.angularVelocity < Math.toRadians(1) && Math.abs(turnPower) < 0.1) {
+            turnPower = 0;
+        }
         
         followFieldVector(holdPower, turnPower, motionState);
     }
@@ -168,6 +175,8 @@ public class DrivePowerController {
         double drivePower;
         if (pathState.path.behavior.velocityProfile == null) {
             drivePower = 1;
+            Logger.graph("targetPositionX", pathState.closestPathPoint.point.getX());
+            Logger.graph("currentPositionX", pathState.motionState.position.getX());
         } else {
             double targetVelocity =
                 pathState.path.behavior.velocityProfile.computeTargetVelocity(
@@ -287,7 +296,7 @@ public class DrivePowerController {
         Vector robotRelativePower = pathState.motionState.makeRobotRelative(totalPower)
             .map(pathState.motionState.robotRelativeVelocity, this::clampReversePower);
         
-        drivetrain.followVector(robotRelativePower, turnPower, false);
+        drivetrain.followVector(robotRelativePower, turnPower);
     }
     
     public double computeHeadingCorrectionPower(double targetHeading,

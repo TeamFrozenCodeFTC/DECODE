@@ -14,13 +14,8 @@ import org.firstinspires.ftc.blackice.util.geometry.Vector;
  * having the follower have a generic.
  */
 public interface Drivetrain {
-    void followVector(Vector robotVector, double turningPower,
-                                      boolean isTeleOp);
+    void followVector(Vector robotVector, double turningPower);
     
-    default void followVector(Vector robotVector, double turningPower) {
-        followVector(robotVector, turningPower, false);
-    }
-
     /**
      * When at zero power, internally brakes the wheels using regenerative braking and
      * back-EMF.

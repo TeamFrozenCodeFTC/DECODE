@@ -18,7 +18,6 @@ import org.firstinspires.ftc.blackice.core.paths.routines.PathRoutine;
 import java.util.ArrayList;
 import java.util.List;
 
-@Config
 @Autonomous(group="Black-Ice Examples")
 public class CurvedBackAndForth extends LinearOpMode {
     @Override

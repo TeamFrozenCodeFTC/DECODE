@@ -16,22 +16,23 @@ public class Shooter {
     private double currentTargetRPM = 0;
     
     public final int TICKS_PER_REV = 28;
-    public final double MAX_DISTANCE_TO_GOAL = 136.82;
-    public final double MAX_RPM_REQUIRED = 5000;
-    public final double ACCELERATION = 2000; // rpm per second
+
+    public final double ACCELERATION = 3000; // rpm per second
     
-    PIDFCoefficients coefficients = new PIDFCoefficients(10, 3, 0, 0);
+    PIDFCoefficients coefficients = new PIDFCoefficients(0, 0, 0, 0);
 
     public void updateFeedforwardByVoltage(double voltageCompensation) {
-        PIDFCoefficients pidf = new PIDFCoefficients(coefficients.p, coefficients.i,
-                                                     coefficients.d, coefficients.f * voltageCompensation);
-        leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
-        rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
+        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                              coefficients.d, coefficients.f * voltageCompensation);
+        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                               coefficients.d, coefficients.f * voltageCompensation);
     }
 
     public void updateCoefficients() {
-        leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
-        rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients);
+        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                              coefficients.d, coefficients.f);
+        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                               coefficients.d, coefficients.f);
     }
     
     public Shooter(HardwareMap hardwareMap) {
@@ -47,7 +48,7 @@ public class Shooter {
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         
-        updateCoefficients();
+        //updateCoefficients();
     }
     
     public double getTargetRPM() {
@@ -67,7 +68,15 @@ public class Shooter {
     }
     
     public void setRpmFromDistance(double distanceToGoal) {
-        double rpm = (distanceToGoal / MAX_DISTANCE_TO_GOAL) * MAX_RPM_REQUIRED;
+        double rpm = 13.5 * distanceToGoal + 2373;
+        
+        // score up to 63 inches away to 240 inches
+        
+        // 12*12 = 144
+        
+        // sqrt(144^2+(144)^2) = 203.646
+        
+        //13.51289x+2373.03744
         setRPM(rpm);
     }
     
@@ -95,7 +104,7 @@ public class Shooter {
     }
 
     public boolean isUpToSpeed() {
-        return Math.abs(getRpm() - targetRPM) < 50; // within 50 RPM tolerance
+        return targetRPM > 0 && Math.abs(getRpm() - targetRPM) < 50;
     }
     
     public void uptake() {

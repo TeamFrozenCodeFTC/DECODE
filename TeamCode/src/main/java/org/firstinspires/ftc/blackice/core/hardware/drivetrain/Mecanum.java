@@ -46,7 +46,7 @@ public class Mecanum implements Drivetrain {
     }
     
     @Override
-    public void followVector(Vector robotVector, double turnPower, boolean isTeleOp) {
+    public void followVector(Vector robotVector, double turnPower) {
         WheelPowers translationalPowers = getTranslationalPowers(robotVector);
         WheelPowers rotationalPowers = new WheelPowers(-turnPower, turnPower,
                                                        -turnPower, turnPower);

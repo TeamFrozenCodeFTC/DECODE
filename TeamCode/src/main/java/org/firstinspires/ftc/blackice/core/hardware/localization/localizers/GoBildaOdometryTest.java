@@ -123,8 +123,16 @@ public class GoBildaOdometryTest extends LinearOpMode {
         an incorrect starting value for x, y, and heading.
          */
         //odo.recalibrateIMU();
+        
+        telemetry.addData("Pose 1", odo.getPosition().getX(DistanceUnit.INCH));
+        telemetry.update();
         odo.resetPosAndIMU();
+        telemetry.addData("Pose 2", odo.getPosition().getX(DistanceUnit.INCH));
+        telemetry.update();
+        
+        sleep(2000);
 
+        telemetry.addData("Pose 3", odo.getPosition().getX(DistanceUnit.INCH));
         telemetry.addData("Status", "Initialized");
         telemetry.addData("X offset", odo.getXOffset());
         telemetry.addData("Y offset", odo.getYOffset());
@@ -135,11 +143,9 @@ public class GoBildaOdometryTest extends LinearOpMode {
         // Wait for the game to start (driver presses START)
         waitForStart();
         resetRuntime();
-
-
+        
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
             /*
             Request an update from the Pinpoint odometry computer. This checks almost all outputs
             from the device in a single I2C read.
@@ -151,7 +157,6 @@ public class GoBildaOdometryTest extends LinearOpMode {
             pull any other data. Only the heading (which you can pull with getHeading() or in getPosition().
              */
             //odo.update(GoBildaPinpointDriver.readData.ONLY_UPDATE_HEADING);
-
 
             if (gamepad1.a){
                 odo.resetPosAndIMU(); //resets the position to 0 and recalibrates the IMU
@@ -171,8 +176,7 @@ public class GoBildaOdometryTest extends LinearOpMode {
             double loopTime = newTime-oldTime;
             double frequency = 1/loopTime;
             oldTime = newTime;
-
-
+            
             /*
             gets the current Position (x & y in mm, and heading in degrees) of the robot, and prints it.
              */
@@ -186,7 +190,6 @@ public class GoBildaOdometryTest extends LinearOpMode {
             Pose2D vel = odo.getVelocity();
             String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.getX(DistanceUnit.MM), vel.getY(DistanceUnit.MM), vel.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Velocity", velocity);
-
 
             /*
             Gets the Pinpoint device status. Pinpoint can reflect a few states. But we'll primarily see
@@ -203,7 +206,6 @@ public class GoBildaOdometryTest extends LinearOpMode {
 
             telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
             telemetry.update();
-
         }
         
     }}

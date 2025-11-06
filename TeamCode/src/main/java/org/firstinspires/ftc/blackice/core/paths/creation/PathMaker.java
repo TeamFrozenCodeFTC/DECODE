@@ -20,8 +20,7 @@ public class PathMaker extends LinearOpMode {
     @Override
     public void runOpMode() {
         Follower follower = new Follower(hardwareMap);
-        
-        // setup menu
+
         menu = new Menu(gamepad1);
         
         // Option: add current position

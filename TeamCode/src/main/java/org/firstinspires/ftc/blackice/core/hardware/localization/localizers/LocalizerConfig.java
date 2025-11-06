@@ -6,7 +6,7 @@ import org.firstinspires.ftc.blackice.core.hardware.localization.Localizer;
 import org.firstinspires.ftc.blackice.core.hardware.localization.MotionTracker;
 
 public interface LocalizerConfig {
-    Localizer build(HardwareMap hardwareMap);
+    Localizer build(HardwareMap hardwareMap) throws InterruptedException;
     
     default MotionTracker createMotionTracker(HardwareMap hardwareMap) {
         return new MotionTracker(hardwareMap, build(hardwareMap));

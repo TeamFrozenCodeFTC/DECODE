@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class PathRoutineController {
     public final DrivePowerController drivePowerController;
-    private final MotionTracker motionTracker;
+    public final MotionTracker motionTracker;
     private final FollowingTimeouts followingTimeouts = new FollowingTimeouts();
     
     private FollowingState followingState = FollowingState.IDLE;
