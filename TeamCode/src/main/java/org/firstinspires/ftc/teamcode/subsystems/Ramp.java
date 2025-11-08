@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
-public class IntakeRamp {
+public class Ramp {
     ServoImplEx servo;
     
-    public IntakeRamp(HardwareMap hardwareMap) {
+    public Ramp(HardwareMap hardwareMap) {
         this.servo = hardwareMap.get(ServoImplEx.class, "intakeRamp");
     }
     
@@ -22,4 +22,11 @@ public class IntakeRamp {
         servo.setPosition(0.654);
     }
     
+    public void disable() {
+        servo.setPwmDisable();
+    }
+    
+    public void enable() {
+        servo.setPwmEnable();
+    }
 }

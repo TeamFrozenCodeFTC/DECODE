@@ -67,7 +67,7 @@ public class PinpointConfig implements LocalizerConfig {
    }
    
    @Override
-   public Localizer build(HardwareMap hardwareMap) throws InterruptedException {
+   public Localizer build(HardwareMap hardwareMap) {
       return new PinpointLocalizer(hardwareMap, this);
    }
 }

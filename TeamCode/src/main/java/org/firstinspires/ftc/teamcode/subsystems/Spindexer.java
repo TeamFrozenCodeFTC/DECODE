@@ -1,14 +1,21 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.graphics.Color;
+
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Spindexer {
     public ServoImplEx servo;
-    public ColorRangeSensor colorSensor;
+    public NormalizedColorSensor colorSensor;
+    public NormalizedColorSensor leftColorSensor;
     
     public enum Artifact {
         NONE,
@@ -31,28 +38,57 @@ public class Spindexer {
     
     public Spindexer(HardwareMap hardwareMap) {
         servo = hardwareMap.get(ServoImplEx.class, "spindexer");
-        colorSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
+        colorSensor = hardwareMap.get(ColorRangeSensor.class, "sensor_color");
+        leftColorSensor = hardwareMap.get(ColorRangeSensor.class, "leftColorSensor");
     }
     
-    public Artifact getDetectedArtifact() {
-        if (colorSensor.getDistance(DistanceUnit.INCH) < 3.0) {
+    public Artifact _getDetectedArtifact(NormalizedColorSensor colorSensor,
+                                        Telemetry telemetry) {
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        final float[] hsvValues = new float[3];
+        Color.colorToHSV(colors.toColor(), hsvValues);
+        float hue = hsvValues[0];
+        float saturation = hsvValues[1];
+        
+        telemetry.addData("distance",
+                          ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
+        telemetry.addData("hue", hue);
+        telemetry.addData("saturation", saturation);
+        
+        if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) > 8) {
             return Artifact.NONE;
         }
-        if (colorSensor.green() > 100) {
-            return Artifact.GREEN;
-        } else if (colorSensor.blue() > 100) {
+        else if (hue >= 180 && hue <= 240) {
             return Artifact.PURPLE;
+        } else if (saturation > .6 && hue >= 120 && hue <= 170) {
+            return Artifact.GREEN;
         }
-        return Artifact.NONE;
+        else {
+            return Artifact.UNKNOWN;
+        }
+    }
+    
+    public Artifact getDetectedArtifact( Telemetry telemetry) {
+        Artifact detected = _getDetectedArtifact(colorSensor, telemetry);
+        if (detected == Artifact.UNKNOWN || detected == Artifact.NONE) {
+            return _getDetectedArtifact(leftColorSensor, telemetry);
+        }
+        return detected;
     }
     
     public void rotateToSlot(double slotIndex) {
-        servo.setPosition(.409 * slotIndex + 0.093);
+
+        // -.5 -> 0
+        // 0 -> .2
+        // 1 -> .6
+        // 2 -> 1
+        servo.setPosition(slotIndex * 0.4 + 0.2);
         currentSlotIndex = (int) slotIndex;
     }
     
-    public void partiallyRotate(int slotIndex) {
-        rotateToSlot(slotIndex + 0.5);
+    public void partiallyRotate(double slotIndex) {
+        servo.setPosition(slotIndex * 0.4 + 0.2);
     }
 
     public void incomingArtifact(Artifact artifactType) {

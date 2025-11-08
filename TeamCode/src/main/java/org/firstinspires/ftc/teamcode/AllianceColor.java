@@ -1,13 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
-import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 
 public enum AllianceColor {
-    RED(new Vector(144-6, 144-6), new Vector(48-9, 24+9)),
-    BLUE(new Vector(6, 144-6), new Vector(24*4+9, 24+9));
+    // 16.5 is average of robot lengths (16x17)
+    BLUE(new Vector(6, 144-6), new Vector(24*4 + 16.5/2, 24 + 16.5/2)),
+    RED(BLUE.goalPosition.mirroredAcrossYAxis(), BLUE.basePosition.mirroredAcrossYAxis());
+
     
-    // start pos rotate 180
+//    RED(new Vector(144-6, 144-6), new Vector(48 - 16.5/2, 24 + 16.5/2)),
+//    BLUE(new Vector(6, 144-6 ), new Vector(24*4 + 16.5/2,
+//                                                              24 + 16.5/2));
     
     private final Vector goalPosition;
     private final Vector basePosition;

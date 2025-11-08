@@ -186,20 +186,18 @@ public class TeleOp extends OpMode {
         }
         else if (lockHeadingToGoal) {
             telemetry.addData("locked heading to", robot.getAngleToGoal());
-            robot.follower.goalCentricTeleOpDrive(
-                gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                robot.getAngleToGoal()
-            );
+            robot.follower.lockHeadingAt(robot.getAngleToGoal());
         }
         else {
+            robot.follower.lockHeadingAt(null);
             telemetry.addLine("driving");
-            robot.follower.fieldCentricTeleOpDrive(
-                gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                -gamepad1.right_stick_x
-            );
         }
+        
+        robot.follower.fieldCentricTeleOpDrive(
+            gamepad1.left_stick_y,
+            gamepad1.left_stick_x,
+            -gamepad1.right_stick_x
+        );
         
         telemetry.update();
         

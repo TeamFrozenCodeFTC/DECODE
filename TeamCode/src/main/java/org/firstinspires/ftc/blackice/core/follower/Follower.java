@@ -102,7 +102,6 @@ public class Follower extends PathRoutineController {
     }
     
     public boolean isStoppedAt(Pose pose) {
-        //h=.5, pos=0.25
         return isAt(pose, new PoseTolerance(0.5, 3))
             && (new VelocityTolerance(0.25, 5))
          .isVelocityWithinTolerance(getMotionState());
@@ -170,6 +169,12 @@ public class Follower extends PathRoutineController {
         );
     }
     
+    Double lockedHeading = null;
+    
+    public void lockHeadingAt(Double heading) {
+         lockedHeading = heading;
+    }
+    
     /**
      * Run a basic field-centric tele-op.
      * <pre><code>
@@ -192,46 +197,27 @@ public class Follower extends PathRoutineController {
         if (motionState.speed < 0.25 && teleOpIsDecelerating) {
             teleOpIsDecelerating = false;
             teleOpIsHolding = true;
-            teleOpTarget = motionState.pose;
+            if (lockedHeading != null) {
+                teleOpTarget = motionState.pose.withHeading(lockedHeading);
+                turn = drivePowerController.computeHeadingCorrectionPower(
+                    teleOpTarget.getHeading(), motionState);
+            } else {
+                teleOpTarget = motionState.pose;
+            }
         }
-        
+
         if (!noInput || teleOpIsDecelerating) {
             teleOpIsHolding = false;
-            drivetrain.followVector(motionState.makeRobotRelative(new Vector(forward,lateral)), turn);
+            drivetrain.followVector(
+                motionState.makeRobotRelative(new Vector(forward, lateral)), turn);
+//        } else if (teleOpIsDecelerating) {
+//            teleOpIsHolding = false;
+//            drivetrain.zeroPower();
         } else {
             holdPose(teleOpTarget);
         }
     }
     
-    public void goalCentricTeleOpDrive(double forward, double lateral,
-                                        double lockedHeading) {
-        MotionState motionState = getMotionState();
-
-        boolean noInput = forward == 0 && lateral == 0;
-        
-        if (noInput && !teleOpIsHolding && !teleOpIsDecelerating) {
-            teleOpIsDecelerating = true;
-        }
-        
-        if (motionState.speed < 0.25 && teleOpIsDecelerating) {
-            teleOpIsDecelerating = false;
-            teleOpIsHolding = true;
-            teleOpTarget = motionState.pose.withHeading(lockedHeading);
-        }
-        
-        if (!noInput) {
-            teleOpIsHolding = false;
-            drivetrain.followVector(motionState.makeRobotRelative(new Vector(forward,
-                                                                             lateral)),
-                                    drivePowerController.computeHeadingCorrectionPower(
-                                        lockedHeading, motionState));
-        } else if (teleOpIsDecelerating) {
-            teleOpIsHolding = false;
-            drivetrain.zeroPower();
-        } else {
-            holdPose(teleOpTarget);
-        }
-    }
     
     public void robotCentricDrive(double forward, double lateral, double turn) {
         drivetrain.followVector(new Vector(forward, lateral), turn);

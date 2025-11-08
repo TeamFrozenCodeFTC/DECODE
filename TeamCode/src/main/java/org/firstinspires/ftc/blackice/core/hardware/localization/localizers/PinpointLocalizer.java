@@ -23,8 +23,7 @@ public class PinpointLocalizer implements Localizer {
     private double xVelocity;
     private double yVelocity;
 
-    public PinpointLocalizer(HardwareMap hardwareMap, PinpointConfig config)
-        throws InterruptedException {
+    public PinpointLocalizer(HardwareMap hardwareMap, PinpointConfig config) {
         this.distanceUnit = config.distanceUnit;
         
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, config.name);
@@ -38,7 +37,13 @@ public class PinpointLocalizer implements Localizer {
         );
         odometry.resetPosAndIMU();
         
-        Thread.sleep(300);
+        //Thread.sleep(250);
+        
+        try {
+            Thread.sleep(250);
+        } catch (InterruptedException ignored) {
+        
+        }
         
         update();
     }

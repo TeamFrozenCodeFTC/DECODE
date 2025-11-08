@@ -5,16 +5,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeRamp;
+import org.firstinspires.ftc.teamcode.subsystems.Ramp;
 import org.firstinspires.ftc.teamcode.subsystems.Paddles;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.Launcher;
 
 public class Robot {
     Intake intake;
-    Shooter shooter;
+    Launcher shooter;
     Spindexer spindexer;
     Follower follower;
-    IntakeRamp intakeRamp;
+    Ramp intakeRamp;
     Paddles paddles;
     
     AllianceColor allianceColor;
@@ -25,22 +25,14 @@ public class Robot {
 
     double distanceToGoal;
     
-//    public enum State {
-//        INTAKING,
-//        SHOOTING,
-//        IDLE
-//    }
-//
-//    State state;
-    
     boolean isRevingToGoal = false;
     
     public Robot(HardwareMap hardwareMap) {
         follower = new Follower(hardwareMap);
         intake = new Intake(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
-        shooter = new Shooter(hardwareMap);
-        intakeRamp = new IntakeRamp(hardwareMap);
+        shooter = new Launcher(hardwareMap);
+        intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
         
         double voltageCompensation = follower.drivePowerController.getVoltagePowerCompensation();
@@ -62,6 +54,7 @@ public class Robot {
         paddles.open();
     }
     
+    
     public void update() {
         shooter.update(follower.getMotionState().deltaTime);
         
@@ -71,7 +64,7 @@ public class Robot {
         if (isRevingToGoal) {
             shooter.setRpmFromDistance(distanceToGoal);
         }
-
+        
 //
 //        if (requestLaunch) {
 //            shooter.setRpmFromDistance(distanceToGoal);

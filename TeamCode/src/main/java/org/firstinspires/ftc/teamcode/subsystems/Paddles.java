@@ -13,12 +13,12 @@ public class Paddles {
     }
     
     public void open() {
-        leftPaddle.setPosition(0.823);
-        rightPaddle.setPosition(0.175);
+        leftPaddle.setPosition(0.842);
+        rightPaddle.setPosition(0.172);
     }
     
     public void close() {
-        leftPaddle.setPosition(0.48);
+        leftPaddle.setPosition(0.45); //
         rightPaddle.setPosition(0.5);
     }
 }

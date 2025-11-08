@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 @Config
-public class Shooter {
+public class Launcher {
     public final DcMotorEx rightMotor;
     public final DcMotorEx leftMotor;
     
@@ -35,7 +35,7 @@ public class Shooter {
                                                coefficients.d, coefficients.f);
     }
     
-    public Shooter(HardwareMap hardwareMap) {
+    public Launcher(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
         
@@ -46,7 +46,7 @@ public class Shooter {
         leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         
         //updateCoefficients();
     }
@@ -69,14 +69,6 @@ public class Shooter {
     
     public void setRpmFromDistance(double distanceToGoal) {
         double rpm = 13.5 * distanceToGoal + 2373;
-        
-        // score up to 63 inches away to 240 inches
-        
-        // 12*12 = 144
-        
-        // sqrt(144^2+(144)^2) = 203.646
-        
-        //13.51289x+2373.03744
         setRPM(rpm);
     }
     

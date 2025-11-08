@@ -98,6 +98,7 @@ public class Auto extends OpMode {
 
         telemetry.update();
     }
+    
   
     void setRoutine(PathRoutine nextRoutine) {
         currentRoutine = nextRoutine;
