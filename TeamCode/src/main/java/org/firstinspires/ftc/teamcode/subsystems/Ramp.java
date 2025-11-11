@@ -11,7 +11,7 @@ public class Ramp {
     }
     
     public void intakeThrough() {
-        servo.setPosition(.933);
+        servo.setPosition(.9);
     }
     
     public void uptake() {
@@ -19,7 +19,7 @@ public class Ramp {
     }
     
     public void outtake() {
-        servo.setPosition(0.654);
+        servo.setPosition(0.630);
     }
     
     public void disable() {

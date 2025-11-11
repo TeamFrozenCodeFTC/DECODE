@@ -5,7 +5,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
-    public DcMotorEx motor;
+    private final DcMotorEx motor;
+    
+    private double targetPower = 0;
+    private double currentPower = 0;
+    private final double rampRate = 0.05;
     
     public Intake(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, "intake");
@@ -13,19 +17,27 @@ public class Intake {
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
     
+    public void update() {
+        if (Math.abs(targetPower - currentPower) < rampRate) {
+            currentPower = targetPower;
+        } else if (currentPower < targetPower) {
+            currentPower += rampRate;
+        } else {
+            currentPower -= rampRate;
+        }
+        
+        motor.setPower(currentPower);
+    }
+    
     public void intake() {
-        motor.setPower(1);
+        targetPower = 1;
     }
     
     public void outtake() {
-        motor.setPower(-1);
-    }
-    
-    public void spinIntoShooter() {
-        motor.setPower(-1);
+        targetPower = -1;
     }
     
     public void stop() {
-        motor.setPower(0);
+        targetPower = 0;
     }
 }

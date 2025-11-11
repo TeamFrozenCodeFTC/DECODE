@@ -114,7 +114,9 @@ public class DrivePowerController {
             holdPower = new Vector(0,0);
         }
 
-        double turnPower = computeHeadingCorrectionPower(pose.getHeading(), motionState);
+        double turnPower =
+            computeHeadingCorrectionPower(Math.toRadians(pose.getHeading()),
+                                                         motionState);
         
         if (motionState.angularVelocity < Math.toRadians(1) && Math.abs(turnPower) < 0.1) {
             turnPower = 0;

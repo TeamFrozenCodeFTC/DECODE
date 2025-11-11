@@ -18,7 +18,7 @@ public class Paddles {
     }
     
     public void close() {
-        leftPaddle.setPosition(0.45); //
-        rightPaddle.setPosition(0.5);
+        leftPaddle.setPosition(0.479);
+        rightPaddle.setPosition(0.515);
     }
 }

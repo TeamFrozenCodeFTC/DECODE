@@ -17,8 +17,6 @@ import org.firstinspires.ftc.blackice.util.geometry.Vector;
  * Orchestrator
  */
 public class Follower extends PathRoutineController {
-    private static Follower INSTANCE;
-    private static Pose lastOpModePose;
     public final Drivetrain drivetrain;
     public final Pose startingPose;
     private final double pauseWhenVoltageBelow;
@@ -27,8 +25,7 @@ public class Follower extends PathRoutineController {
     public Pose teleOpTarget;
     private PathBehavior defaultPathBehavior;
     private boolean lowVoltage = false;
-    private double voltage = 0;
-    
+
     public Follower(
         HardwareMap hardwareMap,
         FollowerConfig config,
@@ -55,7 +52,6 @@ public class Follower extends PathRoutineController {
               ), config.localizerConfig.createMotionTracker(hardwareMap)
         );
         this.drivetrain = getDrivetrain();
-        INSTANCE = this;
         this.startingPose = startingPose;
         setCurrentPose(startingPose);
         
@@ -76,20 +72,17 @@ public class Follower extends PathRoutineController {
         this(hardwareMap, new Pose(0, 0, 0));
     }
     
-    public static Follower getInstance() {
-        return INSTANCE;
-    }
-    
-    public static Pose getLastOpModePose() {
-        return lastOpModePose;
-    }
-    
     public void addDefaultPathBehavior(PathBehavior behavior) {
         defaultPathBehavior = defaultPathBehavior.mergeWith(behavior);
     }
     
     public void holdPose(Pose pose) {
         drivePowerController.holdPose(pose, getMotionState());
+    }
+    
+    public boolean isWithinBraking(Pose pose) {
+        return drivePowerController.computeHoldPower(pose.getPosition(),
+                                                   getMotionState()).computeMagnitude() < 1;
     }
 
     public boolean isAt(Pose pose, PoseTolerance tolerance) {
@@ -152,22 +145,6 @@ public class Follower extends PathRoutineController {
     public double getVoltage() {
         return drivePowerController.getVoltage();
     }
-
-    /**
-     * Initializes the robot for tele-op mode, using the position from the end of the
-     * autonomous period.
-     */
-    public void initTeleOp() {
-        setCurrentPose(lastOpModePose);
-        drivetrain.zeroPowerBrakeMode();
-    }
-    
-    public void savePoseForTeleOp() {
-        lastOpModePose = new Pose(
-            getMotionState().position,
-            Math.toDegrees(getMotionState().heading)
-        );
-    }
     
     Double lockedHeading = null;
     
@@ -194,101 +171,33 @@ public class Follower extends PathRoutineController {
             teleOpIsDecelerating = true;
         }
         
-        if (motionState.speed < 0.25 && teleOpIsDecelerating) {
+        if (motionState.speed < 0.1 && teleOpIsDecelerating && !teleOpIsHolding) {
             teleOpIsDecelerating = false;
             teleOpIsHolding = true;
-            if (lockedHeading != null) {
-                teleOpTarget = motionState.pose.withHeading(lockedHeading);
-                turn = drivePowerController.computeHeadingCorrectionPower(
-                    teleOpTarget.getHeading(), motionState);
-            } else {
-                teleOpTarget = motionState.pose;
-            }
+            teleOpTarget =
+                motionState.pose.withHeading(Math.toDegrees(motionState.heading));
         }
-
+        
         if (!noInput || teleOpIsDecelerating) {
             teleOpIsHolding = false;
+            if (lockedHeading != null) {
+                turn = drivePowerController.computeHeadingCorrectionPower(
+                    lockedHeading, motionState);
+            }
             drivetrain.followVector(
                 motionState.makeRobotRelative(new Vector(forward, lateral)), turn);
 //        } else if (teleOpIsDecelerating) {
 //            teleOpIsHolding = false;
 //            drivetrain.zeroPower();
         } else {
+            if (lockedHeading != null) {
+                teleOpTarget = teleOpTarget.withHeading(lockedHeading);
+            }
             holdPose(teleOpTarget);
         }
     }
-    
     
     public void robotCentricDrive(double forward, double lateral, double turn) {
         drivetrain.followVector(new Vector(forward, lateral), turn);
     }
 }
-
-
-//    /**
-//     * Initializes the robot for tele-op mode,
-//     * using the position from the end of the autonomous period.
-//     */
-//    public void initTeleOp() {
-//        localizer.setPose(lastOpModePose);
-//        motionTracker.update();
-//        motionState = motionTracker.getMotionState();
-//        drivetrain.zeroPowerBrakeMode();
-//    }
-//
-//    public void savePoseForTeleOp() {
-//        lastOpModePose = new Pose(
-//            motionState.position,
-//            Math.toDegrees(motionState.heading)
-//        );
-//    }
-//
-//    public void setHeadingResetButton(Condition gamepadCondition, double
-//    headingDegrees) {
-//        this.doWhen(
-//            gamepadCondition,
-//            () -> localizer.setHeading(headingDegrees)
-//        );
-//    }
-//
-//    public void setPoseResetButton(
-//        Condition gamepadCondition,
-//        double resetX, double resetY, double resetHeading
-//    ) {
-//        this.doWhen(
-//            gamepadCondition,
-//            () -> localizer.setPose(resetX, resetY, resetHeading)
-//        );
-//    }
-//
-//    /**
-//     * Run a basic field-centric tele-op.
-//     * <p>
-//     * For driver field-centric
-//     * <pre><code>
-//     * follower.fieldCentricTeleOpDrive(
-//     *     -gamepad1.left_stick_y
-//     *     -gamepad1.left_stick_x,
-//     *     -gamepad1.right_stick_x
-//     * );
-//     * </code></pre>
-//     */
-//    public void fieldCentricTeleOpDrive(double forward, double lateral, double turn) {
-//        updateMotionState();
-//        if (opMode.gamepad1.right_stick_button){ // turning
-//            drivetrain.applyBrakingPowers(motionState.makeRobotRelative(new Vector
-//            (forward,
-//                    lateral)),
-//                turn);
-//        }
-//        else { // simple add
-//            drivetrain.followVector(motionState.makeRobotRelative(new Vector(forward,
-//            lateral)),
-//                turn); // combine into one with condition
-//        }
-//    }
-//
-//    public void robotCentricDrive(double y, double x, double turn) {
-//        updateMotionState();
-//        drivetrain.followVector(new Vector(x, y), turn);
-//    }

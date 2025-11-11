@@ -53,7 +53,7 @@ public class HeadingPIDTuner extends LinearOpMode {
                 timer.reset();
             }
             
-            telemetry.addData("Current Heading (deg)", Math.toDegrees(follower.getCurrentPose().getHeading()));
+            telemetry.addData("Current Heading (deg)", follower.getCurrentPose().getHeading());
             telemetry.addData("Target Heading (deg)", Math.toDegrees(targetHeading));
             telemetry.addData("Turn Power", turnPower);
             telemetry.addData("Heading Error (deg)",

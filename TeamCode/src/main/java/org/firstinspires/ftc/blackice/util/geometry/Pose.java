@@ -38,6 +38,9 @@ public class Pose {
                         getHeading() + heading);
     }
     
+    public Pose headingToDegrees() {
+        return this.withHeading(Math.toDegrees(getHeading()));
+    }
     
     public Vector getPosition() {
         return position;

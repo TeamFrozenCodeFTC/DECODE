@@ -1,21 +1,16 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.graphics.Color;
-
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Spindexer {
     public ServoImplEx servo;
-    public NormalizedColorSensor colorSensor;
-    public NormalizedColorSensor leftColorSensor;
+    public ArtifactDetector rightColorSensor;
+    public ArtifactDetector leftColorSensor;
     
     public enum Artifact {
         NONE,
@@ -34,50 +29,53 @@ public class Spindexer {
     
     public Artifact[] slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
 
-    public int currentSlotIndex = 0;
+    public int currentSlotIndex = 2;
+    
+    public void resetSlots() {
+        slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
+    }
+    
+    public void turnArtifactsBack() {
+        rotateToSlot(0);
+    }
     
     public Spindexer(HardwareMap hardwareMap) {
         servo = hardwareMap.get(ServoImplEx.class, "spindexer");
-        colorSensor = hardwareMap.get(ColorRangeSensor.class, "sensor_color");
-        leftColorSensor = hardwareMap.get(ColorRangeSensor.class, "leftColorSensor");
+        rightColorSensor = new ArtifactDetector(hardwareMap, "sensor_color");
+        leftColorSensor = new ArtifactDetector(hardwareMap, "leftColorSensor");
     }
     
-    public Artifact _getDetectedArtifact(NormalizedColorSensor colorSensor,
-                                        Telemetry telemetry) {
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
-
-        final float[] hsvValues = new float[3];
-        Color.colorToHSV(colors.toColor(), hsvValues);
-        float hue = hsvValues[0];
-        float saturation = hsvValues[1];
-        
-        telemetry.addData("distance",
-                          ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM));
-        telemetry.addData("hue", hue);
-        telemetry.addData("saturation", saturation);
-        
-        if (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM) > 8) {
-            return Artifact.NONE;
-        }
-        else if (hue >= 180 && hue <= 240) {
-            return Artifact.PURPLE;
-        } else if (saturation > .6 && hue >= 120 && hue <= 170) {
-            return Artifact.GREEN;
-        }
-        else {
-            return Artifact.UNKNOWN;
-        }
+    public void enableSensors() {
+        rightColorSensor.enable();
+        leftColorSensor.enable();
     }
     
-    public Artifact getDetectedArtifact( Telemetry telemetry) {
-        Artifact detected = _getDetectedArtifact(colorSensor, telemetry);
+    public void disableSensors() {
+        rightColorSensor.disable();
+        leftColorSensor.disable();
+    }
+    
+    
+    
+    public Artifact getDetectedArtifact() {
+        Artifact detected = rightColorSensor.getDetectedArtifact();
         if (detected == Artifact.UNKNOWN || detected == Artifact.NONE) {
-            return _getDetectedArtifact(leftColorSensor, telemetry);
+            Artifact secondDetected = leftColorSensor.getDetectedArtifact();
+            if (secondDetected == Artifact.NONE) {
+                return Artifact.UNKNOWN;
+            }
         }
         return detected;
     }
     
     public void rotateToSlot(double slotIndex) {
+        
+        // 1800 / 60 = 30 slots
+        
+        // 60 / 1800 = .0333 per slot
+        
+        //servo.setPosition(slotIndex * ((double) 60 / 1800));
+        
 
         // -.5 -> 0
         // 0 -> .2
@@ -88,7 +86,7 @@ public class Spindexer {
     }
     
     public void partiallyRotate(double slotIndex) {
-        servo.setPosition(slotIndex * 0.4 + 0.2);
+        servo.setPosition((slotIndex + .5) * 0.4 + 0.2);
     }
 
     public void incomingArtifact(Artifact artifactType) {

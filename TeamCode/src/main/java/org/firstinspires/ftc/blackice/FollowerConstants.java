@@ -32,8 +32,8 @@ public final class FollowerConstants {
         .backRight("backRight", DcMotorSimple.Direction.FORWARD)
 //        .maxForwardSpeed(65.37) // Tuned for 312 rpm
 //        .maxStrafeSpeed(46.22); // * 1/sqrt(2) for diagonal
-        .maxForwardSpeed(60) // Tuned for 312 rpm
-        .maxStrafeSpeed(45); // * 1/sqrt(2) for diagonal
+        .maxForwardSpeed(60)
+        .maxStrafeSpeed(45);
     
     public static PathBehavior defaultPathBehavior = new PathBehavior()
         .continueMomentumAtEnd()
@@ -47,7 +47,7 @@ public final class FollowerConstants {
         .defaultPathBehavior(defaultPathBehavior)
         .headingPID(new PIDFController(3, 0, 0.15, 0, 0))
 //        .positionalPID(new QuadraticDampedPIDController(0.5, 0.07, 0.001, 0.015))
-        .positionalPID(new QuadraticDampedPIDController(0.5, 0.0881, 0.00117, 0))
+        .positionalPID(new QuadraticDampedPIDController(0.3, 0.0881, 0.00117, 0))
         .driveVelocityController(new PIDFController(0.01, 0, 0, 0.04, 0.0159))
         .naturalDeceleration(40) // only needed for following velocity profiles.
         .maxReversalBrakingPower(0.2) // has crashed once at -0.3 but is a lot easier

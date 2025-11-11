@@ -18,21 +18,20 @@ public class Launcher {
     public final int TICKS_PER_REV = 28;
 
     public final double ACCELERATION = 3000; // rpm per second
-    
-    PIDFCoefficients coefficients = new PIDFCoefficients(0, 0, 0, 0);
 
-    public void updateFeedforwardByVoltage(double voltageCompensation) {
-        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                              coefficients.d, coefficients.f * voltageCompensation);
-        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                               coefficients.d, coefficients.f * voltageCompensation);
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(45, 5, 15, 187);
+    
+    public double voltage;
+    
+    public void updateFeedforwardByVoltage(double currentVoltage) {
+        voltage = currentVoltage;
     }
 
     public void updateCoefficients() {
         leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                              coefficients.d, coefficients.f);
+                                              coefficients.d, coefficients.f / voltage);
         rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                               coefficients.d, coefficients.f);
+                                               coefficients.d, coefficients.f / voltage);
     }
     
     public Launcher(HardwareMap hardwareMap) {
@@ -47,8 +46,6 @@ public class Launcher {
 
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        
-        //updateCoefficients();
     }
     
     public double getTargetRPM() {
@@ -73,6 +70,8 @@ public class Launcher {
     }
     
     public void update(double deltaTime) {
+        updateCoefficients();
+        
         double rpmDifference = targetRPM - currentTargetRPM;
         double maxStep = ACCELERATION * deltaTime;
         
