@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -23,7 +23,7 @@ public class AprilTag {
      */
     private VisionPortal visionPortal;
 
-    private HardwareMap hardwareMap;
+    private final HardwareMap hardwareMap;
 
     public AprilTag(HardwareMap map) {
         hardwareMap = map;
@@ -37,6 +37,7 @@ public class AprilTag {
 
         // Create the vision portal the easy way.
         visionPortal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+        
     }
 
     // stop the april tag library
@@ -48,7 +49,7 @@ public class AprilTag {
     public Spindexer.Artifact[] getPattern(){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-        if(currentDetections.size()==0) {
+        if (currentDetections.isEmpty()) {
             return null;
         }
 
@@ -74,11 +75,5 @@ public class AprilTag {
         } else {
             return null;
         }
-    }
-
-    // get april tag information
-    public List<AprilTagDetection> getDetections() {
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        return currentDetections;
     }
 }

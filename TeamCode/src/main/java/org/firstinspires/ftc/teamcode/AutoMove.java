@@ -22,11 +22,11 @@ public class AutoMove extends Auto2 {
     }
     
     public enum State {
-        MOVING_TO_ARTIFACT_GROUP_1,
+        ONE,
         IDLE
     }
     
-    State state = State.MOVING_TO_ARTIFACT_GROUP_1;
+    State state = State.ONE;
     
     @Override
     public void start() {
@@ -43,7 +43,7 @@ public class AutoMove extends Auto2 {
         robot.follower.update();
         
         switch (state) {
-            case MOVING_TO_ARTIFACT_GROUP_1:
+            case ONE:
                 robot.follower.holdPose(artifactGroup1Pose);
                 
                 if (robot.follower.isStoppedAt(artifactGroup1Pose)) {

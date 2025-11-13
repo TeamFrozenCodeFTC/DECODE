@@ -25,7 +25,6 @@ public class Close3Artifacts extends Auto2 {
     public void start() {
         super.start();
         
-        
         telemetry.addData("startingPose", startingPose);
         telemetry.update();
         

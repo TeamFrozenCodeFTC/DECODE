@@ -69,24 +69,16 @@ public class Spindexer {
     }
     
     public void rotateToSlot(double slotIndex) {
+  
         
-        // 1800 / 60 = 30 slots
+        servo.setPosition(slotIndex * ((double) 60 / 1800) + .484);
         
-        // 60 / 1800 = .0333 per slot
-        
-        //servo.setPosition(slotIndex * ((double) 60 / 1800));
-        
-
-        // -.5 -> 0
-        // 0 -> .2
-        // 1 -> .6
-        // 2 -> 1
-        servo.setPosition(slotIndex * 0.4 + 0.2);
+       // servo.setPosition(slotIndex * 0.4 + 0.2);
         currentSlotIndex = (int) slotIndex;
     }
     
     public void partiallyRotate(double slotIndex) {
-        servo.setPosition((slotIndex + .5) * 0.4 + 0.2);
+        servo.setPosition((slotIndex + .5) * ((double) 60 / 1800) + .484);
     }
 
     public void incomingArtifact(Artifact artifactType) {

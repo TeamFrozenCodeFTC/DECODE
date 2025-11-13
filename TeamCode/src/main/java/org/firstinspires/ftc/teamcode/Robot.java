@@ -61,6 +61,8 @@ public class Robot {
         shooter.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
     }
     
+    
+    boolean artifactWasDetected;
     public void update() {
         follower.update();
         
@@ -90,40 +92,34 @@ public class Robot {
                     paddles.close();
                 }
                 
-                if (detectedArtifact.isArtifact()) {
+                if (detectedArtifact.isArtifact() && !artifactWasDetected) {
+                    artifactWasDetected = true;
                     stateTimer.reset();
                     paddles.close();
-                } else if (stateTimer.seconds() > 1) {
+                }
+       
+                if (stateTimer.seconds() > 1) {
                     stateTimer.pauseAtZero();
                     hasRotated = false;
                 } else if (stateTimer.seconds() > 0.4 && !hasRotated) {
-                
                     hasRotated = true;
-                    if (spindexer.currentSlotIndex == 0) {
-                        spindexer.partiallyRotate(-1);
-                        intake.stop();
-                        intakeRamp.outtake();
-                        setState(Robot.State.IDLE);
-                    }
-                    else {
+                    if (spindexer.getNumberOfArtifacts() <= 1) {
+                        spindexer.slots[spindexer.currentSlotIndex] = detectedArtifact;
                         spindexer.rotateToSlot(spindexer.currentSlotIndex - 1);
                     }
-                    
-//                    hasRotated = true;
-//                    if (spindexer.getNumberOfArtifacts() <= 1) {
-//                        spindexer.rotateToSlot(spindexer.currentSlotIndex - 1);
-//                    }
-//                    else if (spindexer.getNumberOfArtifacts() == 2) {
-//                        if (spindexer.slots[1] == detectedArtifact) {
-//                            spindexer.partiallyRotate(spindexer.currentSlotIndex - 1);
-//                        }
-//                        else {
-//                            spindexer.rotateToSlot(spindexer.currentSlotIndex);
-//                        }
-//                        intake.stop();
-//                        intakeRamp.outtake();
-//                        setState(Robot.State.IDLE);
-//                    }
+                    else if (spindexer.getNumberOfArtifacts() == 2) {
+                        spindexer.slots[spindexer.currentSlotIndex] = detectedArtifact;
+                        if (spindexer.slots[1] == detectedArtifact) {
+                            spindexer.partiallyRotate(spindexer.currentSlotIndex - 1);
+                        }
+                        else {
+                            spindexer.partiallyRotate(spindexer.currentSlotIndex);
+                        }
+                        intake.stop();
+                        intakeRamp.outtake();
+                        artifactWasDetected = false;
+                        setState(Robot.State.IDLE);
+                    }
                 }
                 
                 break;
@@ -141,16 +137,18 @@ public class Robot {
                 break;
                 
             case FIRING:
-                stateTimer.resume();
-                
                 if (shooter.isUpToSpeed()) { // and is in the zone
                     spindexer.rotateToSlot(2);
+                    stateTimer.resume();
+                    
+                    if (stateTimer.seconds() > 3) {
+                        setState(State.IDLE);
+                        spindexer.resetSlots();
+                    }
                     //spindexer.rotateToSlot(spindexer.currentSlotIndex + 2);
                 }
                 
-                if (stateTimer.seconds() > 2) {
-                    setState(State.IDLE);
-                }
+
             case REVVING:
                 revLauncher();
                 follower.lockHeadingAt(getAngleToGoal());
@@ -166,7 +164,9 @@ public class Robot {
 //        else {
 //            intakeRamp.enable();
 //        }
-//
+        
+        intake.update();
+
         shooter.update(follower.getMotionState().deltaTime);
     }
     

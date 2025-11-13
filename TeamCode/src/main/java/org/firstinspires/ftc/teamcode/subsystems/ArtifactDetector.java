@@ -53,4 +53,51 @@ public class ArtifactDetector {
             return Spindexer.Artifact.UNKNOWN;
         }
     }
+    
+//    public Spindexer.Artifact getDetectedArtifact() {
+//        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+//
+//        final float[] hsvValues = new float[3];
+//        Color.colorToHSV(colors.toColor(), hsvValues);
+//
+//        hue = hsvValues[0];
+//        saturation = hsvValues[1];
+//        distanceCm = ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM);
+//
+//        // Ignore readings that are too far to be reliable
+//        if (distanceCm > 8.5) {
+//            return Spindexer.Artifact.NONE;
+//        }
+//
+//        // Add minimum saturation to filter out gray/white noise
+//        if (saturation < 0.25) {
+//            return Spindexer.Artifact.NONE;
+//        }
+//
+//        // Optional: Add a small hue offset to account for lighting differences
+//        double adjustedHue = (hue + 360) % 360;
+//
+//        // Tighter color bounds and use overlapping zones for smoother transitions
+//        boolean isPurple =
+//            adjustedHue >= 175 && adjustedHue <= 255 &&
+//                saturation >= 0.35 &&
+//                colors.red > colors.green * 1.2;
+//
+//        boolean isGreen =
+//            adjustedHue >= 100 && adjustedHue <= 170 &&
+//                saturation >= 0.4 &&
+//                colors.green > colors.red * 1.2;
+//
+//        if (isPurple && !isGreen) {
+//            return Spindexer.Artifact.PURPLE;
+//        } else if (isGreen && !isPurple) {
+//            return Spindexer.Artifact.GREEN;
+//        } else if (isGreen && isPurple) {
+//            // Ambiguous detection, likely transitional lighting
+//            return Spindexer.Artifact.UNKNOWN;
+//        } else {
+//            return Spindexer.Artifact.NONE;
+//        }
+//    }
+
 }

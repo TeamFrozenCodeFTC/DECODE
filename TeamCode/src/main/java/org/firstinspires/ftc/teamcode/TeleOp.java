@@ -103,8 +103,9 @@ public class TeleOp extends OpMode {
             robot.shooter.setRPM(robot.shooter.getTargetRPM() + 50);
         }
 
-        if (gamepad1.triangleWasPressed()) {
+        if (gamepad1.circleWasPressed()) {
             robot.detectedArtifact = Spindexer.Artifact.PURPLE;
+            gamepad1.rumble(Haptics.CONFIRM);
         }
 
 //        telemetry.addData("isInLaunchZone", isInLaunchZone());
@@ -158,8 +159,7 @@ public class TeleOp extends OpMode {
             gamepad1.left_stick_x,
             -gamepad1.right_stick_x
         );
-        //robot.follower.holdPose(robot.follower.teleOpTarget);
-        
+
         telemetry.update();
 
         robot.update();

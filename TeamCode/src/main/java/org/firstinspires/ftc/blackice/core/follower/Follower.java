@@ -162,33 +162,65 @@ public class Follower extends PathRoutineController {
      * );
      * </code></pre>
      */
+//    public void fieldCentricTeleOpDrive(double forward, double lateral, double turn) {
+//        MotionState motionState = getMotionState();
+//
+//        boolean noInput = forward == 0 && lateral == 0 && turn == 0;
+//
+//        if (noInput && !teleOpIsHolding && !teleOpIsDecelerating) {
+//            teleOpIsDecelerating = true;
+//        }
+//
+//        if (motionState.speed < 0.1 && teleOpIsDecelerating && !teleOpIsHolding) {
+//            teleOpIsDecelerating = false;
+//            teleOpIsHolding = true;
+//            teleOpTarget =
+//                motionState.pose.withHeading(Math.toDegrees(motionState.heading));
+//        }
+//
+//        if (!noInput || teleOpIsDecelerating) {
+//            teleOpIsHolding = false;
+//            if (lockedHeading != null) {
+//                turn = drivePowerController.computeHeadingCorrectionPower(
+//                    lockedHeading, motionState);
+//            }
+//            drivetrain.followVector(
+//                motionState.makeRobotRelative(new Vector(forward, lateral)), turn);
+////        } else if (teleOpIsDecelerating) {
+////            teleOpIsHolding = false;
+////            drivetrain.zeroPower();
+//        } else {
+//            if (lockedHeading != null) {
+//                teleOpTarget = teleOpTarget.withHeading(lockedHeading);
+//            }
+//            holdPose(teleOpTarget);
+//        }
+//    }
+    
     public void fieldCentricTeleOpDrive(double forward, double lateral, double turn) {
-        MotionState motionState = getMotionState();
-        
+        MotionState motion = getMotionState();
         boolean noInput = forward == 0 && lateral == 0 && turn == 0;
         
-        if (noInput && !teleOpIsHolding && !teleOpIsDecelerating) {
-            teleOpIsDecelerating = true;
-        }
-        
-        if (motionState.speed < 0.1 && teleOpIsDecelerating && !teleOpIsHolding) {
+        if (noInput) {
+            if (!teleOpIsHolding && !teleOpIsDecelerating) {
+                teleOpIsDecelerating = true;
+            }
+            
+            if (motion.speed < 0.1 && teleOpIsDecelerating && !teleOpIsHolding) {
+                teleOpIsDecelerating = false;
+                teleOpIsHolding = true;
+                teleOpTarget = motion.pose.withHeading(Math.toDegrees(motion.heading));
+            }
+        } else {
+            teleOpIsHolding = false;
             teleOpIsDecelerating = false;
-            teleOpIsHolding = true;
-            teleOpTarget =
-                motionState.pose.withHeading(Math.toDegrees(motionState.heading));
         }
         
         if (!noInput || teleOpIsDecelerating) {
-            teleOpIsHolding = false;
             if (lockedHeading != null) {
-                turn = drivePowerController.computeHeadingCorrectionPower(
-                    lockedHeading, motionState);
+                turn = drivePowerController.computeHeadingCorrectionPower(lockedHeading, motion);
             }
-            drivetrain.followVector(
-                motionState.makeRobotRelative(new Vector(forward, lateral)), turn);
-//        } else if (teleOpIsDecelerating) {
-//            teleOpIsHolding = false;
-//            drivetrain.zeroPower();
+            drivetrain.followVector(motion.makeRobotRelative(new Vector(forward, lateral)), turn);
         } else {
             if (lockedHeading != null) {
                 teleOpTarget = teleOpTarget.withHeading(lockedHeading);
@@ -196,6 +228,7 @@ public class Follower extends PathRoutineController {
             holdPose(teleOpTarget);
         }
     }
+    
     
     public void robotCentricDrive(double forward, double lateral, double turn) {
         drivetrain.followVector(new Vector(forward, lateral), turn);
