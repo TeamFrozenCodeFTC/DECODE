@@ -12,16 +12,16 @@ import java.util.Arrays;
 @TeleOp
 public class AprilTagAuto extends OpMode {
     AprilTag aprilTag;
-    
+
     @Override
     public void init() {
         aprilTag = new AprilTag(hardwareMap);
         aprilTag.start();
-        
+
         telemetry = new MultipleTelemetry(FtcDashboard.getInstance().getTelemetry(),
                                           telemetry);
     }
-    
+
     @Override
     public void loop() {
         if (gamepad1.aWasPressed()) {
@@ -37,7 +37,7 @@ public class AprilTagAuto extends OpMode {
         }
 
     }
-    
+
     @Override
     public void stop() {
         aprilTag.stop();

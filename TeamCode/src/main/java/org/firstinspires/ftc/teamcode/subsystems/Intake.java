@@ -9,7 +9,7 @@ public class Intake {
     
     private double targetPower = 0;
     private double currentPower = 0;
-    private final double rampRate = 0.05;
+    private final double rampRate = 0.1;
     
     public Intake(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, "intake");

@@ -137,11 +137,6 @@ public class Follower extends PathRoutineController {
         }
     }
     
-    public void update() {
-        logVoltage();
-        super.update();
-    }
-    
     public double getVoltage() {
         return drivePowerController.getVoltage();
     }
@@ -223,7 +218,7 @@ public class Follower extends PathRoutineController {
             drivetrain.followVector(motion.makeRobotRelative(new Vector(forward, lateral)), turn);
         } else {
             if (lockedHeading != null) {
-                teleOpTarget = teleOpTarget.withHeading(lockedHeading);
+                teleOpTarget = teleOpTarget.withHeading(Math.toDegrees(lockedHeading));
             }
             holdPose(teleOpTarget);
         }

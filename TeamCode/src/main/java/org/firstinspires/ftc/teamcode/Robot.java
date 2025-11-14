@@ -12,15 +12,26 @@ import org.firstinspires.ftc.teamcode.subsystems.Launcher;
 
 public class Robot {
     Intake intake;
-    Launcher shooter;
+    Launcher launcher;
     Spindexer spindexer;
     Follower follower;
     Ramp intakeRamp;
     Paddles paddles;
     
     AllianceColor allianceColor = AllianceColor.BLUE;
-
-    double distanceToGoal;
+    Spindexer.Artifact[] motifPattern = new Spindexer.Artifact[]
+        {Spindexer.Artifact.GREEN, Spindexer.Artifact.PURPLE, Spindexer.Artifact.PURPLE};
+    
+    int firedArtifacts = 0;
+    boolean artifactWasDetected = false;
+    boolean spindexerHasRotated = false;
+    boolean paddlesRotated = false;
+    boolean launchPathClear = true;
+    
+    Robot.State state = Robot.State.IDLE;
+    Timeout stateTimer = new Timeout();
+    
+    Spindexer.Artifact detectedArtifact = Spindexer.Artifact.NONE;
     
     public enum State {
         GROUND_FIRE,
@@ -30,12 +41,6 @@ public class Robot {
         IDLE,
         AUTO_TRANSITION,
     }
-    
-    Robot.State state = Robot.State.IDLE;
-    
-    boolean hasRotated = false;
-    
-    Timeout stateTimer = new Timeout();
     
     public void setState(Robot.State newState) {
         if (state == newState) {
@@ -52,39 +57,38 @@ public class Robot {
         spindexer = new Spindexer(hardwareMap);
         intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
-        shooter = new Launcher(hardwareMap);
+        launcher = new Launcher(hardwareMap);
     }
-    
-    Spindexer.Artifact detectedArtifact = Spindexer.Artifact.NONE;
-    
+
     private void revLauncher() {
-        shooter.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
+        launcher.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
     }
-    
-    
-    boolean artifactWasDetected;
+
     public void update() {
         follower.update();
+        spindexer.disableSensors();
         
         switch (state) {
             case GROUND_FIRE:
+                stateTimer.resume();
                 intakeRamp.intakeThrough();
                 paddles.open();
                 
                 revLauncher();
                 follower.lockHeadingAt(getAngleToGoal());
                 
-                if (shooter.isUpToSpeed()) {
+                if (launcher.isUpToSpeed()) {
                     intake.intake();
                 }
-
                 break;
             case LOAD_ARTIFACTS:
                 spindexer.enableSensors();
                 intakeRamp.uptake();
                 intake.intake();
                 
-                if (stateTimer.isPaused()) {
+                // todo read color sensors to detect artifact
+                
+                if (spindexerHasRotated) {
                     paddles.open();
                 }
                 else {
@@ -92,64 +96,82 @@ public class Robot {
                     paddles.close();
                 }
                 
+                // 1. Detect artifact intaked
                 if (detectedArtifact.isArtifact() && !artifactWasDetected) {
                     artifactWasDetected = true;
-                    stateTimer.reset();
+                    stateTimer.reset(); // starts timer
                     paddles.close();
                 }
        
                 if (stateTimer.seconds() > 1) {
-                    stateTimer.pauseAtZero();
-                    hasRotated = false;
-                } else if (stateTimer.seconds() > 0.4 && !hasRotated) {
-                    hasRotated = true;
-                    if (spindexer.getNumberOfArtifacts() <= 1) {
-                        spindexer.slots[spindexer.currentSlotIndex] = detectedArtifact;
-                        spindexer.rotateToSlot(spindexer.currentSlotIndex - 1);
-                    }
-                    else if (spindexer.getNumberOfArtifacts() == 2) {
-                        spindexer.slots[spindexer.currentSlotIndex] = detectedArtifact;
-                        if (spindexer.slots[1] == detectedArtifact) {
-                            spindexer.partiallyRotate(spindexer.currentSlotIndex - 1);
-                        }
-                        else {
-                            spindexer.partiallyRotate(spindexer.currentSlotIndex);
-                        }
-                        intake.stop();
-                        intakeRamp.outtake();
-                        artifactWasDetected = false;
-                        setState(Robot.State.IDLE);
+                    spindexerHasRotated = true;
+                    paddlesRotated = false;
+                    artifactWasDetected = false;
+                } else if (stateTimer.seconds() > 0.4 && !paddlesRotated) {
+                    paddlesRotated = true;
+                    
+                    int count = spindexer.getNumberOfArtifacts();
+                    spindexer.slots[count] = detectedArtifact;
+                    
+                    switch (count) {
+                        case 0:
+                            spindexer.rotateToSlot(1);
+                            break;
+                        case 1:
+                            spindexer.rotateToSlot(2);
+                            break;
+                        case 2:
+                            double targetSlot = (spindexer.slots[1] == detectedArtifact) ? 1.5 : 2.5;
+                            spindexer.rotateToSlot(targetSlot);
+                            
+                            intake.stop();
+                            intakeRamp.outtake();
+                            paddlesRotated = false;
+                            artifactWasDetected = false;
+                            setState(Robot.State.IDLE);
+                            break;
                     }
                 }
                 
                 break;
-            case IDLE: // holding artifacts
-                spindexer.disableSensors();
+            case IDLE:
                 stateTimer.resume();
                 
                 if (stateTimer.seconds() > 0.5) {
                     paddles.open();
                 }
                 
-                shooter.stop();
+                launcher.stop();
                 intake.stop();
                 follower.lockHeadingAt(null);
                 break;
-                
             case FIRING:
-                if (shooter.isUpToSpeed()) { // and is in the zone
-                    spindexer.rotateToSlot(2);
-                    stateTimer.resume();
-                    
-                    if (stateTimer.seconds() > 3) {
+                // 2. Detect shot by RPM drop
+                if (!launchPathClear && launcher.rpmDropped()) {
+                    launchPathClear = true;
+                    if (firedArtifacts >= motifPattern.length) {
+                        firedArtifacts = 0;
                         setState(State.IDLE);
-                        spindexer.resetSlots();
+                        break;
                     }
-                    //spindexer.rotateToSlot(spindexer.currentSlotIndex + 2);
                 }
                 
-
+                // 3. Once shooter recovers, rotate to next artifact
+                if (launchPathClear && launcher.isUpToSpeed()) {
+                    spindexer.rotateToArtifact(motifPattern[firedArtifacts]);
+                    launchPathClear = false;
+                    firedArtifacts++;
+                }
+                
+                // 4. Safety timeout
+                if (stateTimer.seconds() > 3) {
+                    setState(State.IDLE);
+                    firedArtifacts = 0;
+                    spindexer.resetSlots();
+                }
             case REVVING:
+                stateTimer.resume();
+                
                 revLauncher();
                 follower.lockHeadingAt(getAngleToGoal());
                 intakeRamp.outtake();
@@ -167,7 +189,7 @@ public class Robot {
         
         intake.update();
 
-        shooter.update(follower.getMotionState().deltaTime);
+        launcher.update(follower.getMotionState().deltaTime);
     }
     
     public double getAngleToGoal() {

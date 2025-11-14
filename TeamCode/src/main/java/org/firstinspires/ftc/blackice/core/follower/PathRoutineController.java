@@ -84,6 +84,7 @@ public class PathRoutineController {
     
     public void setCurrentHeading(double heading) {
         motionTracker.setCurrentHeading(heading);
+        motionState = motionTracker.getMotionState();
     }
     
     public Path getCurrentPath() {

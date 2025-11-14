@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.blackice.util.actions.Action;
+import org.firstinspires.ftc.blackice.util.actions.Condition;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
@@ -42,7 +44,7 @@ public class TeleOp extends OpMode {
         
         robot.follower.teleOpTarget = robot.follower.getCurrentPose().headingToDegrees();
         
-        robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex);
+        robot.spindexer.rotateToSlot(0);
         robot.intakeRamp.uptake();
         robot.paddles.open();
     }
@@ -72,35 +74,59 @@ public class TeleOp extends OpMode {
         // Final condition
         return (isInCloseLaunchZone || isInFarLaunchZone) && !isTooCloseToGoal;
     }
-  
+    
+    public void notifyFailedOperation(Condition requirement, Action action) {
+        if (requirement.isTrue()) {
+            gamepad1.rumbleBlips(2);
+        }
+        else {
+            action.execute();
+            gamepad1.rumble(Haptics.CONFIRM);
+        }
+    }
+
     @Override
     public void loop() {
-        if (gamepad1.left_trigger > 0.1) {
-            robot.intake.outtake();
-        }
+        int numberOfArtifacts = robot.spindexer.getNumberOfArtifacts();
         
-        if (gamepad1.leftBumperWasPressed()) {
+        if (gamepad1.crossWasPressed()) {
+            notifyFailedOperation(() -> numberOfArtifacts < 3,
+                                  () -> robot.setState(Robot.State.GROUND_FIRE));
+        }
+        else if (gamepad1.triangleWasPressed()) {
+            notifyFailedOperation(() -> numberOfArtifacts < 3,
+                                  () -> robot.setState(Robot.State.LOAD_ARTIFACTS));
+        }
+        else if (gamepad1.rightBumperWasPressed()) {
+            notifyFailedOperation(() -> numberOfArtifacts > 0,
+                                  () -> robot.setState(Robot.State.FIRING));
+        }
+        else if (gamepad1.squareWasPressed()) { // Human Player Load
+            notifyFailedOperation(() -> numberOfArtifacts >= 3,
+                                  () -> {
+                                      robot.spindexer.rotateToSlot(0.5);
+                                      robot.spindexer.slots = new Spindexer.Artifact[]
+                                             {Spindexer.Artifact.GREEN,
+                                              Spindexer.Artifact.PURPLE,
+                                              Spindexer.Artifact.PURPLE};
+                                      robot.setState(Robot.State.IDLE);
+                                  });
+        }
+        else if (gamepad1.leftBumperWasPressed()) {
             robot.setState(Robot.State.IDLE);
             gamepad1.rumble(Haptics.CONFIRM);
         }
-        if (gamepad1.crossWasPressed()) {
-            robot.setState(Robot.State.GROUND_FIRE);
-            gamepad1.rumble(Haptics.CONFIRM);
+        else if (gamepad1.dpad_down) {
+            robot.launcher.setRPM(robot.launcher.getTargetRPM() - 50);
         }
-        if (gamepad1.triangleWasPressed()) {
-            robot.setState(Robot.State.LOAD_ARTIFACTS);
-            gamepad1.rumble(Haptics.CONFIRM);
+        else if (gamepad1.dpad_up) {
+            robot.launcher.setRPM(robot.launcher.getTargetRPM() + 50);
         }
-        if (gamepad1.squareWasPressed()) {
-            robot.setState(Robot.State.FIRING);
-            gamepad1.rumble(Haptics.CONFIRM);
+        else if (gamepad1.dpad_right) {
+            robot.follower.setCurrentHeading(Math.toDegrees(robot.follower.getCurrentPose().getHeading()) + 0.25);
         }
-        
-        if (gamepad1.dpad_down) {
-            robot.shooter.setRPM(robot.shooter.getTargetRPM() - 50);
-        }
-        if (gamepad1.dpad_up) {
-            robot.shooter.setRPM(robot.shooter.getTargetRPM() + 50);
+        else if (gamepad1.dpad_left) {
+            robot.follower.setCurrentHeading(Math.toDegrees(robot.follower.getCurrentPose().getHeading()) - 0.25);
         }
 
         if (gamepad1.circleWasPressed()) {
@@ -108,28 +134,27 @@ public class TeleOp extends OpMode {
             gamepad1.rumble(Haptics.CONFIRM);
         }
 
-//        telemetry.addData("isInLaunchZone", isInLaunchZone());
+        telemetry.addData("isInLaunchZone", isInLaunchZone());
         telemetry.addData("state", robot.state.toString());
         telemetry.addData("currentSlot", robot.spindexer.currentSlotIndex);
-//        telemetry.addData("detectedArtifact",
-//                          robot.spindexer.getDetectedArtifact().toString());
-//
-//        telemetry.addData("right hue",
-//                          robot.spindexer.rightColorSensor.hue);
-//        telemetry.addData("right sat",
-//                          robot.spindexer.rightColorSensor.saturation);
-//        telemetry.addData("right distance cm",
-//                          robot.spindexer.rightColorSensor.distanceCm);
-//
-//        telemetry.addData("left hue",
-//                          robot.spindexer.leftColorSensor.hue);
-//        telemetry.addData("left sat",
-//                          robot.spindexer.leftColorSensor.saturation);
-//        telemetry.addData("left distance cm",
-//                          robot.spindexer.leftColorSensor.distanceCm);
+        telemetry.addData("detectedArtifact",
+                          robot.spindexer.getDetectedArtifact().toString());
 
-        telemetry.addData("current rpm", "%.2f", robot.shooter.getRpm());
-        telemetry.addData("target rpm", "%.2f", robot.shooter.getTargetRPM());
+        telemetry.addData("right hue",
+                          robot.spindexer.rightColorSensor.hue);
+        telemetry.addData("right sat",
+                          robot.spindexer.rightColorSensor.saturation);
+        telemetry.addData("right distance cm",
+                          robot.spindexer.rightColorSensor.distanceCm);
+        telemetry.addData("left hue",
+                          robot.spindexer.leftColorSensor.hue);
+        telemetry.addData("left sat",
+                          robot.spindexer.leftColorSensor.saturation);
+        telemetry.addData("left distance cm",
+                          robot.spindexer.leftColorSensor.distanceCm);
+
+        telemetry.addData("current rpm", "%.2f", robot.launcher.getRpm());
+        telemetry.addData("target rpm", "%.2f", robot.launcher.getTargetRPM());
 
         telemetry.addData("Hz", 1/robot.follower.getMotionState().deltaTime);
         
@@ -137,6 +162,7 @@ public class TeleOp extends OpMode {
             robot.follower.lockHeadingAt(null);
         }
         
+        // Auto BASE travel
 //        if (gamepad1.touchpadWasPressed()) {
 //            isTravelingToBase = !isTravelingToBase;
 //        }
@@ -163,6 +189,27 @@ public class TeleOp extends OpMode {
         telemetry.update();
 
         robot.update();
+        
+        if (gamepad1.left_trigger > 0.1) {
+            robot.intake.outtake();
+        }
+        
+        if (gamepad2.dpadUpWasPressed()) {
+            robot.spindexer.rotateToSlot(1);
+            robot.spindexer.resetSlots();
+        }
+        else if (gamepad2.dpadLeftWasPressed()) {
+            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
+        }
+        else if (gamepad2.dpadRightWasPressed()) {
+            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
+        }
+        else if (gamepad2.squareWasPressed()) {
+            robot.spindexer.rotateToArtifact(Spindexer.Artifact.PURPLE);
+        }
+        else if (gamepad2.circleWasPressed()) {
+            robot.spindexer.rotateToArtifact(Spindexer.Artifact.GREEN);
+        }
     }
     
     /**

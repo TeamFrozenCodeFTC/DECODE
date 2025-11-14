@@ -25,11 +25,14 @@ public class Spindexer {
         public boolean isNone() {
             return this == NONE;
         }
+        
+        public static final Artifact[] HUMAN_PLAYER_PATTERN = new Artifact[]
+            {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
     }
     
     public Artifact[] slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
 
-    public int currentSlotIndex = 2;
+    public double currentSlotIndex = 2;
     
     public void resetSlots() {
         slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
@@ -55,8 +58,6 @@ public class Spindexer {
         leftColorSensor.disable();
     }
     
-    
-    
     public Artifact getDetectedArtifact() {
         Artifact detected = rightColorSensor.getDetectedArtifact();
         if (detected == Artifact.UNKNOWN || detected == Artifact.NONE) {
@@ -68,38 +69,61 @@ public class Spindexer {
         return detected;
     }
     
+    public static boolean hasDecimal(double value) {
+        return value % 1 != 0;
+    }
+    
+    public int getLeftIndex(double index) {
+        return hasDecimal(index) ? (int)Math.floor(index) : (int)index - 1;
+    }
+    
+    public int getRightIndex(double index) {
+        return hasDecimal(index) ? (int)Math.ceil(index) : (int)index + 1;
+    }
+    
+    public void rotateToArtifact(Artifact artifact) {
+        int leftIndex = getLeftIndex(currentSlotIndex);
+        int rightIndex = getRightIndex(currentSlotIndex);
+        
+        if (slots[leftIndex] == artifact) {
+            rotateToSlot(leftIndex);
+            slots[leftIndex] = Spindexer.Artifact.NONE;
+        }
+        else {
+            rotateToSlot(rightIndex);
+            slots[rightIndex] = Spindexer.Artifact.NONE;
+        }
+    }
+    
     public void rotateToSlot(double slotIndex) {
   
         
         servo.setPosition(slotIndex * ((double) 60 / 1800) + .484);
         
        // servo.setPosition(slotIndex * 0.4 + 0.2);
-        currentSlotIndex = (int) slotIndex;
+        currentSlotIndex = slotIndex;
     }
     
-    public void partiallyRotate(double slotIndex) {
-        servo.setPosition((slotIndex + .5) * ((double) 60 / 1800) + .484);
-    }
 
-    public void incomingArtifact(Artifact artifactType) {
-        int nextSlot = rollIndex(currentSlotIndex + 1);
-        int prevSlot = rollIndex(currentSlotIndex - 1);
-        
-        if (slots[nextSlot].isNone()) {
-            rotateToSlot(nextSlot);
-        } else if (slots[prevSlot].isNone()) {
-            rotateToSlot(prevSlot);
-        }
-        else {
-            // partially rotate to way that gives both color options and lock artifacts
-            if (slots[nextSlot] == artifactType) {
-                // rotate away from it
-                partiallyRotate(prevSlot);
-            } else {
-                partiallyRotate(nextSlot);
-            }
-        }
-    }
+//    public void incomingArtifact(Artifact artifactType) {
+//        int nextSlot = rollIndex(currentSlotIndex + 1);
+//        int prevSlot = rollIndex(currentSlotIndex - 1);
+//
+//        if (slots[nextSlot].isNone()) {
+//            rotateToSlot(nextSlot);
+//        } else if (slots[prevSlot].isNone()) {
+//            rotateToSlot(prevSlot);
+//        }
+//        else {
+//            // partially rotate to way that gives both color options and lock artifacts
+//            if (slots[nextSlot] == artifactType) {
+//                // rotate away from it
+//                partiallyRotate(prevSlot);
+//            } else {
+//                partiallyRotate(nextSlot);
+//            }
+//        }
+//    }
     
     public static int rollIndex(int index) {
         if (index < 0) {

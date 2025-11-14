@@ -14,11 +14,8 @@ public class Close3Artifacts extends Auto2 {
     public void init() {
         super.init();
         robot.allianceColor = AllianceColor.BLUE;
-        robot.spindexer.slots = new Spindexer.Artifact[]
-            {Spindexer.Artifact.PURPLE,
-            Spindexer.Artifact.PURPLE,
-            Spindexer.Artifact.PURPLE};
-        robot.spindexer.rotateToSlot(-0.5);
+        robot.spindexer.slots = Spindexer.Artifact.HUMAN_PLAYER_PATTERN;
+        robot.spindexer.rotateToSlot(2.5);
     }
 
     @Override

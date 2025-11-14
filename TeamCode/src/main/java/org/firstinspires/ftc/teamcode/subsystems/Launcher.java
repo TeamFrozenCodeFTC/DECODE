@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import org.firstinspires.ftc.blackice.util.Logger;
 
 @Config
 public class Launcher {
@@ -16,22 +19,15 @@ public class Launcher {
     private double currentTargetRPM = 0;
     
     public final int TICKS_PER_REV = 28;
-
     public final double ACCELERATION = 3000; // rpm per second
 
     public static PIDFCoefficients coefficients = new PIDFCoefficients(45, 5, 15, 187);
-    
-    public double voltage;
-    
-    public void updateFeedforwardByVoltage(double currentVoltage) {
-        voltage = currentVoltage;
-    }
 
     public void updateCoefficients() {
         leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                              coefficients.d, coefficients.f / voltage);
+                                              coefficients.d, coefficients.f);
         rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                               coefficients.d, coefficients.f / voltage);
+                                               coefficients.d, coefficients.f);
     }
     
     public Launcher(HardwareMap hardwareMap) {
@@ -46,6 +42,12 @@ public class Launcher {
 
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        
+        Logger.info("default pid", leftMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
+    }
+    
+    public boolean rpmDropped() {
+        return getRpm() < getTargetRPM() * 0.75;
     }
     
     public double getTargetRPM() {
@@ -70,7 +72,7 @@ public class Launcher {
     }
     
     public void update(double deltaTime) {
-        updateCoefficients();
+        //updateCoefficients();
         
         double rpmDifference = targetRPM - currentTargetRPM;
         double maxStep = ACCELERATION * deltaTime;
