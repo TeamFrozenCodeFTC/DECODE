@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;

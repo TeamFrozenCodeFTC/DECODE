@@ -1,21 +1,22 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
 
 @TeleOp
 public class AprilTagAuto extends OpMode {
-    AprilTag aprilTag;
+    MotifDetector aprilTag;
 
     @Override
     public void init() {
-        aprilTag = new AprilTag(hardwareMap);
+        aprilTag = new MotifDetector(hardwareMap);
         aprilTag.start();
 
         telemetry = new MultipleTelemetry(FtcDashboard.getInstance().getTelemetry(),
@@ -25,7 +26,7 @@ public class AprilTagAuto extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.aWasPressed()) {
-            Spindexer.Artifact[] pattern = aprilTag.getPattern(); // replace Object with
+            Spindexer.Artifact[] pattern = aprilTag.getMotifPattern(); // replace Object with
             // actual type if you
             // know it
             telemetry.addData("pattern",

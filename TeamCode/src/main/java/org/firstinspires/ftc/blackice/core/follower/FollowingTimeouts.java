@@ -10,8 +10,8 @@ class FollowingTimeouts {
     private final Timeout pauseTimeout = new Timeout();
 
     public void start() {
-        followingTimeout.reset();
-        stuckTimeout.reset();
+        followingTimeout.resetAndStart();
+        stuckTimeout.resetAndStart();
         pauseTimeout.pauseAtZero();
     }
     
@@ -24,7 +24,7 @@ class FollowingTimeouts {
     public void pause() {
         followingTimeout.pause();
         stuckTimeout.pause();
-        pauseTimeout.reset();
+        pauseTimeout.resetAndStart();
     }
 
     public void resume() {

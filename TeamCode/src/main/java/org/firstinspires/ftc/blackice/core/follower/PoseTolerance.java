@@ -16,8 +16,8 @@ public class PoseTolerance {
         double headingError = Math.abs(
             Math.toDegrees(
                 Math.atan2(
-                    Math.sin(target.getHeading() - current.getHeading()),
-                    Math.cos(target.getHeading() - current.getHeading())
+                    Math.sin(Math.toRadians(target.getHeading() - current.getHeading())),
+                    Math.cos(Math.toRadians(target.getHeading() - current.getHeading()))
                 )
             )
         );

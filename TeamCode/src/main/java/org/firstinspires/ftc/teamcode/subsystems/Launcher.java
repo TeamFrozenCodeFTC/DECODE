@@ -20,8 +20,9 @@ public class Launcher {
     
     public final int TICKS_PER_REV = 28;
     public final double ACCELERATION = 3000; // rpm per second
-
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(45, 5, 15, 187);
+    
+    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(10, 0, 0, 13.93);
 
     public void updateCoefficients() {
         leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
@@ -42,12 +43,10 @@ public class Launcher {
 
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        
-        Logger.info("default pid", leftMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
     }
     
     public boolean rpmDropped() {
-        return getRpm() < getTargetRPM() * 0.75;
+        return getRpm() < getTargetRPM() * 0.90;
     }
     
     public double getTargetRPM() {

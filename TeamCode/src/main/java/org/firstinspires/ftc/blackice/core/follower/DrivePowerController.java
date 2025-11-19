@@ -108,15 +108,19 @@ public class DrivePowerController {
     }
     
     public void holdPose(Pose pose, MotionState motionState) {
-        Vector holdPower = computeHoldPower(pose.getPosition(), motionState);
+        holdPose(pose, motionState, 1);
+    }
+    
+    public void holdPose(Pose pose, MotionState motionState, double maxPower) {
+        Vector holdPower = computeHoldPower(pose.getPosition(), motionState).withMaxMagnitude(maxPower);
         
         if (motionState.speed < 0.1 && holdPower.computeMagnitude() < 0.1) {
             holdPower = new Vector(0,0);
         }
-
-        double turnPower =
+        
+        double turnPower = Math.min(maxPower,
             computeHeadingCorrectionPower(Math.toRadians(pose.getHeading()),
-                                                         motionState);
+                                          motionState));
         
         if (motionState.angularVelocity < Math.toRadians(1) && Math.abs(turnPower) < 0.1) {
             turnPower = 0;
@@ -305,9 +309,9 @@ public class DrivePowerController {
                                                 MotionState motionState) {
         double headingError = AngleUnit.RADIANS.normalize(targetHeading - motionState.heading);
         
-        Logger.verbose("targetHeading", Math.toDegrees(targetHeading));
-        Logger.verbose("currentHeading", Math.toDegrees(motionState.heading));
-        Logger.verbose("headingError", Math.toDegrees(headingError));
+//        Logger.verbose("targetHeading", Math.toDegrees(targetHeading));
+//        Logger.verbose("currentHeading", Math.toDegrees(motionState.heading));
+//        Logger.verbose("headingError", Math.toDegrees(headingError));
 
         return headingController.computeCorrection(headingError, motionState.deltaTime)
             + headingController.computeFeedforward(0);

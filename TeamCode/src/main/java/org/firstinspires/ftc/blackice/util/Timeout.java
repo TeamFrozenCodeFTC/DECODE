@@ -7,7 +7,7 @@ public class Timeout {
     private double accumulatedTime = 0.0;
     private boolean isPaused = false;
 
-    public void reset() {
+    public void resetAndStart() {
         accumulatedTime = 0.0;
         baseTimer.reset();
         isPaused = false;
@@ -21,7 +21,7 @@ public class Timeout {
     }
     
     public void pauseAtZero() {
-        reset();
+        resetAndStart();
         pause();
     }
 

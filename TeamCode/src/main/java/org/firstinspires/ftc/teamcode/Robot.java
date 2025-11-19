@@ -1,44 +1,51 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.subsystems.Spindexer.Artifact.GREEN;
+import static org.firstinspires.ftc.teamcode.subsystems.Spindexer.Artifact.PURPLE;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Ramp;
 import org.firstinspires.ftc.teamcode.subsystems.Paddles;
 import org.firstinspires.ftc.teamcode.subsystems.Launcher;
 
+import java.util.Arrays;
+
 public class Robot {
-    Intake intake;
-    Launcher launcher;
-    Spindexer spindexer;
-    Follower follower;
-    Ramp intakeRamp;
-    Paddles paddles;
+    public Intake intake;
+    public Launcher launcher;
+    public Spindexer spindexer;
+    public Follower follower;
+    public Ramp intakeRamp;
+    public Paddles paddles;
     
-    AllianceColor allianceColor = AllianceColor.BLUE;
-    Spindexer.Artifact[] motifPattern = new Spindexer.Artifact[]
-        {Spindexer.Artifact.GREEN, Spindexer.Artifact.PURPLE, Spindexer.Artifact.PURPLE};
-    
-    int firedArtifacts = 0;
-    boolean artifactWasDetected = false;
-    boolean spindexerHasRotated = false;
+    public AllianceColor allianceColor = AllianceColor.BLUE;
+    public Spindexer.Artifact[] motifPattern = new Spindexer.Artifact[]
+        {GREEN, PURPLE, PURPLE};
+
+    boolean spindexerHasRotated = true;
     boolean paddlesRotated = false;
     boolean launchPathClear = true;
     
-    Robot.State state = Robot.State.IDLE;
+    int firedArtifacts = 0;
+    
+    Spindexer.Artifact intakedArtifact = Spindexer.Artifact.NONE;
+    
+    public Robot.State state = Robot.State.IDLE;
     Timeout stateTimer = new Timeout();
-    
-    Spindexer.Artifact detectedArtifact = Spindexer.Artifact.NONE;
-    
+
     public enum State {
         GROUND_FIRE,
         LOAD_ARTIFACTS,
         FIRING,
         REVVING,
         IDLE,
+        SALVO,
         AUTO_TRANSITION,
     }
     
@@ -47,7 +54,7 @@ public class Robot {
             return;
         }
         state = newState;
-        stateTimer.reset();
+        stateTimer.resetAndStart();
         stateTimer.pause();
     }
 
@@ -64,9 +71,19 @@ public class Robot {
         launcher.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
     }
 
-    public void update() {
+    public void update(Telemetry telemetry) {
         follower.update();
-        spindexer.disableSensors();
+        
+        telemetry.addData("state", state);
+        
+        telemetry.addData("current rpm", "%.2f", launcher.getRpm());
+        
+        telemetry.addData("target rpm", "%.2f", launcher.getTargetRPM());
+        
+        telemetry.addData("numOfArtifacts", spindexer.getNumberOfArtifacts());
+        telemetry.addData("artifacts", Arrays.deepToString(spindexer.slots));
+        
+        telemetry.update();
         
         switch (state) {
             case GROUND_FIRE:
@@ -82,12 +99,10 @@ public class Robot {
                 }
                 break;
             case LOAD_ARTIFACTS:
-                spindexer.enableSensors();
+                launcher.stop();
                 intakeRamp.uptake();
                 intake.intake();
-                
-                // todo read color sensors to detect artifact
-                
+
                 if (spindexerHasRotated) {
                     paddles.open();
                 }
@@ -96,22 +111,33 @@ public class Robot {
                     paddles.close();
                 }
                 
+                Spindexer.Artifact detectedArtifact = spindexer.getDetectedArtifact();
+ 
                 // 1. Detect artifact intaked
-                if (detectedArtifact.isArtifact() && !artifactWasDetected) {
-                    artifactWasDetected = true;
-                    stateTimer.reset(); // starts timer
+//                if (detectedArtifact.isArtifact() && intakedArtifact.isNone()) {
+//                    intakedArtifact = detectedArtifact;
+//                    spindexerHasRotated = false;
+//                   // paddlesRotated = false;
+//                    stateTimer.resetAndStart();
+//                    paddles.close();
+//                }
+                if (detectedArtifact.isArtifact() && stateTimer.isPaused()) {
+                    intakedArtifact = detectedArtifact;
+                    spindexerHasRotated = false;
+                    // paddlesRotated = false;
+                    stateTimer.resetAndStart();
                     paddles.close();
                 }
-       
-                if (stateTimer.seconds() > 1) {
+                
+                if (stateTimer.seconds() > 1.3) {
                     spindexerHasRotated = true;
                     paddlesRotated = false;
-                    artifactWasDetected = false;
-                } else if (stateTimer.seconds() > 0.4 && !paddlesRotated) {
-                    paddlesRotated = true;
-                    
+                    stateTimer.pauseAtZero();
+                    intakedArtifact = Spindexer.Artifact.NONE;
+                    //  || detectedArtifact.isNone()
+                } else if ((stateTimer.seconds() > 0.4) && !paddlesRotated) {
                     int count = spindexer.getNumberOfArtifacts();
-                    spindexer.slots[count] = detectedArtifact;
+                    spindexer.slots[count] = intakedArtifact;
                     
                     switch (count) {
                         case 0:
@@ -121,16 +147,20 @@ public class Robot {
                             spindexer.rotateToSlot(2);
                             break;
                         case 2:
-                            double targetSlot = (spindexer.slots[1] == detectedArtifact) ? 1.5 : 2.5;
+                            double targetSlot =
+                                (spindexer.slots[1] == intakedArtifact) ? 2.5 : 1.5;
                             spindexer.rotateToSlot(targetSlot);
                             
                             intake.stop();
                             intakeRamp.outtake();
+                            spindexerHasRotated = true;
                             paddlesRotated = false;
-                            artifactWasDetected = false;
+                            intakedArtifact = Spindexer.Artifact.NONE;
                             setState(Robot.State.IDLE);
                             break;
                     }
+                    
+                    paddlesRotated = true;
                 }
                 
                 break;
@@ -145,29 +175,60 @@ public class Robot {
                 intake.stop();
                 follower.lockHeadingAt(null);
                 break;
-            case FIRING:
+//            case FIRING: // slow FIRING
+////                // 2. Detect shot by RPM drop
+////                if (!launchPathClear && launcher.rpmDropped()) {
+////                    launchPathClear = true;
+////                }
+////
+////                // 3. Once shooter recovers, rotate to next artifact
+////                if (launchPathClear && launcher.isUpToSpeed()) {
+////                    if (spindexer.getNumberOfArtifacts() == 0) {
+////                        spindexer.rotateToSlot(0);
+////                        setState(State.IDLE);
+////                        break;
+////                    }
+////
+////                    Spindexer.Artifact motifArtifact =
+////                        motifPattern[3 - spindexer.getNumberOfArtifacts()];
+////                    if (!spindexer.rotateToArtifact(motifArtifact)) { // rotate to
+////                        // other color so preserve same direction of rotation
+////                        spindexer.rotateToArtifact(motifArtifact.oppositeColor());
+////                    }
+////                    launchPathClear = false;
+////                }
+//                break;
+            case FIRING: // FAST FIRING
+                if (launcher.isUpToSpeed()) {
+                    boolean isPGP =
+                        Arrays.equals(motifPattern, new Spindexer.Artifact[]{ PURPLE, GREEN, PURPLE });
+                    
+                    spindexer.forceRotateToArtifact(motifPattern[0]);
+                    
+                    boolean shouldRun23 = !isPGP || firedArtifacts >= 1;
+                    
+                    if (shouldRun23) {
+                        spindexer.forceRotateToArtifact(motifPattern[1]);
+                        spindexer.forceRotateToArtifact(motifPattern[2]);
+                    }
+                }
+                
                 // 2. Detect shot by RPM drop
                 if (!launchPathClear && launcher.rpmDropped()) {
                     launchPathClear = true;
-                    if (firedArtifacts >= motifPattern.length) {
-                        firedArtifacts = 0;
-                        setState(State.IDLE);
-                        break;
-                    }
                 }
                 
                 // 3. Once shooter recovers, rotate to next artifact
                 if (launchPathClear && launcher.isUpToSpeed()) {
-                    spindexer.rotateToArtifact(motifPattern[firedArtifacts]);
-                    launchPathClear = false;
                     firedArtifacts++;
-                }
-                
-                // 4. Safety timeout
-                if (stateTimer.seconds() > 3) {
-                    setState(State.IDLE);
-                    firedArtifacts = 0;
-                    spindexer.resetSlots();
+                    if (firedArtifacts >= 3) { // what if we don't have 3 artifacts?
+                        firedArtifacts = 0;
+                        spindexer.rotateToSlot(0);
+                        setState(State.IDLE);
+                        break;
+                    }
+              
+                    launchPathClear = false;
                 }
             case REVVING:
                 stateTimer.resume();
@@ -176,6 +237,10 @@ public class Robot {
                 follower.lockHeadingAt(getAngleToGoal());
                 intakeRamp.outtake();
                 intake.stop();
+                
+                if (stateTimer.seconds() > 0.5) {
+                    paddles.open();
+                }
                 break;
         }
         

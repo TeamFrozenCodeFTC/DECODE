@@ -1,11 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Spindexer {
     public ServoImplEx servo;
@@ -26,20 +22,23 @@ public class Spindexer {
             return this == NONE;
         }
         
+        public Artifact oppositeColor() {
+            return this == Artifact.PURPLE ? Artifact.GREEN : Artifact.PURPLE;
+        }
+        
         public static final Artifact[] HUMAN_PLAYER_PATTERN = new Artifact[]
             {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
+        public static final Artifact[] EMPTY_PATTERN = new Artifact[]
+            {Artifact.NONE, Artifact.NONE, Artifact.NONE};
     }
     
-    public Artifact[] slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
+    public Artifact[] slots = Artifact.EMPTY_PATTERN;
 
     public double currentSlotIndex = 2;
     
     public void resetSlots() {
-        slots = new Artifact[]{Artifact.NONE, Artifact.NONE, Artifact.NONE};
-    }
-    
-    public void turnArtifactsBack() {
-        rotateToSlot(0);
+        slots = new Artifact[]
+            {Artifact.NONE, Artifact.NONE, Artifact.NONE};;
     }
     
     public Spindexer(HardwareMap hardwareMap) {
@@ -47,22 +46,12 @@ public class Spindexer {
         rightColorSensor = new ArtifactDetector(hardwareMap, "sensor_color");
         leftColorSensor = new ArtifactDetector(hardwareMap, "leftColorSensor");
     }
-    
-    public void enableSensors() {
-        rightColorSensor.enable();
-        leftColorSensor.enable();
-    }
-    
-    public void disableSensors() {
-        rightColorSensor.disable();
-        leftColorSensor.disable();
-    }
-    
+
     public Artifact getDetectedArtifact() {
         Artifact detected = rightColorSensor.getDetectedArtifact();
         if (detected == Artifact.UNKNOWN || detected == Artifact.NONE) {
             Artifact secondDetected = leftColorSensor.getDetectedArtifact();
-            if (secondDetected == Artifact.NONE) {
+            if (secondDetected == Artifact.NONE && detected == Artifact.UNKNOWN) {
                 return Artifact.UNKNOWN;
             }
         }
@@ -81,26 +70,57 @@ public class Spindexer {
         return hasDecimal(index) ? (int)Math.ceil(index) : (int)index + 1;
     }
     
-    public void rotateToArtifact(Artifact artifact) {
+    boolean rotateLeft = false;
+    boolean rotateRight = false;
+    
+    public boolean rotateToArtifact(Artifact artifact) {
         int leftIndex = getLeftIndex(currentSlotIndex);
         int rightIndex = getRightIndex(currentSlotIndex);
         
-        if (slots[leftIndex] == artifact) {
-            rotateToSlot(leftIndex);
-            slots[leftIndex] = Spindexer.Artifact.NONE;
+        int leftSlotIndex = rollIndex(leftIndex);
+        int rightSlotIndex = rollIndex(rightIndex);
+        
+        boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
+        boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
+        
+        if (leftIsArtifact && rightIsArtifact) {
+            // continue previous rotation direction
+        }
+        else if (leftIsArtifact) {
+            rotateLeft = true;
+            rotateRight = false;
+        }
+        else if (rightIsArtifact) {
+            rotateRight = true;
+            rotateLeft = false;
         }
         else {
+            rotateRight = false;
+            rotateLeft = false;
+        }
+        
+        if (rotateLeft) {
+            rotateToSlot(leftIndex);
+            slots[leftSlotIndex] = Spindexer.Artifact.NONE;
+            return true;
+        }
+        else if (rotateRight) {
             rotateToSlot(rightIndex);
-            slots[rightIndex] = Spindexer.Artifact.NONE;
+            slots[rightSlotIndex] = Spindexer.Artifact.NONE;
+            return true;
+        }
+        return false;
+    }
+    
+    public void forceRotateToArtifact(Artifact artifact) {
+        if (!rotateToArtifact(artifact)) { // rotates to opposite color if not found
+            rotateToArtifact(artifact.oppositeColor());
         }
     }
     
     public void rotateToSlot(double slotIndex) {
-  
+        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .483);
         
-        servo.setPosition(slotIndex * ((double) 60 / 1800) + .484);
-        
-       // servo.setPosition(slotIndex * 0.4 + 0.2);
         currentSlotIndex = slotIndex;
     }
     
@@ -126,26 +146,26 @@ public class Spindexer {
 //    }
     
     public static int rollIndex(int index) {
-        if (index < 0) {
-            return 2; // roll back to last
-        } else if (index >= 3) {
-            return 0; // roll forward to first
-        } else {
-            return index;
-        }
-    }
-    
-    public boolean isAtMaxCapacity() {
-        return slots[0] != Artifact.NONE && slots[1] != Artifact.NONE && slots[2] != Artifact.NONE;
+//        if (index < 0) {
+//
+//            // -1 -> 2
+//            // -2 -> 1
+//            // -3 -> 0
+//            // -4 -> 2
+//
+//            // -1
+//            return index + 3 + (-index % 3); // doesn't fully cover
+//        } else if (index >= 3) {
+//            return index % 3; // roll forward to first
+//        } else {
+//            return index;
+//        }
+        return index % 3;
     }
     
     public int getNumberOfArtifacts() {
         return (slots[0] != Artifact.NONE ? 1 : 0)
             + (slots[1] != Artifact.NONE ? 1 : 0)
             + (slots[2] != Artifact.NONE ? 1 : 0);
-    }
-    
-    public Artifact getCurrentSlotIndex() {
-        return slots[currentSlotIndex];
     }
 }

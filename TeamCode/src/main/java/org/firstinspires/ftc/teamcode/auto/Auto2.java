@@ -1,41 +1,44 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.AllianceColor;
+import org.firstinspires.ftc.teamcode.Haptics;
+import org.firstinspires.ftc.teamcode.Robot;
 
 import java.lang.reflect.Field;
 
 public abstract class Auto2 extends OpMode {
-    Robot robot;
-
-    public AllianceColor allianceColor = AllianceColor.BLUE;
+    public Robot robot;
 
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
-
+        
+        robot.spindexer.rotateToSlot(0.5);
     }
     
     @Override
     public void init_loop() {
         if (gamepad1.triangleWasPressed()) {
-            allianceColor = (AllianceColor.BLUE == allianceColor) ? AllianceColor.RED :
+            robot.allianceColor = (AllianceColor.BLUE == robot.allianceColor) ?
+                AllianceColor.RED :
                 AllianceColor.BLUE;
             gamepad1.rumble(Haptics.CONFIRM);
         }
         
-        telemetry.addData("Alliance Color (Press △)", allianceColor);
+        telemetry.addData("Alliance Color (Press △)", robot.allianceColor);
         telemetry.update();
     }
     
     @Override
     public void start() {
-        if (allianceColor == AllianceColor.RED) {
+        if (robot.allianceColor == AllianceColor.RED) {
             mirrorPosesForAllianceColor();
         }
     }
@@ -43,12 +46,13 @@ public abstract class Auto2 extends OpMode {
     @Override
     public void stop() {
         blackboard.put("currentPose", robot.follower.getCurrentPose());
-        blackboard.put("allianceColor", allianceColor);
+        blackboard.put("allianceColor", robot.allianceColor);
+        blackboard.put("motifPattern", robot.motifPattern);
     }
     
     @Override
     public void loop() {
-        robot.update();
+        robot.update(telemetry);
     }
     
     public void mirrorPosesForAllianceColor() {
