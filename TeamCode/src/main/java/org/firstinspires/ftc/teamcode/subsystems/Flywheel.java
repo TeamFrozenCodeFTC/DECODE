@@ -118,8 +118,7 @@ public class Flywheel {
         }
         
         lastRpm = currentRpm;
-        
-        // --- rest of your update logic ---
+
         double rpmDifference = targetRPM - currentTargetRPM;
         double maxStep = ACCELERATION * deltaTime;
         
