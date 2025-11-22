@@ -17,14 +17,14 @@ import java.util.Arrays;
 public class TeleOp extends OpMode {
     Robot robot;
     
-    public static Pose startingPose = new Pose(8, 8.5, 0);
+    public static Pose startingPose = new Pose(8+24*5, 8.5, 0);
     
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
-         
+
         robot.follower.drivetrain.zeroPowerFloatMode();
         // robot.follower.drivetrain.zeroPowerBrakeMode();
         
@@ -32,7 +32,7 @@ public class TeleOp extends OpMode {
             robot.allianceColor = (AllianceColor) blackboard.get("allianceColor");
         }
         if (blackboard.get("motifPattern") != null) {
-            robot.motifPattern = (Spindexer.Artifact[]) blackboard.get("motifPattern");
+            robot.motifPattern = (Artifact[]) blackboard.get("motifPattern");
         }
   
         
@@ -54,8 +54,8 @@ public class TeleOp extends OpMode {
         robot.follower.teleOpTarget = robot.follower.getCurrentPose().headingToDegrees();
         
         robot.spindexer.rotateToSlot(0);
-        robot.spindexer.slots = new Spindexer.Artifact[]
-            {Spindexer.Artifact.NONE, Spindexer.Artifact.NONE, Spindexer.Artifact.NONE};;
+        robot.spindexer.slots = new Artifact[]
+            {Artifact.NONE, Artifact.NONE, Artifact.NONE};;
         robot.intakeRamp.uptake();
         robot.paddles.open();
     }
@@ -110,10 +110,20 @@ public class TeleOp extends OpMode {
                                   () -> robot.setState(Robot.State.GROUND_FIRE));
         }
         else if (gamepad1.triangleWasPressed()) {
+           // robot.paddlesRotated = false;
+            if (robot.state == Robot.State.REVVING) {
+                robot.spindexer.rotateToSlot(0);
+            }
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.LOAD_ARTIFACTS));
         }
+        else if (gamepad1.right_trigger == 1) {
+            robot.artifactsToFire = numberOfArtifacts;
+            notifyFailedOperation(() -> numberOfArtifacts > 0,
+                                  () -> robot.setState(Robot.State.FAST_FIRING));
+        }
         else if (gamepad1.rightBumperWasPressed()) {
+            robot.artifactsToFire = numberOfArtifacts;
             notifyFailedOperation(() -> numberOfArtifacts > 0,
                                   () -> robot.setState(Robot.State.FIRING));
         }
@@ -121,10 +131,10 @@ public class TeleOp extends OpMode {
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> {
                                       robot.spindexer.rotateToSlot(0.5);
-                                      robot.spindexer.slots = new Spindexer.Artifact[]
-                                             {Spindexer.Artifact.GREEN,
-                                              Spindexer.Artifact.PURPLE,
-                                              Spindexer.Artifact.PURPLE};
+                                      robot.spindexer.slots = new Artifact[]
+                                             {Artifact.GREEN,
+                                              Artifact.PURPLE,
+                                              Artifact.PURPLE};
                                       robot.setState(Robot.State.IDLE);
                                   });
         }
@@ -148,6 +158,9 @@ public class TeleOp extends OpMode {
         
         if (gamepad1.right_stick_x != 0) {
             robot.follower.lockHeadingAt(null);
+        }
+        if (gamepad1.rightStickButtonWasPressed()) {
+            robot.follower.setCurrentPose(startingPose);
         }
         
         // Auto BASE travel
@@ -188,7 +201,7 @@ public class TeleOp extends OpMode {
         }
         
         if (gamepad2.dpadUpWasPressed()) {
-            robot.spindexer.rotateToSlot(1);
+            robot.spindexer.rotateToSlot(0);
             robot.spindexer.resetSlots();
         }
 //        else if (gamepad2Enabled && robot.launcher.isUpToSpeed()) {
@@ -199,10 +212,10 @@ public class TeleOp extends OpMode {
 //                robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
 //            }
 //            else if (gamepad2.squareWasPressed()) {
-//                robot.spindexer.rotateToArtifact(Spindexer.Artifact.PURPLE);
+//                robot.spindexer.rotateToArtifact(Artifact.PURPLE);
 //            }
 //            else if (gamepad2.circleWasPressed()) {
-//                robot.spindexer.rotateToArtifact(Spindexer.Artifact.GREEN);
+//                robot.spindexer.rotateToArtifact(Artifact.GREEN);
 //            }
 //        }
 //
@@ -217,12 +230,12 @@ public class TeleOp extends OpMode {
             robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
         }
         else if (gamepad2.squareWasPressed()) {
-            if (!robot.spindexer.rotateToArtifact(Spindexer.Artifact.PURPLE)) {
+            if (!robot.spindexer.rotateToArtifact(Artifact.PURPLE)) {
                 gamepad2.rumbleBlips(2);
             }
         }
         else if (gamepad2.circleWasPressed()) {
-            if (!robot.spindexer.rotateToArtifact(Spindexer.Artifact.GREEN)) {
+            if (!robot.spindexer.rotateToArtifact(Artifact.GREEN)) {
                 gamepad2.rumbleBlips(2);
             }
         }

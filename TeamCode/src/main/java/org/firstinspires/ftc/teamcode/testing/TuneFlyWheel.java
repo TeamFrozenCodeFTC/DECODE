@@ -19,12 +19,19 @@ public class TuneFlyWheel extends Auto2 {
         
         telemetry = new MultipleTelemetry(FtcDashboard.getInstance().getTelemetry(),
                                           telemetry);
+        
+        
+        robot.launcher.setRPM(4000);
     }
     
     @Override
     public void loop() {
-        robot.launcher.updateCoefficients();
-        robot.launcher.setRPM(4000);
+        if (gamepad1.dpad_down) {
+            robot.launcher.setRPM(robot.launcher.getTargetRPM() - 50);
+        }
+        else if (gamepad1.dpad_up) {
+            robot.launcher.setRPM(robot.launcher.getTargetRPM() + 50);
+        }
         
         telemetry.addData("current RPM", robot.launcher.getRpm());
         telemetry.addData("target RPM", robot.launcher.getTargetRPM());

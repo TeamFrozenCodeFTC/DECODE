@@ -75,10 +75,10 @@
 //        }
 //        startingStateMenu.confirmOption(0);
 //
-//        robot.spindexer.slots = new Spindexer.Artifact[]{
-//            Spindexer.Artifact.PURPLE,
-//            Spindexer.Artifact.PURPLE,
-//            Spindexer.Artifact.PURPLE
+//        robot.spindexer.slots = new Artifact[]{
+//            Artifact.PURPLE,
+//            Artifact.PURPLE,
+//            Artifact.PURPLE
 //        };
 //    }
 //

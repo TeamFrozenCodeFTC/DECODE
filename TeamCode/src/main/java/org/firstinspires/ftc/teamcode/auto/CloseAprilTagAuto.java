@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
@@ -20,7 +21,7 @@ public class CloseAprilTagAuto extends Auto2 {
         super.init();
         aprilTag = new MotifDetector(hardwareMap);
         
-        robot.spindexer.slots = Spindexer.Artifact.HUMAN_PLAYER_PATTERN;
+        robot.spindexer.slots = Artifact.getHumanPlayerPattern();
         robot.spindexer.rotateToSlot(2.5);
     }
 
@@ -54,7 +55,7 @@ public class CloseAprilTagAuto extends Auto2 {
 
                 if (robot.follower.isStoppedAt(aprilTagPose)) {
                     aprilTag.start();
-                    Spindexer.Artifact[] pattern = aprilTag.getMotifPattern();
+                    Artifact[] pattern = aprilTag.getMotifPattern();
                     telemetry.addData("pattern",
                                       (pattern != null)
                                           ? (pattern.getClass().isArray() ? Arrays.deepToString(

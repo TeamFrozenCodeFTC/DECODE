@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Artifact;
 
 public class ArtifactDetector {
     public NormalizedColorSensor colorSensor;
@@ -24,15 +25,7 @@ public class ArtifactDetector {
     public float saturation;
     public double distanceCm;
     
-    public void enable() {
-        ((ColorRangeSensor) colorSensor).enableLed(true);
-    }
-    
-    public void disable() {
-        ((ColorRangeSensor) colorSensor).enableLed(false);
-    }
-    
-    public Spindexer.Artifact getDetectedArtifact() {
+    public Artifact getDetectedArtifact() {
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
         
         final float[] hsvValues = new float[3];
@@ -40,16 +33,12 @@ public class ArtifactDetector {
         
         hue = hsvValues[0];
         saturation = hsvValues[1];
-//        distanceCm = ((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM);
-//
-//        if (distanceCm > 3) {
-//            return Spindexer.Artifact.NONE;
-//        }
+
         if (hue >= 225 && hue <= 240) {
-            return Spindexer.Artifact.PURPLE;
+            return Artifact.PURPLE;
         } else if (hue >= 120 && hue < 160) {
-            return Spindexer.Artifact.GREEN;
+            return Artifact.GREEN;
         }
-        return Spindexer.Artifact.NONE;
+        return Artifact.NONE;
     }
 }

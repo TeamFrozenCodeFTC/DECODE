@@ -36,6 +36,13 @@ public class PIDFController implements ErrorController {
         this.kD = kD;  
         this.feedforward = feedforward;
     }
+    
+    public void setCoefficients(double kP, double kI, double kD, double kS, double kV) {
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        this.feedforward = new Feedforward.Linear(kV, kS);
+    }
 
     /** Run using a known error and its velocity as the derivative (derivative =
      * -velocity) */

@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
 
@@ -24,8 +24,8 @@ public class FarAuto extends Auto2 {
     @Override
     public void init() {
         super.init();
-        robot.spindexer.slots = new Spindexer.Artifact[]
-            {Spindexer.Artifact.GREEN, Spindexer.Artifact.PURPLE, Spindexer.Artifact.PURPLE};
+        robot.spindexer.slots = new Artifact[]
+            {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
         
         motifDetector = new MotifDetector(hardwareMap);
         motifDetector.start();

@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -8,10 +7,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-import org.firstinspires.ftc.blackice.util.Logger;
+import org.firstinspires.ftc.blackice.core.control.Feedforward;
+import org.firstinspires.ftc.blackice.core.control.PIDFController;
 
 @Config
-public class Launcher {
+public class Flywheel {
     public final DcMotorEx rightMotor;
     public final DcMotorEx leftMotor;
     
@@ -21,17 +21,37 @@ public class Launcher {
     public final int TICKS_PER_REV = 28;
     public final double ACCELERATION = 3000; // rpm per second
     
-    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(10, 0, 0, 13.93);
+//    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
+//    public static PIDFCoefficients coefficients = new PIDFCoefficients(20, 3, 0, 13.739);
+//
+    public static double kP = 20, kI = 3, kD = 0, kS = .1, kV = 13.739;
+    
+    public PIDFController controller =
+        new PIDFController(kP, kI, kD, kS, kV);
+    
+    double comp = 1;
+    
+    public void updateVoltComp(double comp) {
+        this.comp = comp;
+    }
 
     public void updateCoefficients() {
-        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                              coefficients.d, coefficients.f);
-        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                               coefficients.d, coefficients.f);
+        controller.setCoefficients(kP, kI, kD, kS, kV);
+//        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, coefficients.i,
+//                                              coefficients.d, coefficients.f * comp);
+//        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, coefficients.i,
+//                                               coefficients.d, coefficients.f * comp);
     }
     
-    public Launcher(HardwareMap hardwareMap) {
+    public void updateRecover() {
+        controller.setCoefficients(kP, 0, kD, kS, kV);
+//        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
+//                                              coefficients.d, coefficients.f * comp);
+//        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
+//                                               coefficients.d, coefficients.f * comp);
+    }
+    
+    public Flywheel(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
         
@@ -66,13 +86,11 @@ public class Launcher {
     }
     
     public void setRpmFromDistance(double distanceToGoal) {
-        double rpm = 13.5 * distanceToGoal + 2373;
+        double rpm = 13.5 * distanceToGoal + 2373; // from like 10 data points
         setRPM(rpm);
     }
     
     public void update(double deltaTime) {
-        //updateCoefficients();
-        
         double rpmDifference = targetRPM - currentTargetRPM;
         double maxStep = ACCELERATION * deltaTime;
         
@@ -82,9 +100,21 @@ public class Launcher {
             currentTargetRPM = targetRPM;
         }
         
-        double ticksPerSecond = rpmToTicksPerSecond(currentTargetRPM);
-        rightMotor.setVelocity(ticksPerSecond);
-        leftMotor.setVelocity(ticksPerSecond);
+        double error = currentTargetRPM - getRpm();
+        if (error > 500) {
+            //controller.reset();
+            controller.setCoefficients(kP, 0, kD, kS, kV);
+        }
+        else {
+            updateCoefficients();
+        }
+        
+//        double ticksPerSecond = rpmToTicksPerSecond(currentTargetRPM);
+//        rightMotor.setVelocity(ticksPerSecond);
+//        leftMotor.setVelocity(ticksPerSecond);
+        double power = controller.computeCorrection(error, deltaTime);
+        rightMotor.setPower(power);
+        leftMotor.setPower(power);
     }
 
     public double getTicksPerSecond() {

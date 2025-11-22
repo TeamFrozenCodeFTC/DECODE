@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -36,7 +37,7 @@ public class MotifDetector {
         visionPortal.close();
     }
     
-    public Spindexer.Artifact[] getMotifPattern(){
+    public Artifact[] getMotifPattern(){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         
         if (currentDetections.isEmpty()) {
@@ -46,22 +47,22 @@ public class MotifDetector {
         AprilTagDetection detection = currentDetections.get(0); // TODO loop through
         // all detections
         if (detection.id==22){
-            return new Spindexer.Artifact[] {
-                Spindexer.Artifact.PURPLE,
-                Spindexer.Artifact.GREEN,
-                Spindexer.Artifact.PURPLE
+            return new Artifact[] {
+                Artifact.PURPLE,
+                Artifact.GREEN,
+                Artifact.PURPLE
             };
         } else if (detection.id==23){
-            return new Spindexer.Artifact[] {
-                Spindexer.Artifact.PURPLE,
-                Spindexer.Artifact.PURPLE,
-                Spindexer.Artifact.GREEN
+            return new Artifact[] {
+                Artifact.PURPLE,
+                Artifact.PURPLE,
+                Artifact.GREEN
             };
         } else if (detection.id ==21) {
-            return new Spindexer.Artifact[]{
-                Spindexer.Artifact.GREEN,
-                Spindexer.Artifact.PURPLE,
-                Spindexer.Artifact.PURPLE
+            return new Artifact[]{
+                Artifact.GREEN,
+                Artifact.PURPLE,
+                Artifact.PURPLE
             };
         } else {
             return null;
