@@ -37,35 +37,37 @@ public class MotifDetector {
         visionPortal.close();
     }
     
-    public Artifact[] getMotifPattern(){
+    public Artifact[] getMotifPattern() {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         
         if (currentDetections.isEmpty()) {
             return null;
         }
         
-        AprilTagDetection detection = currentDetections.get(0); // TODO loop through
-        // all detections
-        if (detection.id==22){
-            return new Artifact[] {
-                Artifact.PURPLE,
-                Artifact.GREEN,
-                Artifact.PURPLE
-            };
-        } else if (detection.id==23){
-            return new Artifact[] {
-                Artifact.PURPLE,
-                Artifact.PURPLE,
-                Artifact.GREEN
-            };
-        } else if (detection.id ==21) {
-            return new Artifact[]{
-                Artifact.GREEN,
-                Artifact.PURPLE,
-                Artifact.PURPLE
-            };
-        } else {
-            return null;
+        for (AprilTagDetection detection : currentDetections) {
+            // all detections
+            if (detection.id == 22) {
+                return new Artifact[]{
+                    Artifact.PURPLE,
+                    Artifact.GREEN,
+                    Artifact.PURPLE
+                };
+            } else if (detection.id == 23) {
+                return new Artifact[]{
+                    Artifact.PURPLE,
+                    Artifact.PURPLE,
+                    Artifact.GREEN
+                };
+            } else if (detection.id == 21) {
+                return new Artifact[]{
+                    Artifact.GREEN,
+                    Artifact.PURPLE,
+                    Artifact.PURPLE
+                };
+            } else {
+                return null;
+            }
         }
+        return null;
     }
 }

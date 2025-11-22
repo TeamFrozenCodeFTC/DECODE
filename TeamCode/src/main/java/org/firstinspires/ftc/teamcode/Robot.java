@@ -85,6 +85,10 @@ public class Robot {
         telemetry.addData("numOfArtifacts", spindexer.getNumberOfArtifacts());
         telemetry.addData("artifacts", Arrays.deepToString(spindexer.slots));
         telemetry.addData("spindexer index", spindexer.currentSlotIndex);
+        telemetry.addData("spindexerHasRotated", spindexerHasRotated);
+        telemetry.addData("paddlesRotated", paddlesRotated);
+        telemetry.addData("isUpToSpeed", launcher.isUpToSpeed());
+        
         telemetry.update();
         
         switch (state) {

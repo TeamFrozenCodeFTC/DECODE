@@ -111,9 +111,12 @@ public class TeleOp extends OpMode {
         }
         else if (gamepad1.triangleWasPressed()) {
            // robot.paddlesRotated = false;
-            if (robot.state == Robot.State.REVVING) {
-                robot.spindexer.rotateToSlot(0);
-            }
+//            if (robot.state == Robot.State.REVVING) {
+//                robot.spindexer.rotateToSlot(0);
+//            }
+            
+            robot.spindexerHasRotated = true;
+            robot.paddlesRotated = false;
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.LOAD_ARTIFACTS));
         }

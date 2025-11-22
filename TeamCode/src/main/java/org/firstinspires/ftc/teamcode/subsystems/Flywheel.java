@@ -21,13 +21,26 @@ public class Flywheel {
     public final int TICKS_PER_REV = 28;
     public final double ACCELERATION = 3000; // rpm per second
     
-//    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
-//    public static PIDFCoefficients coefficients = new PIDFCoefficients(20, 3, 0, 13.739);
-//
-    public static double kP = 20, kI = 3, kD = 0, kS = .1, kV = 13.739;
+    private static final int ACCEL_SAMPLES = 10; // adjust: 10 samples at 20ms = 200ms history
+    private final double[] accelWindow = new double[ACCEL_SAMPLES];
+    private int accelIndex = 0;
+    private boolean accelFilled = false;
     
-    public PIDFController controller =
-        new PIDFController(kP, kI, kD, kS, kV);
+    private double lastRpm = 0;
+    
+    
+    // http://192.168.43.1:8080/dash
+    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
+    public static PIDFCoefficients coefficients = new PIDFCoefficients(20, 3, 0, 13.739);
+
+//    public static double kP = 20, kI = 3, kD = 0, kS = .1, kV = 13.739;
+//    public static double kP = 0, kI = 0, kD = 0, kS = 0, kV = 0;
+    public static double disableIAt = 500;
+    
+    public static double kI = 0;
+    
+    // 0.000185
+    
     
     double comp = 1;
     
@@ -36,19 +49,19 @@ public class Flywheel {
     }
 
     public void updateCoefficients() {
-        controller.setCoefficients(kP, kI, kD, kS, kV);
-//        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, coefficients.i,
-//                                              coefficients.d, coefficients.f * comp);
-//        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, coefficients.i,
-//                                               coefficients.d, coefficients.f * comp);
+      //  controller.setCoefficients(kP, kI, kD, kS, kV);
+        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                              coefficients.d, coefficients.f);
+        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
+                                               coefficients.d, coefficients.f);
     }
     
     public void updateRecover() {
-        controller.setCoefficients(kP, 0, kD, kS, kV);
-//        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
-//                                              coefficients.d, coefficients.f * comp);
-//        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
-//                                               coefficients.d, coefficients.f * comp);
+       /// controller.setCoefficients(kP, 0, kD, kS, kV);
+        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
+                                              coefficients.d, coefficients.f * comp);
+        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
+                                               coefficients.d, coefficients.f * comp);
     }
     
     public Flywheel(HardwareMap hardwareMap) {
@@ -90,7 +103,23 @@ public class Flywheel {
         setRPM(rpm);
     }
     
+    double totalError = 0;
+    
     public void update(double deltaTime) {
+        double currentRpm = getRpm();
+        
+        // --- acceleration tracking ---
+        double accel = (currentRpm - lastRpm) / deltaTime;  // rpm/sec
+        accelWindow[accelIndex++] = accel;
+        
+        if (accelIndex >= ACCEL_SAMPLES) {
+            accelIndex = 0;
+            accelFilled = true;
+        }
+        
+        lastRpm = currentRpm;
+        
+        // --- rest of your update logic ---
         double rpmDifference = targetRPM - currentTargetRPM;
         double maxStep = ACCELERATION * deltaTime;
         
@@ -100,23 +129,42 @@ public class Flywheel {
             currentTargetRPM = targetRPM;
         }
         
-        double error = currentTargetRPM - getRpm();
-        if (error > 500) {
-            //controller.reset();
-            controller.setCoefficients(kP, 0, kD, kS, kV);
-        }
-        else {
-            updateCoefficients();
+        double ticksPerSecond = rpmToTicksPerSecond(currentTargetRPM);
+        
+        double error = currentTargetRPM - currentRpm;
+        if (Math.abs(error) > disableIAt) {
+            totalError += error;
+            ticksPerSecond -= totalError * kI;
         }
         
-//        double ticksPerSecond = rpmToTicksPerSecond(currentTargetRPM);
-//        rightMotor.setVelocity(ticksPerSecond);
-//        leftMotor.setVelocity(ticksPerSecond);
-        double power = controller.computeCorrection(error, deltaTime);
-        rightMotor.setPower(power);
-        leftMotor.setPower(power);
+        updateCoefficients();
+        rightMotor.setVelocity(ticksPerSecond);
+        leftMotor.setVelocity(ticksPerSecond);
     }
-
+    
+    private double getAverageAcceleration() {
+        int count = accelFilled ? ACCEL_SAMPLES : accelIndex;
+        if (count == 0) return Double.MAX_VALUE;
+        
+        double sum = 0;
+        for (int i = 0; i < count; i++) {
+            sum += accelWindow[i];
+        }
+        return sum / count;
+    }
+    
+    public boolean isUpToSpeed() {
+        if (targetRPM <= 0) return false;
+        
+        double rpmError = Math.abs(getRpm() - targetRPM);
+        double avgAccel = Math.abs(getAverageAcceleration());
+        
+        final double MAX_ERROR = 50;       // rpm
+        final double MAX_ACCEL = 100;      // rpm/sec
+        
+        return rpmError < MAX_ERROR;
+    }
+    
     public double getTicksPerSecond() {
         return (leftMotor.getVelocity() + rightMotor.getVelocity()) / 2;
     }
@@ -125,9 +173,10 @@ public class Flywheel {
         return ticksPerSecondToRpm(getTicksPerSecond());
     }
 
-    public boolean isUpToSpeed() {
-        return targetRPM > 0 && Math.abs(getRpm() - targetRPM) < 50;
-    }
+//    public boolean isUpToSpeed() {
+//        //
+//        return targetRPM > 0 && Math.abs(getRpm() - targetRPM) < 50;
+//    }
     
     public void uptake() {
         setRPM(-435);
