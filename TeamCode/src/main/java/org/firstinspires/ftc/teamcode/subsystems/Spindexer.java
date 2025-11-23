@@ -58,8 +58,9 @@ public class Spindexer {
         boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
         boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
         
-        if (leftIsArtifact && rightIsArtifact) {
+        if (leftIsArtifact && rightIsArtifact && (rotateRight || rotateLeft)) {
             // continue previous rotation direction
+            //
         }
         else if (leftIsArtifact) {
             rotateLeft = true;
@@ -69,11 +70,11 @@ public class Spindexer {
             rotateRight = true;
             rotateLeft = false;
         }
-        else {
-            return false;
-//            rotateRight = false;
-//            rotateLeft = false;
-        }
+//        else {
+//            return false;
+////            rotateRight = false;
+////            rotateLeft = false;
+//        }
         
         if (rotateLeft) {
             rotateToSlot(leftIndex);

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel2;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Ramp;
@@ -16,7 +17,7 @@ import java.util.Arrays;
 
 public class Robot {
     public Intake intake;
-    public Flywheel launcher;
+    public Flywheel2 launcher;
     public Spindexer spindexer;
     public Follower follower;
     public Ramp intakeRamp;
@@ -62,7 +63,7 @@ public class Robot {
         spindexer = new Spindexer(hardwareMap);
         intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
-        launcher = new Flywheel(hardwareMap);
+        launcher = new Flywheel2(hardwareMap);
         
         //launcher.updateVoltComp(13 / follower.getVoltage());
     }
@@ -85,6 +86,10 @@ public class Robot {
         telemetry.addData("numOfArtifacts", spindexer.getNumberOfArtifacts());
         telemetry.addData("artifacts", Arrays.deepToString(spindexer.slots));
         telemetry.addData("spindexer index", spindexer.currentSlotIndex);
+        telemetry.addData("spindexerHasRotated", spindexerHasRotated);
+        telemetry.addData("paddlesRotated", paddlesRotated);
+        telemetry.addData("isUpToSpeed", launcher.isUpToSpeed());
+        
         telemetry.update();
         
         switch (state) {
