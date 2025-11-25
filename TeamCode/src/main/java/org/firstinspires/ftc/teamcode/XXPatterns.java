@@ -5,10 +5,10 @@ import static java.util.Map.entry;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Patterns {
+public class XXPatterns {
     Map<String, Map<String, String>> actions = new HashMap<>();
 
-    public Patterns() {
+    public XXPatterns() {
         actions.put("PPG", Map.ofEntries(
                 entry("PPG","LLL"),
                 entry("PGP","LRR"),
