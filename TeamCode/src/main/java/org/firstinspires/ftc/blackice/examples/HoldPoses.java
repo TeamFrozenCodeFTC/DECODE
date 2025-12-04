@@ -21,7 +21,7 @@ public class HoldPoses extends LinearOpMode {
         
         waitForStart();
         
-        Pose targetPose = new Pose(48, 0, 0);
+        Pose targetPose = new Pose(48+24, 0, 0);
         boolean goingToStart = false;
         
         while (opModeIsActive()) {
@@ -31,7 +31,7 @@ public class HoldPoses extends LinearOpMode {
 
             if (follower.isStoppedAt(targetPose)) {
                 if (goingToStart) {
-                    targetPose = new Pose(48, 0, 0);
+                    targetPose = new Pose(48+24, 0, 0);
                 } else {
                     targetPose = new Pose(0, 0, 0);
                 }

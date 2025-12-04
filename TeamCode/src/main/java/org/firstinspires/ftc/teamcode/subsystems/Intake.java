@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
-    private final DcMotorEx motor;
+    public final DcMotorEx motor;
     
     private double targetPower = 0;
     private double currentPower = 0;

@@ -37,9 +37,7 @@ public class PinpointLocalizer implements Localizer {
         );
         odometry.resetPosAndIMU();
         
-        //Thread.sleep(250);
-        
-        try {
+         try {
             Thread.sleep(250);
         } catch (InterruptedException ignored) {
         

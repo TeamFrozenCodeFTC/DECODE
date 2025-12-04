@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -52,7 +53,7 @@ public abstract class Auto2 extends OpMode {
     
     @Override
     public void loop() {
-        robot.update(telemetry);
+        robot.update();
     }
     
     public void mirrorPosesForAllianceColor() {
@@ -69,6 +70,76 @@ public abstract class Auto2 extends OpMode {
                 telemetry.addLine("Cannot access " + field.getName());
             }
         }
+    }
+    
+    int artifactToPickUp = 1; // 1,2,3
+    double pickupStartTime = -1;
+    boolean pickingUpArtifact = false;
+    
+    public boolean pickupArtifactGroup(double y) {
+        robot.setState(Robot.State.LOAD_ARTIFACTS);
+        
+        Pose pickup = getPose(y);
+        
+        if (pickupStartTime < 0) {
+            pickupStartTime = time;
+        }
+        
+        double elapsed = time - pickupStartTime;
+        if (robot.intakedArtifact.isArtifact()) { // Stop while intaking artifact
+            if (!pickingUpArtifact) {
+                robot.follower.drivetrain.zeroPower();
+                artifactToPickUp++;
+                pickupStartTime = time;
+                pickingUpArtifact = true;
+            }
+        }
+        else if (artifactToPickUp > 3) {
+            pickingUpArtifact = false;
+            artifactToPickUp = 1;
+            pickupStartTime = -1;
+            return true;
+        }
+        else if (elapsed > 5) { // Skip to next artifact
+            artifactToPickUp++;
+            pickupStartTime = time;
+            pickingUpArtifact = false;
+        }
+        else if (elapsed > 1.2) { // Move forward to try to get artifact
+            pickingUpArtifact = false;
+            robot.follower.drivetrain.followVector(new Vector(0.2, 0), 0);
+        }
+        else { // Move to next artifact
+            pickingUpArtifact = false;
+            robot.follower.holdPose(pickup, 0.3);
+        }
+        
+        return false;
+    }
+    
+    private Pose getPose(double y) {
+        double x;
+        switch (artifactToPickUp) {
+            
+            // 38.14, 84.98, 180
+//            case 1: x = 37.25; break;
+//            case 2: x = 32; break;
+//            case 3: x = 24; break;
+            case 1: x = 38.14; break;
+            case 2: x = 38.14 - 5; break;
+            //case 3: x = 38.14 - 10; break;
+            default: x = 38.14 - 10; break;
+//            default:
+//                pickingUpArtifact = false;
+//                artifactToPickUp = 0;
+//                return true;
+        }
+        
+        Pose pickup = new Pose(x, y, 180);
+        if (robot.allianceColor == AllianceColor.RED) {
+            pickup = pickup.mirroredAcrossYAxis();
+        }
+        return pickup;
     }
 }
 

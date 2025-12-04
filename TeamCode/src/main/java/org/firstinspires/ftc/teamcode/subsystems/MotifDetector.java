@@ -26,12 +26,13 @@ public class MotifDetector {
     public MotifDetector(HardwareMap map) {
         hardwareMap = map;
     }
-
+    
     public void start() {
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-        visionPortal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+        visionPortal = VisionPortal.easyCreateWithDefaults(
+            hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
     }
-
+    
     public void stop() {
         visionPortal.stopStreaming();
         visionPortal.close();
@@ -64,8 +65,6 @@ public class MotifDetector {
                     Artifact.PURPLE,
                     Artifact.PURPLE
                 };
-            } else {
-                return null;
             }
         }
         return null;

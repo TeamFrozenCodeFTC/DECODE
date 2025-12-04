@@ -17,6 +17,8 @@ public class Spindexer {
     public void resetSlots() {
         slots = new Artifact[]
             {Artifact.NONE, Artifact.NONE, Artifact.NONE};
+        rotateLeft = false;
+        rotateRight = false;
     }
     
     public Spindexer(HardwareMap hardwareMap) {
@@ -31,6 +33,26 @@ public class Spindexer {
            return leftColorSensor.getDetectedArtifact();
         }
         return detected;
+    }
+    
+    public boolean intakeArtifact(Artifact artifact) {
+        int count = getNumberOfArtifacts();
+        slots[count] = artifact;
+        
+        switch (count) {
+            case 0:
+                rotateToSlot(1);
+                break;
+            case 1:
+                rotateToSlot(2);
+                break;
+            case 2:
+                double targetSlot =
+                    (slots[1] == artifact) ? 2.5 : 1.5;
+                rotateToSlot(targetSlot);
+                return true;
+        }
+        return false;
     }
     
     public static boolean hasDecimal(double value) {
@@ -60,7 +82,6 @@ public class Spindexer {
         
         if (leftIsArtifact && rightIsArtifact && (rotateRight || rotateLeft)) {
             // continue previous rotation direction
-            //
         }
         else if (leftIsArtifact) {
             rotateLeft = true;
@@ -70,11 +91,6 @@ public class Spindexer {
             rotateRight = true;
             rotateLeft = false;
         }
-//        else {
-//            return false;
-////            rotateRight = false;
-////            rotateLeft = false;
-//        }
         
         if (rotateLeft) {
             rotateToSlot(leftIndex);

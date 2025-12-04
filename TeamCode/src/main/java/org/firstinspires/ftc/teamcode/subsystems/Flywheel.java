@@ -5,183 +5,131 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-
-import org.firstinspires.ftc.blackice.core.control.Feedforward;
-import org.firstinspires.ftc.blackice.core.control.PIDFController;
+import com.qualcomm.robotcore.util.Range;
 
 @Config
 public class Flywheel {
-    public final DcMotorEx rightMotor;
-    public final DcMotorEx leftMotor;
+    public DcMotorEx rightMotor;
+    public DcMotorEx leftMotor;
     
+    // RPM targets
     private double targetRPM = 0;
-    private double currentTargetRPM = 0;
+    private double currentTargetRPM = 0; // ramp limited
     
-    public final int TICKS_PER_REV = 28;
-    public final double ACCELERATION = 3000; // rpm per second
+    // Constants
+    public static final int TICKS_PER_REV = 28;
+    public static final double MAX_ACCEL_RPM_PER_SEC = 3000;
     
-    private static final int ACCEL_SAMPLES = 10; // adjust: 10 samples at 20ms = 200ms history
-    private final double[] accelWindow = new double[ACCEL_SAMPLES];
-    private int accelIndex = 0;
-    private boolean accelFilled = false;
+    public double filteredVoltage = 13;
     
-    private double lastRpm = 0;
+    public static double alpha = 0.01;
+    public static double kP = 0.005;
+    public static double kI = 0.002;
+    public static double kS = 0.85;
+    public static double kV = 0.0022;
+    public static double I_ENABLE_ERROR = 300;
     
+    private double totalError = 0;
+    private boolean hasShot;
+    private double lastRPM;
     
     // http://192.168.43.1:8080/dash
-    // PIDFCoefficients(p=10.000000 i=3.000000 d=0.000000 f=0.000000 alg=LegacyPID)
-    public static PIDFCoefficients coefficients = new PIDFCoefficients(20, 3, 0, 13.739);
-
-//    public static double kP = 20, kI = 3, kD = 0, kS = .1, kV = 13.739;
-//    public static double kP = 0, kI = 0, kD = 0, kS = 0, kV = 0;
-    public static double disableIAt = 500;
-    
-    public static double kI = 0;
-    
-    // 0.000185
-    
-    
-    double comp = 1;
-    
-    public void updateVoltComp(double comp) {
-        this.comp = comp;
-    }
-
-    public void updateCoefficients() {
-      //  controller.setCoefficients(kP, kI, kD, kS, kV);
-        leftMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                              coefficients.d, coefficients.f);
-        rightMotor.setVelocityPIDFCoefficients(coefficients.p, coefficients.i,
-                                               coefficients.d, coefficients.f);
-    }
-    
-    public void updateRecover() {
-       /// controller.setCoefficients(kP, 0, kD, kS, kV);
-        leftMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
-                                              coefficients.d, coefficients.f * comp);
-        rightMotor.setVelocityPIDFCoefficients(coefficients.p * comp, 0,
-                                               coefficients.d, coefficients.f * comp);
-    }
     
     public Flywheel(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
         
-        rightMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        leftMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        
-        rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-    }
-    
-    public boolean rpmDropped() {
-        return getRpm() < getTargetRPM() * 0.90;
-    }
-    
-    public double getTargetRPM() {
-        return targetRPM;
-    }
-    
-    public double rpmToTicksPerSecond(double rpm) {
-        return rpm * TICKS_PER_REV / 60;
-    }
-    
-    public double ticksPerSecondToRpm(double ticksPerSecond) {
-        return ticksPerSecond / TICKS_PER_REV * 60;
+        
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     
     public void setRPM(double rpm) {
         targetRPM = rpm;
     }
     
-    public void setRpmFromDistance(double distanceToGoal) {
-        double rpm = 13.5 * distanceToGoal + 2373; // from like 10 data points
-        setRPM(rpm);
+    public void stop() {
+        targetRPM = 0;
+        totalError = 0;
     }
     
-    double totalError = 0;
-    
-    public void update(double deltaTime) {
-        double currentRpm = getRpm();
-        
-        // --- acceleration tracking ---
-        double accel = (currentRpm - lastRpm) / deltaTime;  // rpm/sec
-        accelWindow[accelIndex++] = accel;
-        
-        if (accelIndex >= ACCEL_SAMPLES) {
-            accelIndex = 0;
-            accelFilled = true;
-        }
-        
-        lastRpm = currentRpm;
-
-        double rpmDifference = targetRPM - currentTargetRPM;
-        double maxStep = ACCELERATION * deltaTime;
-        
-        if (Math.abs(rpmDifference) > maxStep) {
-            currentTargetRPM += Math.copySign(maxStep, rpmDifference);
-        } else {
-            currentTargetRPM = targetRPM;
-        }
-        
-        double ticksPerSecond = rpmToTicksPerSecond(currentTargetRPM);
-        
-        double error = currentTargetRPM - currentRpm;
-        if (Math.abs(error) > disableIAt) {
-            totalError += error;
-            ticksPerSecond -= totalError * kI;
-        }
-        
-        updateCoefficients();
-        rightMotor.setVelocity(ticksPerSecond);
-        leftMotor.setVelocity(ticksPerSecond);
-    }
-    
-    private double getAverageAcceleration() {
-        int count = accelFilled ? ACCEL_SAMPLES : accelIndex;
-        if (count == 0) return Double.MAX_VALUE;
-        
-        double sum = 0;
-        for (int i = 0; i < count; i++) {
-            sum += accelWindow[i];
-        }
-        return sum / count;
-    }
-    
-    public boolean isUpToSpeed() {
-        if (targetRPM <= 0) return false;
-        
-        double rpmError = Math.abs(getRpm() - targetRPM);
-        double avgAccel = Math.abs(getAverageAcceleration());
-        
-        final double MAX_ERROR = 50;       // rpm
-        final double MAX_ACCEL = 100;      // rpm/sec
-        
-        return rpmError < MAX_ERROR;
-    }
-    
-    public double getTicksPerSecond() {
-        return (leftMotor.getVelocity() + rightMotor.getVelocity()) / 2;
+    public boolean rpmUnderTarget() {
+        return getRpm() < getTargetRPM() * 0.80;
     }
     
     public double getRpm() {
-        return ticksPerSecondToRpm(getTicksPerSecond());
+        return ticksPerSecondToRpm(rightMotor.getVelocity());
     }
+    
+    public double getTargetRPM() {
+        return targetRPM;
+    }
+    
+    public static double minRPM = 2064.38;
+ 
+    public void setRpmFromDistance(double dist) {
+       // setRPM(13.5 * dist + 2373);
+        setRPM(17.17 * dist + minRPM);
+        
+        // y=17.17072x+2064.38333
+    }
+    
+    public boolean hasDroppedRPM() {
+        return hasShot;
+    }
+    
+    public void update(double dt, double voltage) {
+        double currentRpm = getRpm();
+        
+        hasShot = currentRpm - lastRPM < -400;
+        lastRPM = currentRpm;
 
-//    public boolean isUpToSpeed() {
-//        //
-//        return targetRPM > 0 && Math.abs(getRpm() - targetRPM) < 50;
-//    }
-    
-    public void uptake() {
-        setRPM(-435);
+        // ---- ramp target RPM for stability ----
+        double diff = targetRPM - currentTargetRPM;
+        double maxStep = MAX_ACCEL_RPM_PER_SEC * dt;
+        
+        if (Math.abs(diff) > maxStep)
+            currentTargetRPM += Math.copySign(maxStep, diff);
+        else
+            currentTargetRPM = targetRPM;
+        
+        // ---- Feedforward ----
+        double ff = kS * Math.signum(currentTargetRPM)
+            + kV * currentTargetRPM;
+        
+        // ---- PID ----
+        double error = currentTargetRPM - currentRpm;
+        double p = kP * error;
+        
+        // Conditional integral
+        if (Math.abs(error) < I_ENABLE_ERROR) {
+            totalError += error * dt;
+            filteredVoltage = filteredVoltage + alpha * (voltage - filteredVoltage);
+        }
+        double i = kI * totalError;
+        
+        double power = (ff + p + i) / filteredVoltage;
+        
+        power = Range.clip(power, 0, 1);
+        
+        leftMotor.setPower(power);
+        rightMotor.setPower(power);
     }
     
-    public void stop() {
-        setRPM(0);
+    private double ticksPerSecondToRpm(double tps) {
+        return tps / TICKS_PER_REV * 60.0;
+    }
+    
+    public boolean isUpToSpeed() {
+        if (targetRPM < 100) return false;
+        
+        double rpmError = Math.abs(getRpm() - targetRPM);
+        
+        return rpmError < 50;
     }
 }
