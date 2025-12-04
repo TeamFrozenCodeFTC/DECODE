@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.blackice.util.Timeout;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -18,15 +19,16 @@ public class CloseAuto extends Auto2 {
     // 56.65 87.5, -45.8
     
     // 38.14, 84.98, 180
-    public Pose motifPose = new Pose(56.65, 87.5, -90);
+    public Pose motifPose = new Pose(56.65, 87.5, -95);
     public Pose firePose = new Pose(56.65, 87.5, -45.8);
     
-    public Pose pose = new Pose(40, 81, 180);
+    public Pose pose = new Pose(39, 81, 180);
+    public Pose pose2 = new Pose(38, 81-24, 180);
              
              //public Pose motifPose = new Pose(54, 84, -90);
    // public Pose firePose = new Pose(54, 84, -51);
 
-    public Pose endPose = new Pose(30, 84, 180);
+    public Pose endPose = new Pose(30, 50, 180);
     
     MotifDetector motifDetector;
     
@@ -41,6 +43,8 @@ public class CloseAuto extends Auto2 {
         motifDetector = new MotifDetector(hardwareMap);
         motifDetector.start();
     }
+    
+    Timeout timeout = new Timeout();
     
     int state = 1;
     
@@ -62,25 +66,31 @@ public class CloseAuto extends Auto2 {
                 break;
             case 1:
                 goToPose(motifPose, Robot.State.REVVING);
+                if (state == 2) {
+                    timeout.resetAndStart();
+                }
                 break;
             case 2:
                 robot.motifPattern = motifDetector.getMotifPattern();
-                if (robot.motifPattern == null) {
+                if (robot.motifPattern == null && timeout.seconds() > 1) {
                     robot.motifPattern = new Artifact[]
                         {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
                 }
-                telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
-                telemetry.update();
-                state++;
+                
+                if (robot.motifPattern != null || timeout.seconds() > 1) {
+                    telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
+                    telemetry.update();
+                    state++;
+                }
                 break;
-            case 10:
             case 7:
+           // case 11:
             case 3:
                 robot.paddles.close();
                 goToPose(firePose, Robot.State.REVVING);
                 break;
-            case 11:
             case 8:
+           // case 12:
             case 4:
                 if (robot.state == Robot.State.IDLE) {
                     state++;
@@ -92,7 +102,7 @@ public class CloseAuto extends Auto2 {
                 robot.follower.holdPose(firePose);
                 break;
             case 5:
-                goToPose(pose, Robot.State.IDLE);
+                goToPoseFast(pose, Robot.State.IDLE);
                 break;
             case 6:
                 if (pickupArtifactGroup(81)) {
@@ -101,18 +111,15 @@ public class CloseAuto extends Auto2 {
                 }
                 break;
             case 9:
+                goToPoseFast(pose2, Robot.State.IDLE);
+                break;
+            case 10:
                 if (pickupArtifactGroup(81-24)) {
                     robot.paddles.close();
                     state++;
                 }
                 break;
-//            case 8:
-//                if (pickupArtifactGroup(81)) {
-//                    robot.paddles.close();
-//                    state++;
-//                }
-//                break;
-            case 12:
+            case 11:
                 robot.follower.holdPose(endPose);
                 break;
         }
@@ -123,8 +130,8 @@ public class CloseAuto extends Auto2 {
         
         robot.update();
         
-        telemetry.addData("state", state);
-        telemetry.update();
+//        telemetry.addData("state", state);
+//        telemetry.update();
     }
     
     public void goToPose(Pose pose, Robot.State robotState) {
@@ -136,11 +143,11 @@ public class CloseAuto extends Auto2 {
         }
     }
     
-    public void goToPoseSlow(Pose pose, Robot.State robotState) {
-        robot.follower.holdPose(pose, 0.3);
+    public void goToPoseFast(Pose pose, Robot.State robotState) {
+        robot.follower.holdPose(pose);
         robot.setState(robotState);
         
-        if (robot.follower.isStoppedAt(pose)) {
+        if (robot.follower.isWithinBraking(pose)) {
             state++;
         }
     }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
@@ -39,6 +40,8 @@ public class Robot {
     public boolean reverseSpindexerCase = false;
     public boolean droppedFirstArtifact = false;
     
+    public boolean isAuto = false;
+    
     public Artifact intakedArtifact = Artifact.NONE;
     
     public Robot.State state = Robot.State.IDLE;
@@ -69,6 +72,7 @@ public class Robot {
         }
         state = newState;
         stateTimer.pauseAtZero();
+        timer2.resetAndStart();
     }
 
     public Robot(HardwareMap hardwareMap) {
@@ -103,6 +107,8 @@ public class Robot {
         
         reverseSpindexerCase = isPGPMotif && hasPGP;
     }
+    
+    Timeout timer2 = new Timeout();
 
     public void update() {
         follower.update();
@@ -275,7 +281,7 @@ public class Robot {
 //                }
 //                break;
             case FAST_FIRING:
-                stateTimer.resume();
+                timer2.resume();
                 
                 revTowardGoal();
                 intakeRamp.outtake();
@@ -299,16 +305,20 @@ public class Robot {
                     }
                 }
 
-                if (launcher.hasDroppedRPM()) {
+                if (droppedFirstArtifact && (launcher.hasDroppedRPM())) {
                     firedArtifacts++;
                     if (artifactsToFire <= 0) {
                         resetSpindexer();
                         break;
                     }
                     artifactsToFire--;
+                    timer2.resetAndStart();
                 }
                 
-                if (stateTimer.seconds() > 5) {
+                if (isAuto && stateTimer.seconds() > 2.5) {
+                    resetSpindexer();
+                }
+                if (!isAuto && stateTimer.seconds() > 6) {
                     resetSpindexer();
                 }
                 break;

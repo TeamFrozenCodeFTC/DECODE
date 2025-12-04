@@ -183,9 +183,9 @@ public class TeleOp extends OpMode {
                 robot.follower.getMotionState().pose.headingToDegrees();
         }
         
-        if (gamepad1.touchpadWasPressed()) {
-            isTravelingToBase = !isTravelingToBase;
-        }
+//        if (gamepad1.touchpadWasPressed()) {
+//            isTravelingToBase = !isTravelingToBase;
+//        }
         if (isTravelingToBase) {
             robot.follower.setCurrentPose(
                 robot.follower.getCurrentPose()

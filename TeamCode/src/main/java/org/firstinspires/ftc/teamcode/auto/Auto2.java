@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
@@ -14,7 +15,7 @@ import java.lang.reflect.Field;
 
 public abstract class Auto2 extends OpMode {
     public Robot robot;
-
+   
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
@@ -22,6 +23,7 @@ public abstract class Auto2 extends OpMode {
             .getTelemetry());
         
         robot.spindexer.rotateToSlot(0.5);
+        robot.isAuto = true;
     }
     
     @Override
@@ -75,6 +77,7 @@ public abstract class Auto2 extends OpMode {
     int artifactToPickUp = 1; // 1,2,3
     double pickupStartTime = -1;
     boolean pickingUpArtifact = false;
+    ElapsedTime timer;
     
     public boolean pickupArtifactGroup(double y) {
         robot.setState(Robot.State.LOAD_ARTIFACTS);
@@ -107,7 +110,7 @@ public abstract class Auto2 extends OpMode {
         }
         else if (elapsed > 1.2) { // Move forward to try to get artifact
             pickingUpArtifact = false;
-            robot.follower.drivetrain.followVector(new Vector(0.2, 0), 0);
+            robot.follower.drivetrain.followVector(new Vector(0.25, 0), 0);
         }
         else { // Move to next artifact
             pickingUpArtifact = false;
