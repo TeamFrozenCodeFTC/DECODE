@@ -125,7 +125,7 @@ public class Robot {
                 intake.intake();
                 
                 if (spindexerHasRotated) {
-                    paddles.open();
+                    paddles.open(); // down
                 }
                 else {
                     intake.stop();
