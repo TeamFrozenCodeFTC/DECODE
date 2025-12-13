@@ -21,4 +21,9 @@ public class Paddles {
         leftPaddle.setPosition(0.479);
         rightPaddle.setPosition(0.515);
     }
+    
+    public void disable() {
+        leftPaddle.setPwmDisable();
+        rightPaddle.setPwmDisable();
+    }
 }

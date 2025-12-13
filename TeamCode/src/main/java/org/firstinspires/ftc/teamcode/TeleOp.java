@@ -114,6 +114,7 @@ public class TeleOp extends OpMode {
             telemetry.addData("paddlesRotated", robot.paddlesRotatedUp);
             telemetry.addData("isUpToSpeed", robot.launcher.isUpToSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
+            telemetry.addData("silasMode", gamepad2Enabled);
             telemetry.addData("distanceToGoal",
                               robot.allianceColor.getGoalPosition()
                                   .distanceTo(
@@ -236,9 +237,9 @@ public class TeleOp extends OpMode {
         
         if (!gamepad2Enabled) {
         
-        } else if (gamepad2.dpadLeftWasPressed()) {
-            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
         } else if (gamepad2.dpadRightWasPressed()) {
+            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
+        } else if (gamepad2.dpadLeftWasPressed()) {
             robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
         } else if (gamepad2.squareWasPressed()) {
             if (!robot.spindexer.rotateToArtifact(Artifact.PURPLE)) {

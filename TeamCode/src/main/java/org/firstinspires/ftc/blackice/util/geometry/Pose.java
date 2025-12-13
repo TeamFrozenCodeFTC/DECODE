@@ -26,6 +26,10 @@ public class Pose {
         this(new Vector(x, y), heading);
     }
     
+    public static Pose toDegrees(double x, double y, double heading) {
+        return new Pose(new Vector(x, y), Math.toDegrees(heading));
+    }
+    
     public Pose addedX(double x) {
         return new Pose(position.withX(position.getX() + x), heading);
     }

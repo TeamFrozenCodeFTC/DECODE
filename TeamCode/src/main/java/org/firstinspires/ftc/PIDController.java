@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.blackice.simple;
+package org.firstinspires.ftc;
 
 public class PIDController {
     public double kP, kI, kD;
@@ -17,7 +17,7 @@ public class PIDController {
         this.iZone = iZone;
     }
     
-    private double computeOutput(double error, double deltaTime, double voltage) {
+    public double computeOutput(double error, double deltaTime, double voltage) {
         double derivative;
         if (firstRun) {
             derivative = 0;

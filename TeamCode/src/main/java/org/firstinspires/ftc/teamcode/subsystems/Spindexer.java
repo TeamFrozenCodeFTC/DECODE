@@ -35,6 +35,7 @@ public class Spindexer {
         return detected;
     }
     
+    // +1 is to the right, clockwise
     public boolean intakeArtifact(Artifact artifact) {
         int count = getNumberOfArtifacts();
         slots[count] = artifact;

@@ -30,7 +30,7 @@ public class Flywheel {
     public static double I_ENABLE_ERROR = 300;
     
     private double totalError = 0;
-    private boolean hasShot;
+    private boolean shotDetected;
     private double lastRPM;
     
     // http://192.168.43.1:8080/dash
@@ -79,15 +79,33 @@ public class Flywheel {
         // y=17.17072x+2064.38333
     }
     
-    public boolean hasDroppedRPM() {
-        return hasShot;
+    public boolean artifactLaunched() {
+        return shotDetected;
+    }
+    
+    double shotCooldown = 0.15;   // seconds
+    double lastShotTime = System.nanoTime();
+
+    boolean updateShotDetection(double rpm, double now) {
+        double delta = rpm - lastRPM;
+        lastRPM = rpm;
+
+        // Not ready to detect yet
+        if (now - lastShotTime < shotCooldown) return false;
+
+        // Detect sharp RPM drop
+        if (delta < -300) {            // tuned threshold
+            lastShotTime = now;
+            return true;
+        }
+
+        return false;
     }
     
     public void update(double dt, double voltage) {
         double currentRpm = getRpm();
         
-        hasShot = currentRpm - lastRPM < -400;
-        lastRPM = currentRpm;
+        shotDetected = updateShotDetection(targetRPM, System.nanoTime());
 
         // ---- ramp target RPM for stability ----
         double diff = targetRPM - currentTargetRPM;

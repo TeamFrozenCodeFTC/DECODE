@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
@@ -14,7 +15,7 @@ public class FarAutoHumanZone extends Auto2 {
     public Pose startingPose = new Pose(56, 8.5, -90);
     public Pose firePose = new Pose(56, 15, -63);
     
-    public Pose humanPlayerZone = new Pose(8, 8.25, 180);
+    public Pose humanPlayerZone = new Pose(28, 9, 180);
     
     public Pose endPose = new Pose(25, 15, 0);
     
@@ -48,6 +49,9 @@ public class FarAutoHumanZone extends Auto2 {
             robot.motifPattern = new Artifact[]
                 {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
         }
+        if (robot.allianceColor == AllianceColor.RED) {
+            firePose = firePose.withHeading(firePose.getHeading() + 15-6);
+        }
         telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
         telemetry.update();
     }
@@ -68,6 +72,7 @@ public class FarAutoHumanZone extends Auto2 {
                 else {
                     robot.setState(Robot.State.FAST_FIRING);
                 }
+                robot.follower.holdPose(firePose);
                 break;
             case 3:
                 goToPose(humanPlayerZone, Robot.State.LOAD_ARTIFACTS);

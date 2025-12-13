@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
@@ -195,92 +193,7 @@ public class Robot {
                 intake.stop();
                 follower.lockHeadingAt(null);
                 break;
-                
-//            case FAST_FIRING: // FAST FIRING
-//                stateTimer.resume();
-//
-//                revLauncher();
-//                follower.lockHeadingAt(getAngleToGoal());
-//                intakeRamp.outtake();
-//                intake.stop();
-//
-//                if (stateTimer.seconds() > 0.5) {
-//                    paddles.open();
-//                }
-//
-//                if (launcher.isUpToSpeed()) {
-//                    stateTimer.resume();
-//
-//                    boolean isPGP =
-//                        Arrays.equals(motifPattern, new Artifact[]{ Artifact.PURPLE, Artifact.GREEN,
-//                            Artifact.PURPLE });
-//
-//                    boolean shouldRun23 = !isPGP || firedArtifacts >= 1;
-//
-//                    if (!countedArtifacts) {
-//                        hasPGP = Collections.frequency(List.of(spindexer.slots),
-//                                                       Artifact.GREEN) == 1 && Collections.frequency(List.of(spindexer.slots),
-//                                                                                                     Artifact.PURPLE) == 2;
-//                        countedArtifacts = true;
-//                    }
-//
-//                    // if hasPGP then run only once, otherwise run always
-//                    if (!rotatedFirst || !hasPGP) {
-//                        if (!spindexer.rotateToArtifact(motifPattern[0])) {
-//                            spindexer.rotateToArtifact(motifPattern[0].oppositeColor());
-//                        }
-//                    }
-//                    rotatedFirst = true;
-//
-//                    if (shouldRun23) {
-//                        if (!spindexer.rotateToArtifact(motifPattern[1])) {
-//                            spindexer.rotateToArtifact(motifPattern[1].oppositeColor());
-//                        }
-//                        if (!spindexer.rotateToArtifact(motifPattern[2])) {
-//                            spindexer.rotateToArtifact(motifPattern[2].oppositeColor());
-//                        }
-//                    }
-//
-//                    spindexer.rotateLeft = false;
-//                    spindexer.rotateRight = false;
-//                }
-//
-//                // fix artifact getting stuck under paddles
-//
-//                // 2. Detect shot by RPM drop
-//                if (!launchPathClear && launcher.rpmDropped()) {
-//                    firedArtifacts++;
-//                    launchPathClear = true;
-//                }
-//                // 3. Once shooter recovers, rotate to next artifact
-//                if (launchPathClear && launcher.isUpToSpeed()) {
-//                    if (artifactsToFire <= 0) {
-//                        artifactsToFire = 0;
-//                        firedArtifacts = 0;
-//                        rotatedFirst = false;
-//                        countedArtifacts = false;
-//                        hasPGP = false;
-//                        spindexer.resetSlots();
-//                        spindexer.rotateToSlot(0);
-//                        setState(State.IDLE);
-//                        break;
-//                    }
-//                    artifactsToFire--;
-//                    launchPathClear = false;
-//                }
-//
-//                if (stateTimer.seconds() > 5) { // safety timeout
-//                    firedArtifacts = 0;
-//                    artifactsToFire = 0;
-//                    spindexer.resetSlots();
-//                    rotatedFirst = false;
-//                    countedArtifacts = false;
-//                    hasPGP = false;
-//                    spindexer.rotateToSlot(0);
-//                    setState(State.IDLE);
-//                }
-//                break;
-            case FAST_FIRING:
+            case FAST_FIRING: // Old logic to launch artifacts quickly according to motif pattern
                 timer2.resume();
                 
                 revTowardGoal();
@@ -304,14 +217,14 @@ public class Robot {
                         spindexer.forceRotateToArtifact(motifPattern[2]);
                     }
                 }
-
-                if (droppedFirstArtifact && (launcher.hasDroppedRPM())) {
+                
+                if (droppedFirstArtifact && (launcher.artifactLaunched())) {
                     firedArtifacts++;
+                    artifactsToFire--;
                     if (artifactsToFire <= 0) {
                         resetSpindexer();
                         break;
                     }
-                    artifactsToFire--;
                     timer2.resetAndStart();
                 }
                 
@@ -322,25 +235,44 @@ public class Robot {
                     resetSpindexer();
                 }
                 break;
-            case FIRING: // slow FIRING
-                // 2. Detect shot by RPM drop
-                if (!launchPathClear && launcher.hasDroppedRPM()) {
+            case FIRING: // Slowly launches artifacts according to motif pattern
+                if (launcher.artifactLaunched()) {
+                    spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
                     firedArtifacts++;
-                    launchPathClear = true;
                 }
-
-                // 3. Once shooter recovers, rotate to next artifact
-                if (launchPathClear && launcher.isUpToSpeed()) {
+ 
+                if (launcher.isUpToSpeed()) {
+                    spindexer.rotateToArtifact(motifPattern[firedArtifacts]);
+                    
                     if (spindexer.getNumberOfArtifacts() == 0) {
                         spindexer.rotateToSlot(0);
                         firedArtifacts = 0;
                         setState(State.IDLE);
                         break;
                     }
+                }
+                
+                stateTimer.resume();
+                
+                revTowardGoal();
+                intakeRamp.outtake();
+                intake.stop();
+                
+                if (stateTimer.seconds() > 0.7) { // was .5
+                    paddles.open();
+                }
+            case SALVO: // Launches artifacts as fast as possible
+                if (launcher.artifactLaunched()) {
+                    spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
+                }
+                
+                if (launcher.isUpToSpeed()) {
+                    spindexer.rotateToSlot(0);
                     
-                    Artifact motifArtifact = motifPattern[firedArtifacts];
-                    spindexer.forceRotateToArtifact(motifArtifact);
-                    launchPathClear = false;
+                    if (spindexer.getNumberOfArtifacts() == 0) {
+                        setState(State.IDLE);
+                        break;
+                    }
                 }
             case REVVING:
                 stateTimer.resume();
