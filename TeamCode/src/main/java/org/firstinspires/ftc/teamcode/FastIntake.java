@@ -6,7 +6,7 @@ public class FastIntake extends TeleOps {
     
     State state = State.IDLE;
     int numberOfArtifacts = 0;
-    boolean artifactBeingPushedUp;
+    boolean artifactBeingPushedUp = false;
     
     @Override
     public void loop() {
@@ -24,7 +24,7 @@ public class FastIntake extends TeleOps {
                     numberOfArtifacts++;
                 }
                 break;
-            case FAST_SPINDEXER_LOAD: // loads 1st into spindexer from push from
+            case FAST_SPINDEXER_LOAD: // loads 1st into spindexer from push from //
                 // second, and third pushes second, and third is pushed by paddles
                 robot.launcher.stop();
                 robot.intakeRamp.uptake();
@@ -32,39 +32,36 @@ public class FastIntake extends TeleOps {
                 
                 // purple -> intaked = purple, artifactBeingPushedUp = false
                 // none -> artifactBeingPushedUp = true
-                // purple -> spindexer rotates, artifactBeingPushedUp =
-                // false
+                // purple -> spindexer rotates, artifactBeingPushedUp = false
                 // none -> artifactBeingPushedUp = true
-                // purple -> spindexer rotates,  artifactBeingPushedUp = false, state = IDLE
+                // purple -> spindexer rotates, artifactBeingPushedUp = false, state =
+                // IDLE
                 
-                Artifact detectedArtifact = robot.spindexer.getDetectedArtifact();
-                boolean newArtifactPresent = detectedArtifact.isArtifact() && !artifactBeingPushedUp;
-   
+                Artifact detectedArtifact2 = robot.spindexer.getDetectedArtifact();
+                boolean newArtifactPresent =
+                    detectedArtifact2.isArtifact() && !artifactBeingPushedUp;
                 if (newArtifactPresent) {
-                    robot.intakedArtifact = detectedArtifact;
-
+                    robot.intakedArtifact = detectedArtifact2;
                     if (robot.spindexer.getNumberOfArtifacts() == 2) {
                         robot.paddles.close();
                     }
                 }
-
                 // Intaked artifact no longer detected, meaning it is being pushed up into
                 // the spindexer.
-                if (robot.intakedArtifact.isArtifact() && detectedArtifact.isNone()) {
+                if (robot.intakedArtifact.isArtifact() && detectedArtifact2.isNone()) {
                     artifactBeingPushedUp = true;
                 }
                 
                 // When an artifact has been fully pushed up into the spindexer from
                 // detecting another artifact underneath.
-                boolean artifactIsInSpindexer = artifactBeingPushedUp &&
-                    detectedArtifact.isArtifact();
+                boolean artifactIsInSpindexer =
+                    artifactBeingPushedUp && detectedArtifact2.isArtifact();
                 
                 // Rotates spindexer to intake the artifact that was pushed up.
                 if (artifactIsInSpindexer) {
                     robot.spindexer.intakeArtifact(robot.intakedArtifact);
                     robot.intakedArtifact = Artifact.NONE;
                     artifactBeingPushedUp = false;
-                    
                     if (robot.spindexer.getNumberOfArtifacts() == 3) {
                         state = State.IDLE;
                     }
@@ -98,11 +95,26 @@ public class FastIntake extends TeleOps {
                     case 0:
                         state = State.IDLE;
                 }
+                
                 break;
+            case SALVO:
+                if (robot.launcher.artifactLaunched()) {
+                    robot.spindexer.slots[robot.spindexer.getNumberOfArtifacts()] =
+                        Artifact.NONE;
+                }
+                
+                if (robot.launcher.isUpToSpeed()) {
+                    robot.spindexer.rotateToSlot(0);
+                    
+                    if (robot.spindexer.getNumberOfArtifacts() == 0) {
+                        robot.setState(Robot.State.IDLE);
+                        break;
+                    }
+                }
             case IDLE:
                 robot.launcher.stop();
                 robot.intake.stop();
-                //robot.intakeRamp.uptake();
+                robot.intakeRamp.uptake();
                 break;
         }
         
@@ -123,6 +135,13 @@ public class FastIntake extends TeleOps {
         if (gamepad1.leftBumperWasPressed()) {
             state = State.IDLE;
         }
+        if (gamepad1.right_trigger == 1) {
+            state = State.SALVO;
+        }
+        if (gamepad1.left_trigger == 1) {
+            state = State.FAST_SPINDEXER_LOAD;
+        }
+        
         
         super.loop();
     }
@@ -131,6 +150,7 @@ public class FastIntake extends TeleOps {
         FAST_INTAKE,
         FIRE,
         IDLE,
-        FAST_SPINDEXER_LOAD
+        FAST_SPINDEXER_LOAD,
+        SALVO
     }
 }
