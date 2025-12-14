@@ -1,13 +1,14 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.blackice.util.Timeout;
-import org.firstinspires.ftc.blackice.util.actions.Action;
-import org.firstinspires.ftc.blackice.util.actions.Condition;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.AllianceColor;
+import org.firstinspires.ftc.teamcode.Artifact;
+import org.firstinspires.ftc.teamcode.Haptics;
+import org.firstinspires.ftc.teamcode.Robot;
 
 import java.util.Arrays;
 
@@ -83,7 +84,7 @@ public class TeleOps extends OpMode {
             telemetry.addData("numOfArtifacts", numberOfArtifacts);
             telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.slots));
             telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
-            telemetry.addData("spindexerHasRotated", robot.spindexerHasRotated);
+            telemetry.addData("spindexerHasRotated", robot.spindexerIsRotating);
             telemetry.addData("paddlesRotated", robot.paddlesRotatedUp);
             telemetry.addData("isUpToSpeed", robot.launcher.isUpToSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
@@ -94,9 +95,6 @@ public class TeleOps extends OpMode {
             telemetry.update();
         }
         
-        robot.intake.update();
-        
-        robot.launcher.update(robot.follower.getMotionState().deltaTime,
-                              robot.follower.getVoltage());
+        robot.update();
     }
 }

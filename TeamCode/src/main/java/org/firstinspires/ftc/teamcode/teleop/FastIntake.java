@@ -1,9 +1,10 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleop;
+
+import org.firstinspires.ftc.teamcode.Artifact;
+import org.firstinspires.ftc.teamcode.Robot;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class FastIntake extends TeleOps {
-    Robot robot;
-    
     State state = State.IDLE;
     int numberOfArtifacts = 0;
     boolean artifactBeingPushedUp = false;
@@ -42,23 +43,15 @@ public class FastIntake extends TeleOps {
                     detectedArtifact2.isArtifact() && !artifactBeingPushedUp;
                 if (newArtifactPresent) {
                     robot.intakedArtifact = detectedArtifact2;
+                    artifactBeingPushedUp = true;
+                    
                     if (robot.spindexer.getNumberOfArtifacts() == 2) {
                         robot.paddles.close();
                     }
                 }
-                // Intaked artifact no longer detected, meaning it is being pushed up into
-                // the spindexer.
-                if (robot.intakedArtifact.isArtifact() && detectedArtifact2.isNone()) {
-                    artifactBeingPushedUp = true;
-                }
-                
-                // When an artifact has been fully pushed up into the spindexer from
-                // detecting another artifact underneath.
-                boolean artifactIsInSpindexer =
-                    artifactBeingPushedUp && detectedArtifact2.isArtifact();
                 
                 // Rotates spindexer to intake the artifact that was pushed up.
-                if (artifactIsInSpindexer) {
+                if (robot.spindexer.artifactIsInSpindexer()) {
                     robot.spindexer.intakeArtifact(robot.intakedArtifact);
                     robot.intakedArtifact = Artifact.NONE;
                     artifactBeingPushedUp = false;
@@ -95,7 +88,9 @@ public class FastIntake extends TeleOps {
                     case 0:
                         state = State.IDLE;
                 }
-                
+                robot.revTowardGoal();
+                robot.intakeRamp.outtake();
+                robot.intake.stop();
                 break;
             case SALVO:
                 if (robot.launcher.artifactLaunched()) {
@@ -111,6 +106,11 @@ public class FastIntake extends TeleOps {
                         break;
                     }
                 }
+                
+                robot.revTowardGoal();
+                robot.intakeRamp.outtake();
+                robot.intake.stop();
+                break;
             case IDLE:
                 robot.launcher.stop();
                 robot.intake.stop();

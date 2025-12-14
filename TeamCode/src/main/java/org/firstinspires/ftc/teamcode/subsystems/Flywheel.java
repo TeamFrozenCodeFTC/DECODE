@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -83,18 +84,18 @@ public class Flywheel {
         return shotDetected;
     }
     
-    double shotCooldown = 0.15;   // seconds
-    double lastShotTime = System.nanoTime();
+    double shotCooldown = 0.15;
+    double lastShotTime = 0;
 
-    boolean updateShotDetection(double rpm, double now) {
+    boolean updateShotDetection(double rpm) {
         double delta = rpm - lastRPM;
         lastRPM = rpm;
+        
+        double now = System.currentTimeMillis() / 1000.0;
 
-        // Not ready to detect yet
         if (now - lastShotTime < shotCooldown) return false;
-
-        // Detect sharp RPM drop
-        if (delta < -300) {            // tuned threshold
+      
+        if (delta < -300) {
             lastShotTime = now;
             return true;
         }
@@ -105,7 +106,7 @@ public class Flywheel {
     public void update(double dt, double voltage) {
         double currentRpm = getRpm();
         
-        shotDetected = updateShotDetection(targetRPM, System.nanoTime());
+        shotDetected = updateShotDetection(currentRpm);
 
         // ---- ramp target RPM for stability ----
         double diff = targetRPM - currentTargetRPM;

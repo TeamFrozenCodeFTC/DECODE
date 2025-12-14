@@ -1,14 +1,19 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Artifact;
 
 public class Spindexer {
     public ServoImplEx servo;
     public ArtifactDetector rightColorSensor;
     public ArtifactDetector leftColorSensor;
+    
+    public DistanceSensor rightDistanceSensor;
+    public DistanceSensor leftDistanceSensor;
     
     public Artifact[] slots = Artifact.getEmptyPattern();
 
@@ -20,11 +25,17 @@ public class Spindexer {
         rotateLeft = false;
         rotateRight = false;
     }
-    
+
     public Spindexer(HardwareMap hardwareMap) {
         servo = hardwareMap.get(ServoImplEx.class, "spindexer");
         rightColorSensor = new ArtifactDetector(hardwareMap, "sensor_color");
         leftColorSensor = new ArtifactDetector(hardwareMap, "leftColorSensor");
+        
+        leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+        rightDistanceSensor = hardwareMap.get(DistanceSensor.class,
+                                              "rightDistanceSensor");
+        
+        
     }
 
     public Artifact getDetectedArtifact() {
@@ -33,6 +44,11 @@ public class Spindexer {
            return leftColorSensor.getDetectedArtifact();
         }
         return detected;
+    }
+    
+    public boolean artifactIsInSpindexer() {
+        return leftDistanceSensor.getDistance(DistanceUnit.INCH) < 3
+            || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 3;
     }
     
     // +1 is to the right, clockwise
@@ -48,9 +64,10 @@ public class Spindexer {
                 rotateToSlot(2);
                 break;
             case 2:
-                double targetSlot =
-                    (slots[1] == artifact) ? 2.5 : 1.5;
-                rotateToSlot(targetSlot);
+                // FIXME
+//                double targetSlot =
+//                    (slots[1] == artifact) ? 2.5 : 1.5;
+                rotateToSlot(2.5);
                 return true;
         }
         return false;
@@ -106,6 +123,40 @@ public class Spindexer {
         return false;
     }
     
+    // doesn't remove artifact from slot
+    public boolean rotateToArtifact2(Artifact artifact) {
+        int leftIndex = getLeftIndex(currentSlotIndex);
+        int rightIndex = getRightIndex(currentSlotIndex);
+        
+        int leftSlotIndex = rollIndex(leftIndex);
+        int rightSlotIndex = rollIndex(rightIndex);
+        
+        boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
+        boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
+        
+        if (leftIsArtifact && rightIsArtifact && (rotateRight || rotateLeft)) {
+            // continue previous rotation direction
+        }
+        else if (leftIsArtifact) {
+            rotateLeft = true;
+            rotateRight = false;
+        }
+        else if (rightIsArtifact) {
+            rotateRight = true;
+            rotateLeft = false;
+        }
+        
+        if (rotateLeft) {
+            rotateToSlot(leftIndex);
+            return true;
+        }
+        else if (rotateRight) {
+            rotateToSlot(rightIndex);
+            return true;
+        }
+        return false;
+    }
+    
     public void forceRotateToArtifact(Artifact artifact) {
         if (!rotateToArtifact(artifact)) { // rotates to opposite color if not found
             rotateToArtifact(artifact.oppositeColor());
@@ -113,13 +164,14 @@ public class Spindexer {
     }
     
     public void rotateToSlot(double slotIndex) {
-        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .483);
+        
+        // .472
+//        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .483);
+        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .472);
         
         currentSlotIndex = slotIndex;
-    }
-    
-    public static int rollIndex(int index) {
-        return Math.floorMod(index, 3);
+        
+        
     }
     
     public int getNumberOfArtifacts() {
@@ -127,4 +179,9 @@ public class Spindexer {
             + (slots[1].isArtifact() ? 1 : 0)
             + (slots[2].isArtifact() ? 1 : 0);
     }
+    
+    public static int rollIndex(int index) {
+        return Math.floorMod(index, 3);
+    }
+    
 }

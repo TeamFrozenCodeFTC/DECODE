@@ -8,12 +8,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
 
 @TeleOp
-public class AprilTuning extends OpMode {
+public class SeeObelisk extends OpMode {
     org.firstinspires.ftc.teamcode.subsystems.MotifDetector MotifDetector;
     
     @Override

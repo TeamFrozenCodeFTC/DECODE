@@ -23,18 +23,15 @@ public class Robot {
     
     public AllianceColor allianceColor = AllianceColor.BLUE;
     public Artifact[] motifPattern = new Artifact[]
-        {Artifact.PURPLE, Artifact.GREEN, Artifact.PURPLE};
+        {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
 
-    boolean spindexerHasRotated = true;
-    boolean paddlesRotatedUp = false;
-    boolean launchPathClear = true;
-    
-    int firedArtifacts = 0;
-    
+    public boolean spindexerIsRotating = true;
+    public boolean paddlesRotatedUp = false;
+
+    public int firedArtifacts = 0;
     public int artifactsToFire = 0;
     
     public boolean paddlesRotatingDown = false;
-    
     public boolean reverseSpindexerCase = false;
     public boolean droppedFirstArtifact = false;
     
@@ -48,12 +45,12 @@ public class Robot {
     public enum State {
         GROUND_FIRE,
         LOAD_ARTIFACTS,
+        SENSOR_LOAD_ARTIFACTS,
         FIRING,
         FAST_FIRING,
         REVVING,
         IDLE,
         SALVO,
-        AUTO_TRANSITION,
     }
     
     public void preload(Artifact[] artifacts) {
@@ -70,7 +67,6 @@ public class Robot {
         }
         state = newState;
         stateTimer.pauseAtZero();
-        timer2.resetAndStart();
     }
 
     public Robot(HardwareMap hardwareMap) {
@@ -88,10 +84,9 @@ public class Robot {
         launcher.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
     }
     
-    private void revTowardGoal() {
+    public void revTowardGoal() {
         revLauncher();
         follower.lockHeadingAt(getAngleToGoal());
-        
     }
     
     public void updateReverseCase() {
@@ -106,80 +101,92 @@ public class Robot {
         reverseSpindexerCase = isPGPMotif && hasPGP;
     }
     
-    Timeout timer2 = new Timeout();
-
+    public void fireThrough() {
+        stateTimer.resume();
+        intakeRamp.intakeThrough();
+        paddles.open();
+        
+        revTowardGoal();
+        
+        if (launcher.isUpToSpeed()) {
+            intake.intake();
+        }
+    }
+    
+    public void sensorLoadArtifacts() {
+        launcher.stop();
+        intakeRamp.uptake();
+        intake.intake();
+        
+        Artifact detectedArtifact = spindexer.getDetectedArtifact();
+        
+        if (detectedArtifact.isArtifact()) {
+            intakedArtifact = detectedArtifact;
+            paddles.close();
+            intake.stop();
+        }
+        
+        if (spindexer.artifactIsInSpindexer() && !spindexerIsRotating) {
+            spindexerIsRotating = true;
+            
+            artifactsToFire++;
+            
+            boolean isFull = spindexer.intakeArtifact(intakedArtifact);
+            
+            if (isFull) {
+                intake.stop();
+                intakeRamp.outtake();
+                spindexerIsRotating = true;
+                intakedArtifact = Artifact.NONE;
+                updateReverseCase();
+                setState(State.REVVING);
+            }
+        }
+//        else if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
+//            spindexerIsRotating = false;
+//            intakedArtifact = Artifact.NONE;
+//            paddles.open();
+//        }
+    }
+    
+    public void motifFire() {
+        if (launcher.artifactLaunched()) {
+            spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
+            firedArtifacts++;
+        }
+        
+        if (launcher.isUpToSpeed()) {
+            spindexer.rotateToArtifact2(motifPattern[firedArtifacts]);
+            
+            if (spindexer.getNumberOfArtifacts() == 0) {
+                spindexer.rotateToSlot(0);
+                firedArtifacts = 0;
+                setState(State.IDLE);
+                return;
+            }
+        }
+        
+        stateTimer.resume();
+        
+        revTowardGoal();
+        intakeRamp.outtake();
+        intake.stop();
+        
+//        if (stateTimer.seconds() > 0.7) { // was .5
+//            paddles.open();
+//        }
+    }
+ 
     public void update() {
         follower.update();
+
+        if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
+            spindexerIsRotating = false;
+            intakedArtifact = Artifact.NONE;
+            paddles.open();
+        }
         
         switch (state) {
-            case GROUND_FIRE:
-                stateTimer.resume();
-                intakeRamp.intakeThrough();
-                paddles.open();
-                
-                revTowardGoal();
-                
-                if (launcher.isUpToSpeed()) {
-                    intake.intake();
-                }
-                break;
-            case LOAD_ARTIFACTS:
-                launcher.stop();
-                intakeRamp.uptake();
-                intake.intake();
-                
-                if (spindexerHasRotated) {
-                    paddles.open(); // down
-                }
-                else {
-                    intake.stop();
-                    paddles.close();
-                }
-                
-                Artifact detectedArtifact = spindexer.getDetectedArtifact();
-                boolean artifactPresent = detectedArtifact.isArtifact();
-                
-                if (artifactPresent) {
-                    if (paddlesRotatingDown) {
-                        intake.outtake();
-                    }
-                    
-                    if (stateTimer.isPaused()) {
-                        intakedArtifact = detectedArtifact;
-                        spindexerHasRotated = false;
-                        stateTimer.resetAndStart();
-                        paddles.close();
-                    }
-                }
-                else {
-                    paddlesRotatingDown = false;
-                }
-                
-                if (stateTimer.seconds() > 1.1) { // was 1.3
-                    spindexerHasRotated = true;
-                    paddlesRotatedUp = false;
-                    stateTimer.pauseAtZero();
-                    intakedArtifact = Artifact.NONE;
-                    paddlesRotatingDown = true;
-                } else if ((stateTimer.seconds() > 0.4) && !paddlesRotatedUp) {
-                    paddlesRotatedUp = true;
-                    
-                    artifactsToFire++;
-                    
-                    boolean isFull = spindexer.intakeArtifact(intakedArtifact);
-                    
-                    if (isFull) {
-                        intake.stop();
-                        intakeRamp.outtake();
-                        spindexerHasRotated = true;
-                        paddlesRotatedUp = false;
-                        intakedArtifact = Artifact.NONE;
-                        updateReverseCase();
-                        setState(State.REVVING);
-                    }
-                }
-                
-                break;
             case IDLE:
                 droppedFirstArtifact = false;
                 
@@ -193,81 +200,25 @@ public class Robot {
                 intake.stop();
                 follower.lockHeadingAt(null);
                 break;
-            case FAST_FIRING: // Old logic to launch artifacts quickly according to motif pattern
-                timer2.resume();
-                
-                revTowardGoal();
-                intakeRamp.outtake();
-                intake.stop();
-                
-                if (stateTimer.seconds() > 0.5) {
-                    paddles.open();
-                }
-                
-                if (launcher.isUpToSpeed()) {
-                    stateTimer.resume();
-
-                    if (!droppedFirstArtifact) {
-                        spindexer.forceRotateToArtifact(motifPattern[0]);
-                        droppedFirstArtifact = true;
-                    }
-                    
-                    if (!reverseSpindexerCase || firedArtifacts >= 1) {
-                        spindexer.forceRotateToArtifact(motifPattern[1]);
-                        spindexer.forceRotateToArtifact(motifPattern[2]);
-                    }
-                }
-                
-                if (droppedFirstArtifact && (launcher.artifactLaunched())) {
-                    firedArtifacts++;
-                    artifactsToFire--;
-                    if (artifactsToFire <= 0) {
-                        resetSpindexer();
-                        break;
-                    }
-                    timer2.resetAndStart();
-                }
-                
-                if (isAuto && stateTimer.seconds() > 2.5) {
-                    resetSpindexer();
-                }
-                if (!isAuto && stateTimer.seconds() > 6) {
-                    resetSpindexer();
-                }
+            case GROUND_FIRE:
+                fireThrough();
+                break;
+            case LOAD_ARTIFACTS:
+                originalLoadArtifacts();
+                break;
+            case SENSOR_LOAD_ARTIFACTS:
+                sensorLoadArtifacts();
                 break;
             case FIRING: // Slowly launches artifacts according to motif pattern
-                if (launcher.artifactLaunched()) {
-                    spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
-                    firedArtifacts++;
-                }
- 
-                if (launcher.isUpToSpeed()) {
-                    spindexer.rotateToArtifact(motifPattern[firedArtifacts]);
-                    
-                    if (spindexer.getNumberOfArtifacts() == 0) {
-                        spindexer.rotateToSlot(0);
-                        firedArtifacts = 0;
-                        setState(State.IDLE);
-                        break;
-                    }
-                }
-                
-                stateTimer.resume();
-                
-                revTowardGoal();
-                intakeRamp.outtake();
-                intake.stop();
-                
-                if (stateTimer.seconds() > 0.7) { // was .5
-                    paddles.open();
-                }
+                motifFire();
+                break;
             case SALVO: // Launches artifacts as fast as possible
                 if (launcher.artifactLaunched()) {
                     spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
                 }
                 
                 if (launcher.isUpToSpeed()) {
-                    spindexer.rotateToSlot(0);
+                    spindexer.rotateToSlot(0); // rotate to -1 if 1.5
                     
                     if (spindexer.getNumberOfArtifacts() == 0) {
                         setState(State.IDLE);
@@ -275,21 +226,118 @@ public class Robot {
                     }
                 }
             case REVVING:
-                stateTimer.resume();
-                
                 revTowardGoal();
                 intakeRamp.outtake();
                 intake.stop();
                 
-                if (stateTimer.seconds() > 0.7) { // was .5
-                    paddles.open();
-                }
+//                stateTimer.resume();
+//
+//                if (stateTimer.seconds() > 0.7) { // was .5
+//                    paddles.open();
+//                }
                 break;
         }
         
         intake.update();
 
         launcher.update(follower.getMotionState().deltaTime, follower.getVoltage());
+    }
+    
+    public void originalMotifFire() {
+        revTowardGoal();
+        intakeRamp.outtake();
+        intake.stop();
+        
+        if (stateTimer.seconds() > 0.5) {
+            paddles.open();
+        }
+        
+        if (launcher.isUpToSpeed()) {
+            stateTimer.resume();
+            
+            if (!droppedFirstArtifact) {
+                spindexer.forceRotateToArtifact(motifPattern[0]);
+                droppedFirstArtifact = true;
+            }
+            
+            if (!reverseSpindexerCase || firedArtifacts >= 1) {
+                spindexer.forceRotateToArtifact(motifPattern[1]);
+                spindexer.forceRotateToArtifact(motifPattern[2]);
+            }
+        }
+        
+        if (droppedFirstArtifact && (launcher.artifactLaunched())) {
+            firedArtifacts++;
+            artifactsToFire--;
+            if (artifactsToFire <= 0) {
+                resetSpindexer();
+                return;
+            }
+        }
+        
+        if (isAuto && stateTimer.seconds() > 2.5) {
+            resetSpindexer();
+        }
+        if (!isAuto && stateTimer.seconds() > 6) {
+            resetSpindexer();
+        }
+    }
+    
+    
+    public void originalLoadArtifacts() {
+        launcher.stop();
+        intakeRamp.uptake();
+        intake.intake();
+        
+        if (spindexerIsRotating) {
+            paddles.open(); // down
+        }
+        else {
+            intake.stop();
+            paddles.close();
+        }
+        
+        Artifact detectedArtifact = spindexer.getDetectedArtifact();
+        
+        if (detectedArtifact.isArtifact()) {
+            if (paddlesRotatingDown) {
+                intake.outtake();
+            }
+            
+            if (stateTimer.isPaused()) {
+                intakedArtifact = detectedArtifact;
+                spindexerIsRotating = false;
+                stateTimer.resetAndStart();
+                paddles.close();
+            }
+        }
+        else {
+            paddlesRotatingDown = false;
+        }
+        
+        if (stateTimer.seconds() > 1.1) { // was 1.3
+            spindexerIsRotating = true;
+            paddlesRotatedUp = false;
+            stateTimer.pauseAtZero();
+            intakedArtifact = Artifact.NONE;
+            paddlesRotatingDown = true;
+        } else if ((stateTimer.seconds() > 0.4) && !paddlesRotatedUp) {
+            paddlesRotatedUp = true;
+            
+            artifactsToFire++;
+            
+            boolean isFull = spindexer.intakeArtifact(intakedArtifact);
+            
+            if (isFull) {
+                intake.stop();
+                intakeRamp.outtake();
+                spindexerIsRotating = true;
+                paddlesRotatedUp = false;
+                intakedArtifact = Artifact.NONE;
+                updateReverseCase();
+                setState(State.REVVING);
+            }
+        }
     }
     
     public void resetSpindexer() {
