@@ -6,7 +6,6 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends TeleOps {
@@ -28,7 +27,7 @@ public class TeleOp extends TeleOps {
         if (gamepad1.crossWasPressed()) {
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.GROUND_FIRE));
-        } else if (gamepad1.triangleWasPressed()) {
+        } else if (gamepad1.right_trigger == 1) {
             robot.spindexerIsRotating = true;
             robot.paddlesRotatedUp = false;
             notifyFailedOperation(() -> numberOfArtifacts < 3,
@@ -37,14 +36,15 @@ public class TeleOp extends TeleOps {
             // robot.artifactsToFire = numberOfArtifacts;
             notifyFailedOperation(() -> numberOfArtifacts > 0,
                                   () -> robot.setState(Robot.State.SALVO));
-        } else if (gamepad1.right_trigger == 1) {
+        } else if (gamepad1.triangleWasPressed()) {
             // robot.artifactsToFire = numberOfArtifacts;
-            notifyFailedOperation(() -> numberOfArtifacts > 0,
+            notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.SENSOR_LOAD_ARTIFACTS));
         } else if (gamepad1.squareWasPressed()) { // Human Player Load
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> {
                                       robot.spindexer.rotateToSlot(0.5);
+                                      robot.spindexer.dropAllIndex = 2;
                                       robot.preload(new Artifact[]
                                                         {Artifact.GREEN,
                                                             Artifact.PURPLE,
@@ -52,23 +52,12 @@ public class TeleOp extends TeleOps {
                                       robot.setState(Robot.State.IDLE);
                                   });
         } else if (gamepad1.leftBumperWasPressed()) {
-            if (robot.spindexer.currentSlotIndex == -1 ||
-                robot.spindexer.currentSlotIndex == 5 ||
-                robot.spindexer.currentSlotIndex == -3) {
-                robot.spindexer.rotateToSlot(0);
-            }
-            if (robot.state == Robot.State.FAST_FIRING) {
-                robot.resetSpindexer();
-            }
-            
             robot.setState(Robot.State.IDLE);
             gamepad1.rumble(Haptics.CONFIRM);
         } else if (gamepad1.dpadDownWasPressed()) {
-            Flywheel.minRPM -= 50;
-            //robot.launcher.setRPM(robot.launcher.getTargetRPM() - 50);
+            robot.flywheel.manualAdjustmentMultiplier -= 0.01;
         } else if (gamepad1.dpadUpWasPressed()) {
-            Flywheel.minRPM += 50;
-            //robot.launcher.setRPM(robot.launcher.getTargetRPM() + 50);
+            robot.flywheel.manualAdjustmentMultiplier += 0.01;
         } else if (gamepad1.left_trigger == 1) {
             robot.resetSpindexer();
             robot.intake.motor.setPower(-1);
@@ -88,7 +77,6 @@ public class TeleOp extends TeleOps {
             robot.follower.teleOpTarget =
                 robot.follower.getMotionState().pose.headingToDegrees();
         }
-        
 
         if (robot.allianceColor == AllianceColor.BLUE) {
             robot.follower.fieldCentricTeleOpDrive(
@@ -127,11 +115,11 @@ public class TeleOp extends TeleOps {
         } else if (gamepad2.dpadLeftWasPressed()) {
             robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
         } else if (gamepad2.squareWasPressed()) {
-            if (!robot.spindexer.rotateToArtifact(Artifact.PURPLE)) {
+            if (!robot.spindexer._rotateToArtifact(Artifact.PURPLE)) {
                 gamepad2.rumbleBlips(2);
             }
         } else if (gamepad2.circleWasPressed()) {
-            if (!robot.spindexer.rotateToArtifact(Artifact.GREEN)) {
+            if (!robot.spindexer._rotateToArtifact(Artifact.GREEN)) {
                 gamepad2.rumbleBlips(2);
             }
         }

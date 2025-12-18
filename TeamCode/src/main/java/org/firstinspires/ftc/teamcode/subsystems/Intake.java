@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -9,21 +10,19 @@ public class Intake {
     
     private double targetPower = 0;
     private double currentPower = 0;
-    private final double rampRate = 0.1;
+    private final double rampRate = 3; // power per second
     
     public Intake(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, "intake");
-        motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
     
-    public void update() {
-        if (Math.abs(targetPower - currentPower) < rampRate) {
-            currentPower = targetPower;
-        } else if (currentPower < targetPower) {
-            currentPower += rampRate;
+    public void update(double deltaTime) {
+        if (targetPower > currentPower) {
+            currentPower = Math.min(currentPower + rampRate * deltaTime, targetPower);
         } else {
-            currentPower -= rampRate;
+            currentPower = targetPower;
         }
         
         motor.setPower(currentPower);

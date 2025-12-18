@@ -15,6 +15,8 @@ import java.lang.reflect.Field;
 
 public abstract class Auto2 extends OpMode {
     public Robot robot;
+    
+    // robot is 17 inches long, 16.5 wide
    
     @Override
     public void init() {

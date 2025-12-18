@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -8,34 +7,46 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-@Config
+import org.firstinspires.ftc.teamcode.utils.LinearRegression;
+
+import java.util.function.DoubleUnaryOperator;
+
+@Config // http://192.168.43.1:8080/dash
 public class Flywheel {
     public DcMotorEx rightMotor;
     public DcMotorEx leftMotor;
-    
-    // RPM targets
+
     private double targetRPM = 0;
-    private double currentTargetRPM = 0; // ramp limited
-    
-    // Constants
+    private double currentTargetRPM = 0;
+
     public static final int TICKS_PER_REV = 28;
     public static final double MAX_ACCEL_RPM_PER_SEC = 3000;
     
     public double filteredVoltage = 13;
     
+    // Tunable Constants
     public static double alpha = 0.01;
     public static double kP = 0.005;
     public static double kI = 0.002;
     public static double kS = 0.85;
     public static double kV = 0.0022;
+    public static double shotCooldown = 0.15;
     public static double I_ENABLE_ERROR = 300;
+    public static double RPM_TOLERANCE = 50;
     
+    private double lastShotTime = 0;
     private double totalError = 0;
-    private boolean shotDetected;
-    private double lastRPM;
+    private double lastRPM = 0;
+    private boolean shotDetected = false;
     
-    // http://192.168.43.1:8080/dash
+    public double manualAdjustmentMultiplier = 1;
     
+    private final DoubleUnaryOperator distanceToRpm =
+        LinearRegression.fit(new double[][]{
+            {54.48908, 3000}, // y=17.17072x+2064.38333
+            {112.72775, 4000}
+        });
+
     public Flywheel(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
@@ -59,33 +70,17 @@ public class Flywheel {
         totalError = 0;
     }
     
-    public boolean rpmUnderTarget() {
-        return getRpm() < getTargetRPM() * 0.80;
-    }
-    
-    public double getRpm() {
-        return ticksPerSecondToRpm(rightMotor.getVelocity());
-    }
-    
     public double getTargetRPM() {
         return targetRPM;
     }
     
-    public static double minRPM = 2064.38;
- 
     public void setRpmFromDistance(double dist) {
-       // setRPM(13.5 * dist + 2373);
-        setRPM(17.17 * dist + minRPM);
-        
-        // y=17.17072x+2064.38333
+        setRPM(distanceToRpm.applyAsDouble(dist) * manualAdjustmentMultiplier);
     }
     
     public boolean artifactLaunched() {
         return shotDetected;
     }
-    
-    double shotCooldown = 0.15;
-    double lastShotTime = 0;
 
     boolean updateShotDetection(double rpm) {
         double delta = rpm - lastRPM;
@@ -140,15 +135,19 @@ public class Flywheel {
         rightMotor.setPower(power);
     }
     
+    public double getRpm() {
+        return ticksPerSecondToRpm(rightMotor.getVelocity());
+    }
+    
     private double ticksPerSecondToRpm(double tps) {
         return tps / TICKS_PER_REV * 60.0;
     }
     
     public boolean isUpToSpeed() {
-        if (targetRPM < 100) return false;
+        if (targetRPM < RPM_TOLERANCE) return false;
         
         double rpmError = Math.abs(getRpm() - targetRPM);
         
-        return rpmError < 50;
+        return rpmError < RPM_TOLERANCE;
     }
 }

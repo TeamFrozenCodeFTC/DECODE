@@ -16,7 +16,11 @@ public class Spindexer {
     public DistanceSensor leftDistanceSensor;
     
     public Artifact[] slots = Artifact.getEmptyPattern();
-
+    
+    // Rotates spindexer in opposite direction to choose between two different artifacts
+    public boolean reversedSpindexerIntake = false;
+    public int dropAllIndex = 0;
+    
     public double currentSlotIndex = 2;
     
     public void resetSlots() {
@@ -25,7 +29,7 @@ public class Spindexer {
         rotateLeft = false;
         rotateRight = false;
     }
-
+    
     public Spindexer(HardwareMap hardwareMap) {
         servo = hardwareMap.get(ServoImplEx.class, "spindexer");
         rightColorSensor = new ArtifactDetector(hardwareMap, "sensor_color");
@@ -36,6 +40,11 @@ public class Spindexer {
                                               "rightDistanceSensor");
         
         
+    }
+    
+    // Rotates spindexer 3 times to drop all artifacts
+    public void spinToDropAllArtifacts() {
+        rotateToSlot(dropAllIndex);
     }
 
     public Artifact getDetectedArtifact() {
@@ -64,10 +73,14 @@ public class Spindexer {
                 rotateToSlot(2);
                 break;
             case 2:
-                // FIXME
-//                double targetSlot =
-//                    (slots[1] == artifact) ? 2.5 : 1.5;
-                rotateToSlot(2.5);
+                if (slots[1] == artifact) {
+                    rotateToSlot(2.5);
+                    dropAllIndex = 0;
+                }
+                else {
+                    rotateToSlot(1.5);
+                    dropAllIndex = -1;
+                }
                 return true;
         }
         return false;
@@ -88,7 +101,7 @@ public class Spindexer {
     public boolean rotateLeft = false;
     public boolean rotateRight = false;
     
-    public boolean rotateToArtifact(Artifact artifact) {
+    private Integer chooseRotationTarget(Artifact artifact) {
         int leftIndex = getLeftIndex(currentSlotIndex);
         int rightIndex = getRightIndex(currentSlotIndex);
         
@@ -98,68 +111,45 @@ public class Spindexer {
         boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
         boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
         
-        if (leftIsArtifact && rightIsArtifact && (rotateRight || rotateLeft)) {
-            // continue previous rotation direction
+        if (!(leftIsArtifact || rightIsArtifact)) {
+            rotateLeft = rotateRight = false;
+            return null;
         }
-        else if (leftIsArtifact) {
+        
+        if (leftIsArtifact && rightIsArtifact && (rotateLeft || rotateRight)) {
+            // keep previous direction
+        } else if (leftIsArtifact) {
             rotateLeft = true;
             rotateRight = false;
-        }
-        else if (rightIsArtifact) {
+        } else {
             rotateRight = true;
             rotateLeft = false;
         }
         
-        if (rotateLeft) {
-            rotateToSlot(leftIndex);
-            slots[leftSlotIndex] = Artifact.NONE;
-            return true;
-        }
-        else if (rotateRight) {
-            rotateToSlot(rightIndex);
-            slots[rightSlotIndex] = Artifact.NONE;
-            return true;
-        }
-        return false;
+        return rotateLeft ? leftIndex : rightIndex;
     }
     
-    // doesn't remove artifact from slot
-    public boolean rotateToArtifact2(Artifact artifact) {
-        int leftIndex = getLeftIndex(currentSlotIndex);
-        int rightIndex = getRightIndex(currentSlotIndex);
+    @Deprecated
+    public boolean _rotateToArtifact(Artifact artifact) {
+        Integer target = chooseRotationTarget(artifact);
+        if (target == null) return false;
         
-        int leftSlotIndex = rollIndex(leftIndex);
-        int rightSlotIndex = rollIndex(rightIndex);
+        int slotIndex = rollIndex(target);
+        rotateToSlot(target);
+        slots[slotIndex] = Artifact.NONE;
+        return true;
+    }
+    
+    public void rotateToArtifact(Artifact artifact) {
+        Integer target = chooseRotationTarget(artifact);
+        if (target == null) return;
         
-        boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
-        boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
-        
-        if (leftIsArtifact && rightIsArtifact && (rotateRight || rotateLeft)) {
-            // continue previous rotation direction
-        }
-        else if (leftIsArtifact) {
-            rotateLeft = true;
-            rotateRight = false;
-        }
-        else if (rightIsArtifact) {
-            rotateRight = true;
-            rotateLeft = false;
-        }
-        
-        if (rotateLeft) {
-            rotateToSlot(leftIndex);
-            return true;
-        }
-        else if (rotateRight) {
-            rotateToSlot(rightIndex);
-            return true;
-        }
-        return false;
+        rotateToSlot(target);
     }
     
     public void forceRotateToArtifact(Artifact artifact) {
-        if (!rotateToArtifact(artifact)) { // rotates to opposite color if not found
-            rotateToArtifact(artifact.oppositeColor());
+        if (!_rotateToArtifact(artifact)) { // rotates to opposite color if not found
+            _rotateToArtifact(artifact.oppositeColor());
         }
     }
     

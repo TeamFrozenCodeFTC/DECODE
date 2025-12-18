@@ -15,7 +15,7 @@ import java.util.Collections;
 
 public class Robot {
     public Intake intake;
-    public Flywheel launcher;
+    public Flywheel flywheel;
     public Spindexer spindexer;
     public Follower follower;
     public Ramp intakeRamp;
@@ -25,7 +25,7 @@ public class Robot {
     public Artifact[] motifPattern = new Artifact[]
         {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
 
-    public boolean spindexerIsRotating = true;
+    public boolean spindexerIsRotating = false;
     public boolean paddlesRotatedUp = false;
 
     public int firedArtifacts = 0;
@@ -34,7 +34,7 @@ public class Robot {
     public boolean paddlesRotatingDown = false;
     public boolean reverseSpindexerCase = false;
     public boolean droppedFirstArtifact = false;
-    
+
     public boolean isAuto = false;
     
     public Artifact intakedArtifact = Artifact.NONE;
@@ -75,13 +75,13 @@ public class Robot {
         spindexer = new Spindexer(hardwareMap);
         intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
-        launcher = new Flywheel(hardwareMap);
+        flywheel = new Flywheel(hardwareMap);
         
-        launcher.filteredVoltage = follower.getVoltage();
+        flywheel.filteredVoltage = follower.getVoltage();
     }
 
     private void revLauncher() {
-        launcher.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
+        flywheel.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
     }
     
     public void revTowardGoal() {
@@ -108,13 +108,13 @@ public class Robot {
         
         revTowardGoal();
         
-        if (launcher.isUpToSpeed()) {
+        if (flywheel.isUpToSpeed()) {
             intake.intake();
         }
     }
     
     public void sensorLoadArtifacts() {
-        launcher.stop();
+        flywheel.stop();
         intakeRamp.uptake();
         intake.intake();
         
@@ -126,7 +126,7 @@ public class Robot {
             intake.stop();
         }
         
-        if (spindexer.artifactIsInSpindexer() && !spindexerIsRotating) {
+        if (spindexer.artifactIsInSpindexer() && !spindexerIsRotating && intakedArtifact.isArtifact()) {
             spindexerIsRotating = true;
             
             artifactsToFire++;
@@ -136,34 +136,37 @@ public class Robot {
             if (isFull) {
                 intake.stop();
                 intakeRamp.outtake();
-                spindexerIsRotating = true;
+                spindexerIsRotating = false;
                 intakedArtifact = Artifact.NONE;
                 updateReverseCase();
                 setState(State.REVVING);
             }
         }
-//        else if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
-//            spindexerIsRotating = false;
-//            intakedArtifact = Artifact.NONE;
-//            paddles.open();
-//        }
+        else if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
+            spindexerIsRotating = false;
+            intakedArtifact = Artifact.NONE;
+            paddles.open();
+        }
     }
     
     public void motifFire() {
-        if (launcher.artifactLaunched()) {
-            spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
+        if (flywheel.artifactLaunched()) {
+            int droppedIndex = Spindexer.rollIndex((int) spindexer.currentSlotIndex);
+            spindexer.slots[droppedIndex] =
+                Artifact.NONE;
             firedArtifacts++;
         }
         
-        if (launcher.isUpToSpeed()) {
-            spindexer.rotateToArtifact2(motifPattern[firedArtifacts]);
-            
+        if (flywheel.isUpToSpeed()) {
             if (spindexer.getNumberOfArtifacts() == 0) {
+                spindexer.resetSlots();
                 spindexer.rotateToSlot(0);
                 firedArtifacts = 0;
                 setState(State.IDLE);
                 return;
             }
+            
+            spindexer.rotateToArtifact(motifPattern[firedArtifacts]);
         }
         
         stateTimer.resume();
@@ -179,12 +182,6 @@ public class Robot {
  
     public void update() {
         follower.update();
-
-        if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
-            spindexerIsRotating = false;
-            intakedArtifact = Artifact.NONE;
-            paddles.open();
-        }
         
         switch (state) {
             case IDLE:
@@ -196,9 +193,13 @@ public class Robot {
                     paddles.open();
                 }
                 
-                launcher.stop();
+                flywheel.stop();
                 intake.stop();
                 follower.lockHeadingAt(null);
+                
+                if (spindexer.getNumberOfArtifacts() == 0) {
+                    spindexer.rotateToSlot(0);
+                }
                 break;
             case GROUND_FIRE:
                 fireThrough();
@@ -206,19 +207,20 @@ public class Robot {
             case LOAD_ARTIFACTS:
                 originalLoadArtifacts();
                 break;
-            case SENSOR_LOAD_ARTIFACTS:
+            case SENSOR_LOAD_ARTIFACTS: // make this not triangle or make robot always
+                // intake
                 sensorLoadArtifacts();
                 break;
             case FIRING: // Slowly launches artifacts according to motif pattern
                 motifFire();
                 break;
             case SALVO: // Launches artifacts as fast as possible
-                if (launcher.artifactLaunched()) {
-                    spindexer.slots[spindexer.getNumberOfArtifacts()] = Artifact.NONE;
+                if (flywheel.artifactLaunched()) {
+                    spindexer.slots[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
                 }
                 
-                if (launcher.isUpToSpeed()) {
-                    spindexer.rotateToSlot(0); // rotate to -1 if 1.5
+                if (flywheel.isUpToSpeed()) {
+                    spindexer.rotateToSlot(spindexer.dropAllIndex);
                     
                     if (spindexer.getNumberOfArtifacts() == 0) {
                         setState(State.IDLE);
@@ -230,17 +232,17 @@ public class Robot {
                 intakeRamp.outtake();
                 intake.stop();
                 
-//                stateTimer.resume();
-//
-//                if (stateTimer.seconds() > 0.7) { // was .5
-//                    paddles.open();
-//                }
+                stateTimer.resume();
+
+                if (stateTimer.seconds() > 0.7) { // was .5
+                    paddles.open();
+                }
                 break;
         }
         
-        intake.update();
+        intake.update(follower.getMotionState().deltaTime);
 
-        launcher.update(follower.getMotionState().deltaTime, follower.getVoltage());
+        flywheel.update(follower.getMotionState().deltaTime, follower.getVoltage());
     }
     
     public void originalMotifFire() {
@@ -252,7 +254,7 @@ public class Robot {
             paddles.open();
         }
         
-        if (launcher.isUpToSpeed()) {
+        if (flywheel.isUpToSpeed()) {
             stateTimer.resume();
             
             if (!droppedFirstArtifact) {
@@ -266,7 +268,7 @@ public class Robot {
             }
         }
         
-        if (droppedFirstArtifact && (launcher.artifactLaunched())) {
+        if (droppedFirstArtifact && (flywheel.artifactLaunched())) {
             firedArtifacts++;
             artifactsToFire--;
             if (artifactsToFire <= 0) {
@@ -285,7 +287,7 @@ public class Robot {
     
     
     public void originalLoadArtifacts() {
-        launcher.stop();
+        flywheel.stop();
         intakeRamp.uptake();
         intake.intake();
         

@@ -13,7 +13,7 @@ public class FastIntake extends TeleOps {
     public void loop() {
         switch (state) {
             case FAST_INTAKE: // Loads 1st with paddles and 2nd two in the intake
-                robot.launcher.stop();
+                robot.flywheel.stop();
                 robot.intakeRamp.uptake();
                 robot.intake.intake();
                 
@@ -27,7 +27,7 @@ public class FastIntake extends TeleOps {
                 break;
             case FAST_SPINDEXER_LOAD: // loads 1st into spindexer from push from //
                 // second, and third pushes second, and third is pushed by paddles
-                robot.launcher.stop();
+                robot.flywheel.stop();
                 robot.intakeRamp.uptake();
                 robot.intake.intake();
                 
@@ -62,13 +62,13 @@ public class FastIntake extends TeleOps {
                 break;
             case FIRE: // Fires 3 artifacts (1 stored in spindexer, 2 in intake)
                 robot.intake.stop();
-                robot.launcher.setRpmFromDistance(75);
+                robot.flywheel.setRpmFromDistance(75);
                 
-                if (robot.launcher.artifactLaunched()) {
+                if (robot.flywheel.artifactLaunched()) {
                     numberOfArtifacts -= 1;
                 }
                 
-                if (!robot.launcher.isUpToSpeed()) {
+                if (!robot.flywheel.isUpToSpeed()) {
                     break;
                 }
                 
@@ -93,12 +93,12 @@ public class FastIntake extends TeleOps {
                 robot.intake.stop();
                 break;
             case SALVO:
-                if (robot.launcher.artifactLaunched()) {
+                if (robot.flywheel.artifactLaunched()) {
                     robot.spindexer.slots[robot.spindexer.getNumberOfArtifacts()] =
                         Artifact.NONE;
                 }
                 
-                if (robot.launcher.isUpToSpeed()) {
+                if (robot.flywheel.isUpToSpeed()) {
                     robot.spindexer.rotateToSlot(0);
                     
                     if (robot.spindexer.getNumberOfArtifacts() == 0) {
@@ -112,7 +112,7 @@ public class FastIntake extends TeleOps {
                 robot.intake.stop();
                 break;
             case IDLE:
-                robot.launcher.stop();
+                robot.flywheel.stop();
                 robot.intake.stop();
                 robot.intakeRamp.uptake();
                 break;

@@ -9,6 +9,13 @@ public enum AllianceColor {
     RED(BLUE.goalPosition.mirroredAcrossYAxis(),
         BLUE.basePosition.mirroredAcrossYAxis(), new Pose(8.25, 8.5, 180));
     
+//    static double margin = 3.5;
+//
+//    BLUE(new Vector(margin, 144-margin), new Vector(105.25, 33.25),
+//         new Pose(144-16/2, 17/2, 0)),
+//    RED(BLUE.goalPosition.mirroredAcrossYAxis(),
+//        BLUE.basePosition.mirroredAcrossYAxis(), new Pose(8.25, 8.5, 180));
+//
     private final Vector goalPosition;
     private final Vector basePosition;
     private final Pose humanPlayerZone;

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,7 +9,6 @@ import org.firstinspires.ftc.blackice.core.hardware.localization.MotionState;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.auto.Auto2;
-import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 
 @TeleOp
 public class TuneFlyWheel extends Auto2 {
@@ -25,8 +23,8 @@ public class TuneFlyWheel extends Auto2 {
                                           telemetry);
         
         
-        robot.launcher.setRPM(4000);
-        robot.launcher.filteredVoltage = follower.getVoltage();
+        robot.flywheel.setRPM(4000);
+        robot.flywheel.filteredVoltage = follower.getVoltage();
         
         robot.follower.setCurrentPose(robot.allianceColor.getHumanPlayerZone());
     }
@@ -34,16 +32,16 @@ public class TuneFlyWheel extends Auto2 {
     @Override
     public void loop() {
         if (gamepad1.dpad_down) {
-            robot.launcher.setRPM(robot.launcher.getTargetRPM() - 50);
+            robot.flywheel.setRPM(robot.flywheel.getTargetRPM() - 50);
         }
         else if (gamepad1.dpad_up) {
-            robot.launcher.setRPM(robot.launcher.getTargetRPM() + 50);
+            robot.flywheel.setRPM(robot.flywheel.getTargetRPM() + 50);
         }
         
         telemetry.addData("distanceTOGaol",
                           robot.allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
-        telemetry.addData("current RPM", robot.launcher.getRpm());
-        telemetry.addData("target RPM", robot.launcher.getTargetRPM());
+        telemetry.addData("current RPM", robot.flywheel.getRpm());
+        telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
         telemetry.update();
 
         if (gamepad1.circle) {
@@ -57,7 +55,7 @@ public class TuneFlyWheel extends Auto2 {
             robot.follower.drivePowerController.computeHeadingCorrectionPower(getAngleToGoal(), motion);
         robot.follower.drivetrain.followVector(motion.makeRobotRelative(new Vector(0,0)), turn);
         
-        robot.launcher.update(0.01, follower.getVoltage());
+        robot.flywheel.update(0.01, follower.getVoltage());
         robot.intakeRamp.outtake();
         robot.resetSpindexer();
     }
