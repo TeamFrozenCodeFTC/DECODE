@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import java.util.Arrays;
 
 @Autonomous
-public class FarAuto extends Auto2 {
+public class FarAuto extends Auto {
     public Pose startingPose = new Pose(56, 8.5, -90);
     public Pose firePose = new Pose(56, 15, -63);
 
@@ -41,12 +41,12 @@ public class FarAuto extends Auto2 {
 
         robot.follower.setCurrentPose(startingPose);
 
-        robot.motifPattern = motifDetector.getMotifPattern();
-        if (robot.motifPattern == null) {
-            robot.motifPattern = new Artifact[]
+        Robot.motifPattern = motifDetector.getMotifPattern();
+        if (Robot.motifPattern == null) {
+            Robot.motifPattern = new Artifact[]
                 {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
         }
-        telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
+        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
         telemetry.update();
     }
 

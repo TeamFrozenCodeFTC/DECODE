@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import java.util.Arrays;
 
 @Autonomous
-public class FarAutoHumanZone extends Auto2 {
+public class FarAutoHumanZone extends Auto {
     public Pose startingPose = new Pose(56, 8.5, -90);
     public Pose firePose = new Pose(56, 15, -63);
     
@@ -44,15 +44,15 @@ public class FarAutoHumanZone extends Auto2 {
         
         robot.follower.setCurrentPose(startingPose);
         
-        robot.motifPattern = motifDetector.getMotifPattern();
-        if (robot.motifPattern == null) {
-            robot.motifPattern = new Artifact[]
+        Robot.motifPattern = motifDetector.getMotifPattern();
+        if (Robot.motifPattern == null) {
+            Robot.motifPattern = new Artifact[]
                 {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
         }
-        if (robot.allianceColor == AllianceColor.RED) {
+        if (Robot.allianceColor == AllianceColor.RED) {
             firePose = firePose.withHeading(firePose.getHeading() + 15-6);
         }
-        telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
+        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
         telemetry.update();
     }
     

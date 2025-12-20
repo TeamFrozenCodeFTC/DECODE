@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
+import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -14,6 +15,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class Robot {
+    // robot is 17 inches long, 16.5 wide
+    
     public Intake intake;
     public Flywheel flywheel;
     public Spindexer spindexer;
@@ -21,15 +24,18 @@ public class Robot {
     public Ramp intakeRamp;
     public Paddles paddles;
     
-    public AllianceColor allianceColor = AllianceColor.BLUE;
-    public Artifact[] motifPattern = new Artifact[]
+    public static AllianceColor allianceColor = AllianceColor.BLUE;
+    public static Artifact[] motifPattern = new Artifact[]
         {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
+    public static Pose currentPose;
+    public static Artifact[] artifacts = null;
 
     public boolean spindexerIsRotating = false;
     public boolean paddlesRotatedUp = false;
 
     public int firedArtifacts = 0;
     public int artifactsToFire = 0;
+    public Integer firingAllIndex = null;
     
     public boolean paddlesRotatingDown = false;
     public boolean reverseSpindexerCase = false;
@@ -54,7 +60,7 @@ public class Robot {
     }
     
     public void preload(Artifact[] artifacts) {
-        spindexer.slots = artifacts;
+        spindexer.artifacts = artifacts;
         artifactsToFire = spindexer.getNumberOfArtifacts();
         firedArtifacts = 0;
         droppedFirstArtifact = false;
@@ -95,8 +101,9 @@ public class Robot {
                 Artifact.PURPLE });
         
         boolean hasPGP =
-            Collections.frequency(Arrays.asList(spindexer.slots), Artifact.GREEN) == 1
-                && Collections.frequency(Arrays.asList(spindexer.slots), Artifact.PURPLE) == 2;
+            Collections.frequency(Arrays.asList(spindexer.artifacts), Artifact.GREEN) == 1
+                && Collections.frequency(Arrays.asList(spindexer.artifacts),
+                                         Artifact.PURPLE) == 2;
         
         reverseSpindexerCase = isPGPMotif && hasPGP;
     }
@@ -152,7 +159,7 @@ public class Robot {
     public void motifFire() {
         if (flywheel.artifactLaunched()) {
             int droppedIndex = Spindexer.rollIndex((int) spindexer.currentSlotIndex);
-            spindexer.slots[droppedIndex] =
+            spindexer.artifacts[droppedIndex] =
                 Artifact.NONE;
             firedArtifacts++;
         }
@@ -175,9 +182,9 @@ public class Robot {
         intakeRamp.outtake();
         intake.stop();
         
-//        if (stateTimer.seconds() > 0.7) { // was .5
-//            paddles.open();
-//        }
+        if (stateTimer.seconds() > 0.7) { // was .5
+            paddles.open();
+        }
     }
  
     public void update() {
@@ -198,7 +205,7 @@ public class Robot {
                 follower.lockHeadingAt(null);
                 
                 if (spindexer.getNumberOfArtifacts() == 0) {
-                    spindexer.rotateToSlot(0);
+                    resetSpindexer();
                 }
                 break;
             case GROUND_FIRE:
@@ -215,15 +222,26 @@ public class Robot {
                 motifFire();
                 break;
             case SALVO: // Launches artifacts as fast as possible
+                if (firingAllIndex == null) {
+                    int leftIndex = spindexer.shiftLeft(spindexer.currentSlotIndex, 3);
+                    int rightIndex = spindexer.shiftRight(spindexer.currentSlotIndex, 3);
+                    
+                    if (Math.abs(leftIndex) < Math.abs(rightIndex)) {
+                        firingAllIndex = leftIndex;
+                    } else {
+                        firingAllIndex = rightIndex;
+                    }
+                }
+                
                 if (flywheel.artifactLaunched()) {
-                    spindexer.slots[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
+                    spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
                 }
                 
                 if (flywheel.isUpToSpeed()) {
-                    spindexer.rotateToSlot(spindexer.dropAllIndex);
+                    spindexer.rotateToSlot(firingAllIndex);
                     
                     if (spindexer.getNumberOfArtifacts() == 0) {
-                        setState(State.IDLE);
+                        resetSpindexer();
                         break;
                     }
                 }
@@ -243,6 +261,9 @@ public class Robot {
         intake.update(follower.getMotionState().deltaTime);
 
         flywheel.update(follower.getMotionState().deltaTime, follower.getVoltage());
+        
+        Robot.artifacts = spindexer.artifacts;
+        Robot.currentPose = follower.getCurrentPose();
     }
     
     public void originalMotifFire() {
@@ -345,6 +366,7 @@ public class Robot {
     public void resetSpindexer() {
         artifactsToFire = 0;
         firedArtifacts = 0;
+        firingAllIndex = null;
         droppedFirstArtifact = false;
         reverseSpindexerCase = false;
         spindexer.rotateLeft = false;  // NEW

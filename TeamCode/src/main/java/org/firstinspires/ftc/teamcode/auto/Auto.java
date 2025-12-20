@@ -13,11 +13,9 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 import java.lang.reflect.Field;
 
-public abstract class Auto2 extends OpMode {
+public abstract class Auto extends OpMode {
     public Robot robot;
-    
-    // robot is 17 inches long, 16.5 wide
-   
+
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
@@ -31,28 +29,21 @@ public abstract class Auto2 extends OpMode {
     @Override
     public void init_loop() {
         if (gamepad1.triangleWasPressed()) {
-            robot.allianceColor = (AllianceColor.BLUE == robot.allianceColor) ?
+            Robot.allianceColor = (AllianceColor.BLUE == Robot.allianceColor) ?
                 AllianceColor.RED :
                 AllianceColor.BLUE;
             gamepad1.rumble(Haptics.CONFIRM);
         }
         
-        telemetry.addData("Alliance Color (Press △)", robot.allianceColor);
+        telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
         telemetry.update();
     }
     
     @Override
     public void start() {
-        if (robot.allianceColor == AllianceColor.RED) {
+        if (Robot.allianceColor == AllianceColor.RED) {
             mirrorPosesForAllianceColor();
         }
-    }
-    
-    @Override
-    public void stop() {
-        blackboard.put("currentPose", robot.follower.getCurrentPose());
-        blackboard.put("allianceColor", robot.allianceColor);
-        blackboard.put("motifPattern", robot.motifPattern);
     }
     
     @Override
@@ -141,7 +132,7 @@ public abstract class Auto2 extends OpMode {
         }
         
         Pose pickup = new Pose(x, y, 180);
-        if (robot.allianceColor == AllianceColor.RED) {
+        if (Robot.allianceColor == AllianceColor.RED) {
             pickup = pickup.mirroredAcrossYAxis();
         }
         return pickup;

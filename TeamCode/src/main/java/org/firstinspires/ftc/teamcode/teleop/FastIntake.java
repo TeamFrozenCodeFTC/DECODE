@@ -94,7 +94,7 @@ public class FastIntake extends TeleOps {
                 break;
             case SALVO:
                 if (robot.flywheel.artifactLaunched()) {
-                    robot.spindexer.slots[robot.spindexer.getNumberOfArtifacts()] =
+                    robot.spindexer.artifacts[robot.spindexer.getNumberOfArtifacts()] =
                         Artifact.NONE;
                 }
                 

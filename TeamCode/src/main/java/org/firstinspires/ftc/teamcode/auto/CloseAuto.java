@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import java.util.Arrays;
 
 @Autonomous
-public class CloseAuto extends Auto2 {
+public class CloseAuto extends Auto {
 //    public Pose startingPose = new Pose(18.25, 121, -36);
 //public Pose startingPose = new Pose(18.25, 121, -36);
     public Pose startingPose = new Pose(20.25, 120.25, -44.5);
@@ -71,14 +71,14 @@ public class CloseAuto extends Auto2 {
                 }
                 break;
             case 2:
-                robot.motifPattern = motifDetector.getMotifPattern();
-                if (robot.motifPattern == null && timeout.seconds() > 1) {
-                    robot.motifPattern = new Artifact[]
+                Robot.motifPattern = motifDetector.getMotifPattern();
+                if (Robot.motifPattern == null && timeout.seconds() > 1) {
+                    Robot.motifPattern = new Artifact[]
                         {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
                 }
                 
-                if (robot.motifPattern != null || timeout.seconds() > 1) {
-                    telemetry.addData("pattern", Arrays.deepToString(robot.motifPattern));
+                if (Robot.motifPattern != null || timeout.seconds() > 1) {
+                    telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
                     telemetry.update();
                     state++;
                 }

@@ -33,18 +33,15 @@ public class TeleOp extends TeleOps {
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.LOAD_ARTIFACTS));
         } else if (gamepad1.rightBumperWasPressed()) {
-            // robot.artifactsToFire = numberOfArtifacts;
             notifyFailedOperation(() -> numberOfArtifacts > 0,
                                   () -> robot.setState(Robot.State.SALVO));
         } else if (gamepad1.triangleWasPressed()) {
-            // robot.artifactsToFire = numberOfArtifacts;
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> robot.setState(Robot.State.SENSOR_LOAD_ARTIFACTS));
         } else if (gamepad1.squareWasPressed()) { // Human Player Load
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   () -> {
                                       robot.spindexer.rotateToSlot(0.5);
-                                      robot.spindexer.dropAllIndex = 2;
                                       robot.preload(new Artifact[]
                                                         {Artifact.GREEN,
                                                             Artifact.PURPLE,
@@ -73,12 +70,12 @@ public class TeleOp extends TeleOps {
             robot.follower.lockHeadingAt(null);
         }
         if (gamepad1.optionsWasPressed()) {
-            robot.follower.setCurrentPose(robot.allianceColor.getHumanPlayerZone());
+            robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
             robot.follower.teleOpTarget =
                 robot.follower.getMotionState().pose.headingToDegrees();
         }
 
-        if (robot.allianceColor == AllianceColor.BLUE) {
+        if (Robot.allianceColor == AllianceColor.BLUE) {
             robot.follower.fieldCentricTeleOpDrive(
                 gamepad1.left_stick_y,
                 gamepad1.left_stick_x,

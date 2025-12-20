@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Artifact;
+import org.firstinspires.ftc.teamcode.Robot;
+
+import java.util.Arrays;
 
 public class Spindexer {
     public ServoImplEx servo;
@@ -15,19 +18,25 @@ public class Spindexer {
     public DistanceSensor rightDistanceSensor;
     public DistanceSensor leftDistanceSensor;
     
-    public Artifact[] slots = Artifact.getEmptyPattern();
-    
-    // Rotates spindexer in opposite direction to choose between two different artifacts
-    public boolean reversedSpindexerIntake = false;
-    public int dropAllIndex = 0;
-    
-    public double currentSlotIndex = 2;
+    public Artifact[] artifacts = Artifact.getEmptyPattern();
+
+    public double currentSlotIndex = 0;
     
     public void resetSlots() {
-        slots = new Artifact[]
+        artifacts = new Artifact[]
             {Artifact.NONE, Artifact.NONE, Artifact.NONE};
         rotateLeft = false;
         rotateRight = false;
+    }
+
+    public int shiftLeft(double index, int steps) {
+        int result = (int)Math.floor(index);
+        return result - steps;
+    }
+    
+    public int shiftRight(double index, int steps) {
+        int result = (int)Math.ceil(index);
+        return result + steps;
     }
     
     public Spindexer(HardwareMap hardwareMap) {
@@ -38,13 +47,6 @@ public class Spindexer {
         leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
         rightDistanceSensor = hardwareMap.get(DistanceSensor.class,
                                               "rightDistanceSensor");
-        
-        
-    }
-    
-    // Rotates spindexer 3 times to drop all artifacts
-    public void spinToDropAllArtifacts() {
-        rotateToSlot(dropAllIndex);
     }
 
     public Artifact getDetectedArtifact() {
@@ -63,7 +65,7 @@ public class Spindexer {
     // +1 is to the right, clockwise
     public boolean intakeArtifact(Artifact artifact) {
         int count = getNumberOfArtifacts();
-        slots[count] = artifact;
+        artifacts[count] = artifact;
         
         switch (count) {
             case 0:
@@ -73,13 +75,11 @@ public class Spindexer {
                 rotateToSlot(2);
                 break;
             case 2:
-                if (slots[1] == artifact) {
+                if (artifacts[1] == artifact) {
                     rotateToSlot(2.5);
-                    dropAllIndex = 0;
                 }
                 else {
                     rotateToSlot(1.5);
-                    dropAllIndex = -1;
                 }
                 return true;
         }
@@ -90,26 +90,18 @@ public class Spindexer {
         return value % 1 != 0;
     }
     
-    public int getLeftIndex(double index) {
-        return hasDecimal(index) ? (int)Math.floor(index) : (int)index - 1;
-    }
-    
-    public int getRightIndex(double index) {
-        return hasDecimal(index) ? (int)Math.ceil(index) : (int)index + 1;
-    }
-    
     public boolean rotateLeft = false;
     public boolean rotateRight = false;
     
     private Integer chooseRotationTarget(Artifact artifact) {
-        int leftIndex = getLeftIndex(currentSlotIndex);
-        int rightIndex = getRightIndex(currentSlotIndex);
+        int leftIndex = shiftLeft(currentSlotIndex, 1);
+        int rightIndex = shiftRight(currentSlotIndex, 1);
         
         int leftSlotIndex = rollIndex(leftIndex);
         int rightSlotIndex = rollIndex(rightIndex);
         
-        boolean leftIsArtifact = slots[leftSlotIndex] == artifact;
-        boolean rightIsArtifact = slots[rightSlotIndex] == artifact;
+        boolean leftIsArtifact = artifacts[leftSlotIndex] == artifact;
+        boolean rightIsArtifact = artifacts[rightSlotIndex] == artifact;
         
         if (!(leftIsArtifact || rightIsArtifact)) {
             rotateLeft = rotateRight = false;
@@ -136,7 +128,7 @@ public class Spindexer {
         
         int slotIndex = rollIndex(target);
         rotateToSlot(target);
-        slots[slotIndex] = Artifact.NONE;
+        artifacts[slotIndex] = Artifact.NONE;
         return true;
     }
     
@@ -154,24 +146,18 @@ public class Spindexer {
     }
     
     public void rotateToSlot(double slotIndex) {
-        
-        // .472
-//        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .483);
         servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .472);
         
         currentSlotIndex = slotIndex;
-        
-        
     }
     
     public int getNumberOfArtifacts() {
-        return (slots[0].isArtifact() ? 1 : 0)
-            + (slots[1].isArtifact() ? 1 : 0)
-            + (slots[2].isArtifact() ? 1 : 0);
+        return (artifacts[0].isArtifact() ? 1 : 0)
+            + (artifacts[1].isArtifact() ? 1 : 0)
+            + (artifacts[2].isArtifact() ? 1 : 0);
     }
     
     public static int rollIndex(int index) {
         return Math.floorMod(index, 3);
     }
-    
 }

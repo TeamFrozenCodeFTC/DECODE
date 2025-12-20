@@ -18,14 +18,16 @@ public class TeleOps extends OpMode {
     @Override
     public void init_loop() {
         if (gamepad1.triangleWasPressed()) {
-            robot.allianceColor = (AllianceColor.BLUE == robot.allianceColor) ?
+            Robot.allianceColor = (AllianceColor.BLUE == Robot.allianceColor) ?
                 AllianceColor.RED :
                 AllianceColor.BLUE;
             gamepad1.rumble(Haptics.CONFIRM);
         }
         
-        telemetry.addData("Alliance Color (Press △)", robot.allianceColor);
-        telemetry.addData("position", blackboard.get("currentPose"));
+        telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
+        telemetry.addData("position", Robot.currentPose);
+        telemetry.addData("allianceColor", Robot.allianceColor);
+        telemetry.addData("motifPattern", Arrays.deepToString(Robot.motifPattern));
         telemetry.update();
     }
     
@@ -37,33 +39,21 @@ public class TeleOps extends OpMode {
         
         robot.follower.drivetrain.zeroPowerBrakeMode();
         
-        if (blackboard.get("allianceColor") != null) {
-            robot.allianceColor = (AllianceColor) blackboard.get("allianceColor");
-        }
-        if (blackboard.get("motifPattern") != null) {
-            robot.motifPattern = (Artifact[]) blackboard.get("motifPattern");
-        }
-        if (blackboard.get("slots") != null) {
-            robot.spindexer.slots = (Artifact[]) blackboard.get("slots");
+        if (Robot.artifacts != null) {
+            robot.spindexer.artifacts = Robot.artifacts;
         }
         else {
-            robot.spindexer.slots = new Artifact[]
+            robot.spindexer.artifacts = new Artifact[]
                 {Artifact.NONE, Artifact.NONE, Artifact.NONE};
         }
-        
-        double currentVoltage = robot.follower.drivePowerController.getVoltage();
-        telemetry.addData("Initializing Voltage", "%.2f V", currentVoltage);
-        telemetry.addData("allianceColor", robot.allianceColor);
-        telemetry.addData("motifPattern", Arrays.deepToString(robot.motifPattern));
-        telemetry.update();
     }
     
     @Override
     public void start() {
-        robot.follower.setCurrentPose(robot.allianceColor.getHumanPlayerZone());
+        robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
         
-        if (blackboard.get("currentPose") != null) {
-            robot.follower.setCurrentPose(((Pose) blackboard.get("currentPose")));
+        if (Robot.currentPose != null) {
+            robot.follower.setCurrentPose(Robot.currentPose);
         }
         
         robot.follower.teleOpTarget = robot.follower.getCurrentPose().headingToDegrees();
@@ -80,25 +70,20 @@ public class TeleOps extends OpMode {
             telemetry.addData("current rpm", "%.2f", robot.flywheel.getRpm());
             telemetry.addData("target rpm", "%.2f", robot.flywheel.getTargetRPM());
             telemetry.addData("numOfArtifacts", robot.spindexer.getNumberOfArtifacts());
-            telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.slots));
+            telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.artifacts));
             telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
             telemetry.addData("spindexerIsRotating", robot.spindexerIsRotating);
             telemetry.addData("paddlesRotated", robot.paddlesRotatedUp);
             telemetry.addData("isUpToSpeed", robot.flywheel.isUpToSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
             telemetry.addData("distanceToGoal",
-                              robot.allianceColor.getGoalPosition()
+                              Robot.allianceColor.getGoalPosition()
                                   .distanceTo(
                                       robot.follower.getCurrentPose().getPosition()));
-            telemetry.addData("dropAllIndex", robot.spindexer.dropAllIndex);
+            telemetry.addData("firingAllIndex", robot.firingAllIndex);
             telemetry.update();
         }
         
         robot.update();
-    }
-    
-    @Override
-    public void stop() {
-        blackboard.put("currentPose", robot.follower.getCurrentPose());
     }
 }

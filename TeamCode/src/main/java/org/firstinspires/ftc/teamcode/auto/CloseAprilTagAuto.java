@@ -5,12 +5,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
 
 @Autonomous
-public class CloseAprilTagAuto extends Auto2 {
+public class CloseAprilTagAuto extends Auto {
     public Pose startingPose = new Pose(60, 135.5, -90);
     public Pose aprilTagPose = new Pose(60, 88, -90);
     public Pose fire3 = new Pose(60, 88, -43);
@@ -21,7 +20,7 @@ public class CloseAprilTagAuto extends Auto2 {
         super.init();
         aprilTag = new MotifDetector(hardwareMap);
         
-        robot.spindexer.slots = Artifact.getHumanPlayerPattern();
+        robot.spindexer.artifacts = Artifact.getHumanPlayerPattern();
         robot.spindexer.rotateToSlot(2.5);
     }
 

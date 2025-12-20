@@ -8,10 +8,11 @@ import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.core.hardware.localization.MotionState;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.teamcode.AllianceColor;
-import org.firstinspires.ftc.teamcode.auto.Auto2;
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.auto.Auto;
 
 @TeleOp
-public class TuneFlyWheel extends Auto2 {
+public class TuneFlyWheel extends Auto {
     Follower follower;
 
     @Override
@@ -26,7 +27,7 @@ public class TuneFlyWheel extends Auto2 {
         robot.flywheel.setRPM(4000);
         robot.flywheel.filteredVoltage = follower.getVoltage();
         
-        robot.follower.setCurrentPose(robot.allianceColor.getHumanPlayerZone());
+        robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
     }
     
     @Override
@@ -38,8 +39,8 @@ public class TuneFlyWheel extends Auto2 {
             robot.flywheel.setRPM(robot.flywheel.getTargetRPM() + 50);
         }
         
-        telemetry.addData("distanceTOGaol",
-                          robot.allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
+        telemetry.addData("distanceToGoal",
+                          Robot.allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
         telemetry.addData("current RPM", robot.flywheel.getRpm());
         telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
         telemetry.update();

@@ -9,10 +9,6 @@ public enum Artifact {
         return this != NONE;
     }
     
-    public boolean isNone() {
-        return this == NONE;
-    }
-    
     public Artifact oppositeColor() {
         return this == Artifact.PURPLE ? Artifact.GREEN : Artifact.PURPLE;
     }
