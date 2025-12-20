@@ -4,37 +4,32 @@ import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 
 public enum AllianceColor {
-    BLUE(new Vector(6, 144-6), new Vector(105.25, 33.25),
-         new Pose(135.25, 8.5, 0)),
+    BLUE(new Vector(3.5, 144-3.5),
+         new Pose(144-16.5/2, 17.0/2, 0),
+         new Pose(18, 121, -36)),
     RED(BLUE.goalPosition.mirroredAcrossYAxis(),
-        BLUE.basePosition.mirroredAcrossYAxis(), new Pose(8.25, 8.5, 180));
-    
-//    static double margin = 3.5;
-//
-//    BLUE(new Vector(margin, 144-margin), new Vector(105.25, 33.25),
-//         new Pose(144-16/2, 17/2, 0)),
-//    RED(BLUE.goalPosition.mirroredAcrossYAxis(),
-//        BLUE.basePosition.mirroredAcrossYAxis(), new Pose(8.25, 8.5, 180));
-//
+        BLUE.humanResetZone.mirroredAcrossYAxis(),
+        BLUE.goalReset.mirroredAcrossYAxis());
+
     private final Vector goalPosition;
-    private final Vector basePosition;
-    private final Pose humanPlayerZone;
-    
-    AllianceColor(Vector goalPosition, Vector basePosition, Pose humanPlayerZone) {
+    private final Pose humanResetZone;
+    private final Pose goalReset;
+
+    AllianceColor(Vector goalPosition, Pose humanPlayerZone, Pose goalReset) {
         this.goalPosition = goalPosition;
-        this.basePosition = basePosition;
-        this.humanPlayerZone = humanPlayerZone;
+        this.humanResetZone = humanPlayerZone;
+        this.goalReset = goalReset;
     }
 
     public Vector getGoalPosition() {
         return goalPosition;
     }
-    
-    public Vector getBasePosition() {
-        return basePosition;
+
+    public Pose getHumanResetZone() {
+        return humanResetZone;
     }
     
-    public Pose getHumanPlayerZone() {
-        return humanPlayerZone;
+    public Pose getGoalReset() {
+        return goalReset;
     }
 }
