@@ -5,7 +5,7 @@ import org.firstinspires.ftc.blackice.util.geometry.Vector;
 
 public enum AllianceColor {
     BLUE(new Vector(3.5, 144-3.5),
-         new Pose(144-16.5/2, 17.0/2, 0),
+         new Pose(144-16.5/2, 18.0/2, 0),
          new Pose(18, 121, -36)),
     RED(BLUE.goalPosition.mirroredAcrossYAxis(),
         BLUE.humanResetZone.mirroredAcrossYAxis(),

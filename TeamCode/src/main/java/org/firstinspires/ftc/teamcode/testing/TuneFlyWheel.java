@@ -44,10 +44,6 @@ public class TuneFlyWheel extends Auto {
         telemetry.addData("current RPM", robot.flywheel.getRpm());
         telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
         telemetry.update();
-
-        if (gamepad1.circle) {
-            follower.lockHeadingAt(getAngleToGoal());
-        }
         
         follower.update();
         

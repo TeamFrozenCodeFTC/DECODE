@@ -43,10 +43,12 @@ public class Flywheel {
     
     private final DoubleUnaryOperator distanceToRpm =
         LinearRegression.fit(new double[][]{
-            {54.48908, 3000}, // y=17.17072x+2064.38333
-            {112.72775, 4000}
+            //{54.48908, 3000}, // y=17.17072x+2064.38333
+//            {112.72775, 4000}
+            {97.58, 3900},
+            {142, 4950}
         });
-
+    
     public Flywheel(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");

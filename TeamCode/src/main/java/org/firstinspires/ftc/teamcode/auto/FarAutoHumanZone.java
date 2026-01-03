@@ -70,12 +70,12 @@ public class FarAutoHumanZone extends Auto {
                     state++;
                 }
                 else {
-                    robot.setState(Robot.State.FAST_FIRING);
+                    robot.setState(Robot.State.FIRING);
                 }
                 robot.follower.holdPose(firePose);
                 break;
             case 3:
-                goToPose(humanPlayerZone, Robot.State.LOAD_ARTIFACTS);
+                goToPose(humanPlayerZone, Robot.State.CONTINUOUS_INTAKE);
                 break;
 //            case 9:
 //                robot.follower.holdPose(endPose);

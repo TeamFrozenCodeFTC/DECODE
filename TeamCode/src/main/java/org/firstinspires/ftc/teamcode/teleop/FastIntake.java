@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 import org.firstinspires.ftc.teamcode.Artifact;
+import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -51,7 +52,7 @@ public class FastIntake extends TeleOps {
                 }
                 
                 // Rotates spindexer to intake the artifact that was pushed up.
-                if (robot.spindexer.artifactIsInSpindexer()) {
+                if (robot.spindexer.artifactIsInSpindexer() && robot.intakedArtifact.isArtifact()) {
                     robot.spindexer.intakeArtifact(robot.intakedArtifact);
                     robot.intakedArtifact = Artifact.NONE;
                     artifactBeingPushedUp = false;
@@ -140,10 +141,17 @@ public class FastIntake extends TeleOps {
         }
         if (gamepad1.left_trigger == 1) {
             state = State.FAST_SPINDEXER_LOAD;
+            gamepad1.rumble(Haptics.CONFIRM);
         }
         
+        telemetry.addData("second state", state);
+        telemetry.update();
+
+        robot.intake.update(robot.follower.getMotionState().deltaTime);
         
-        super.loop();
+        robot.flywheel.update(robot.follower.getMotionState().deltaTime,
+                              robot.follower.getVoltage());
+        
     }
     
     enum State {

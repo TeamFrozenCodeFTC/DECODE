@@ -9,6 +9,9 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class Spindexer {
     public ServoImplEx servo;
@@ -30,13 +33,17 @@ public class Spindexer {
     }
 
     public int shiftLeft(double index, int steps) {
-        int result = (int)Math.floor(index);
+        int result = (int)Math.ceil(index);
         return result - steps;
     }
     
     public int shiftRight(double index, int steps) {
-        int result = (int)Math.ceil(index);
+        int result = (int)Math.floor(index);
         return result + steps;
+    }
+    
+    public int count(Artifact artifact) {
+        return Collections.frequency(Arrays.asList(artifacts), artifact);
     }
     
     public Spindexer(HardwareMap hardwareMap) {
@@ -58,8 +65,8 @@ public class Spindexer {
     }
     
     public boolean artifactIsInSpindexer() {
-        return leftDistanceSensor.getDistance(DistanceUnit.INCH) < 3
-            || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 3;
+        return leftDistanceSensor.getDistance(DistanceUnit.INCH) < 4
+            || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 4;
     }
     
     // +1 is to the right, clockwise
@@ -93,7 +100,7 @@ public class Spindexer {
     public boolean rotateLeft = false;
     public boolean rotateRight = false;
     
-    private Integer chooseRotationTarget(Artifact artifact) {
+    public Integer chooseRotationTarget(Artifact artifact) {
         int leftIndex = shiftLeft(currentSlotIndex, 1);
         int rightIndex = shiftRight(currentSlotIndex, 1);
         
@@ -110,7 +117,8 @@ public class Spindexer {
         
         if (leftIsArtifact && rightIsArtifact && (rotateLeft || rotateRight)) {
             // keep previous direction
-        } else if (leftIsArtifact) {
+        } else if (leftIsArtifact) { // left is negative so gets closer to reversing
+            // spindexer from intaking positive
             rotateLeft = true;
             rotateRight = false;
         } else {
@@ -132,21 +140,16 @@ public class Spindexer {
         return true;
     }
     
-    public void rotateToArtifact(Artifact artifact) {
+    public boolean rotateToArtifact(Artifact artifact) {
         Integer target = chooseRotationTarget(artifact);
-        if (target == null) return;
+        if (target == null) return false;
         
         rotateToSlot(target);
-    }
-    
-    public void forceRotateToArtifact(Artifact artifact) {
-        if (!_rotateToArtifact(artifact)) { // rotates to opposite color if not found
-            _rotateToArtifact(artifact.oppositeColor());
-        }
+        return true;
     }
     
     public void rotateToSlot(double slotIndex) {
-        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .472);
+        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .485);
         
         currentSlotIndex = slotIndex;
     }

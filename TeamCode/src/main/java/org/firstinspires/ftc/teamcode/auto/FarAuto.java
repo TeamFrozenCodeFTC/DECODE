@@ -69,7 +69,7 @@ public class FarAuto extends Auto {
                     state++;
                 }
                 else {
-                    robot.setState(Robot.State.FAST_FIRING);
+                    robot.setState(Robot.State.FIRING);
                 }
                 robot.follower.holdPose(firePose);
                 break;
@@ -97,14 +97,14 @@ public class FarAuto extends Auto {
         robot.update();
     }
     
-    public void goToPose(Pose pose, Robot.State robotState) {
-        robot.follower.holdPose(pose);
-        robot.setState(robotState);
-        
-        if (robot.follower.isStoppedAt(pose)) {
-            state++;
-        }
-    }
+//    public void goToPose(Pose pose, Robot.State robotState) {
+//        robot.follower.holdPose(pose);
+//        robot.setState(robotState);
+//
+//        if (robot.follower.isStoppedAt(pose)) {
+//            state++;
+//        }
+//    }
     
     @Override
     public void stop() {

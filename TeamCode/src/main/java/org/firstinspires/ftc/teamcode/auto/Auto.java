@@ -8,14 +8,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.blackice.util.geometry.Pose;
 import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.teamcode.AllianceColor;
+import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.auto.steps.Step;
+import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 
 import java.lang.reflect.Field;
 
 public abstract class Auto extends OpMode {
     public Robot robot;
-
+    
+    MotifDetector motifDetector;
+    
+    
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
@@ -24,6 +30,8 @@ public abstract class Auto extends OpMode {
         
         robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
+        motifDetector = new MotifDetector(hardwareMap);
+        motifDetector.start();
     }
     
     @Override
@@ -37,6 +45,47 @@ public abstract class Auto extends OpMode {
         
         telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
         telemetry.update();
+    }
+    
+    public Step goToPose(Pose pose, Robot.State state) {
+        return new Step(
+            () -> robot.setState(state),
+            () -> robot.follower.holdPose(pose),
+            () -> robot.follower.isStoppedAt(pose)
+        );
+    }
+    
+    public Step goToPoseFast(Pose pose, Robot.State state) {
+        return new Step(
+            () -> robot.setState(state),
+            () -> robot.follower.holdPose(pose),
+            () -> robot.follower.isWithinBraking(pose)
+        );
+    }
+    
+    public Step goToPose(Pose pose, Robot.State state, double power) {
+        return new Step(
+            () -> robot.setState(state),
+            () -> robot.follower.holdPose(pose, power),
+            () -> robot.follower.isStoppedAt(pose)
+        );
+    }
+    
+    public Step detectMotif() {
+        ElapsedTime timeout = new ElapsedTime();
+        
+        return new Step(
+            timeout::reset,
+            () -> {
+                Robot.motifPattern = motifDetector.getMotifPattern();
+                if (Robot.motifPattern == null && timeout.seconds() > 1) {
+                    Robot.motifPattern = new Artifact[]{
+                        Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE
+                    };
+                }
+            },
+            () -> Robot.motifPattern != null || timeout.seconds() > 1
+        );
     }
     
     @Override
@@ -72,46 +121,90 @@ public abstract class Auto extends OpMode {
     boolean pickingUpArtifact = false;
     ElapsedTime timer;
     
-    public boolean pickupArtifactGroup(double y) {
-        robot.setState(Robot.State.LOAD_ARTIFACTS);
-        
-        Pose pickup = getPose(y);
-        
-        if (pickupStartTime < 0) {
-            pickupStartTime = time;
-        }
-        
-        double elapsed = time - pickupStartTime;
-        if (robot.intakedArtifact.isArtifact()) { // Stop while intaking artifact
-            if (!pickingUpArtifact) {
-                robot.follower.drivetrain.zeroPower();
-                artifactToPickUp++;
-                pickupStartTime = time;
-                pickingUpArtifact = true;
-            }
-        }
-        else if (artifactToPickUp > 3) {
-            pickingUpArtifact = false;
-            artifactToPickUp = 1;
-            pickupStartTime = -1;
-            return true;
-        }
-        else if (elapsed > 5) { // Skip to next artifact
-            artifactToPickUp++;
-            pickupStartTime = time;
-            pickingUpArtifact = false;
-        }
-        else if (elapsed > 1.2) { // Move forward to try to get artifact
-            pickingUpArtifact = false;
-            robot.follower.drivetrain.followVector(new Vector(0.25, 0), 0);
-        }
-        else { // Move to next artifact
-            pickingUpArtifact = false;
-            robot.follower.holdPose(pickup, 0.3);
-        }
-        
-        return false;
+//    public boolean pickupArtifactGroup(double y) {
+//        robot.setState(Robot.State.CONTINUOUS_INTAKE);
+//
+//        Pose pickup = getPose(y);
+//
+//        if (pickupStartTime < 0) {
+//            pickupStartTime = time;
+//        }
+//
+//        double elapsed = time - pickupStartTime;
+//        if (robot.intakedArtifact.isArtifact()) { // Stop while intaking artifact
+//            if (!pickingUpArtifact) {
+//                robot.follower.drivetrain.zeroPower();
+//                artifactToPickUp++;
+//                pickupStartTime = time;
+//                pickingUpArtifact = true;
+//            }
+//        }
+//        else if (artifactToPickUp > 3) {
+//            pickingUpArtifact = false;
+//            artifactToPickUp = 1;
+//            pickupStartTime = -1;
+//            return true;
+//        }
+//        else if (elapsed > 5) { // Skip to next artifact
+//            artifactToPickUp++;
+//            pickupStartTime = time;
+//            pickingUpArtifact = false;
+//        }
+//        else if (elapsed > 1.2) { // Move forward to try to get artifact
+//            pickingUpArtifact = false;
+//            robot.follower.drivetrain.followVector(new Vector(0.25, 0), 0);
+//        }
+//        else { // Move to next artifact
+//            pickingUpArtifact = false;
+//            robot.follower.holdPose(pickup, 0.3);
+//        }
+//
+//        return false;
+//    }
+public boolean pickupArtifactGroup(double y) {
+    robot.setState(Robot.State.CONTINUOUS_INTAKE);
+    
+    Pose pickup = getPose(y);
+    
+    if (pickupStartTime < 0) {
+        pickupStartTime = time;
     }
+    
+    robot.follower.holdPose(pickup);
+    
+    return robot.follower.isStoppedAt(pickup);
+
+//    double elapsed = time - pickupStartTime;
+//    if (robot.intakedArtifact.isArtifact()) { // Stop while intaking artifact
+//        if (!pickingUpArtifact) {
+//            robot.follower.drivetrain.zeroPower();
+//            artifactToPickUp++;
+//            pickupStartTime = time;
+//            pickingUpArtifact = true;
+//        }
+//    }
+//    else if (artifactToPickUp > 3) {
+//        pickingUpArtifact = false;
+//        artifactToPickUp = 1;
+//        pickupStartTime = -1;
+//        return true;
+//    }
+//    else if (elapsed > 5) { // Skip to next artifact
+//        artifactToPickUp++;
+//        pickupStartTime = time;
+//        pickingUpArtifact = false;
+//    }
+//    else if (elapsed > 1.2) { // Move forward to try to get artifact
+//        pickingUpArtifact = false;
+//        robot.follower.drivetrain.followVector(new Vector(0.25, 0), 0);
+//    }
+//    else { // Move to next artifact
+//        pickingUpArtifact = false;
+//        robot.follower.holdPose(pickup, 0.3);
+//    }
+//
+//    return false;
+}
     
     private Pose getPose(double y) {
         double x;

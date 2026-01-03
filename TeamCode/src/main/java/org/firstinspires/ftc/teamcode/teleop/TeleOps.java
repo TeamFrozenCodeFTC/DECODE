@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 
 import java.util.Arrays;
 
@@ -66,6 +67,18 @@ public class TeleOps extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.guide) {
+            int leftIndex = robot.spindexer.shiftLeft(robot.spindexer.currentSlotIndex, 1);
+            int rightIndex = robot.spindexer.shiftRight(robot.spindexer.currentSlotIndex, 1);
+            
+            int leftSlotIndex = Spindexer.rollIndex(leftIndex);
+            int rightSlotIndex = Spindexer.rollIndex(rightIndex);
+            
+            telemetry.addData("leftIndex", leftIndex);
+            telemetry.addData("rightIndex", rightIndex);
+            telemetry.addData("leftSlotIndex", leftSlotIndex);
+            telemetry.addData("rightSlotIndex", rightSlotIndex);
+            telemetry.addData("leftIsArtifact", robot.spindexer.artifacts[leftSlotIndex]);
+            telemetry.addData("rightIsArtifact", robot.spindexer.artifacts[rightSlotIndex]);
             telemetry.addData("state", robot.state);
             telemetry.addData("current rpm", "%.2f", robot.flywheel.getRpm());
             telemetry.addData("target rpm", "%.2f", robot.flywheel.getTargetRPM());
@@ -73,7 +86,6 @@ public class TeleOps extends OpMode {
             telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.artifacts));
             telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
             telemetry.addData("spindexerIsRotating", robot.spindexerIsRotating);
-            telemetry.addData("paddlesRotated", robot.paddlesRotatedUp);
             telemetry.addData("isUpToSpeed", robot.flywheel.isUpToSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
             telemetry.addData("distanceToGoal",
