@@ -17,7 +17,7 @@ public class StepRunner {
         Step step = steps.get(index);
         step.run();
 
-        if (step.isDone.getAsBoolean()) {
+        if (step.isFinished()) {
             index++;
         }
     }

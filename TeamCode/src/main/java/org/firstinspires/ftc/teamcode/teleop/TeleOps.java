@@ -57,7 +57,9 @@ public class TeleOps extends OpMode {
             robot.follower.setCurrentPose(Robot.currentPose);
         }
         
-        robot.follower.teleOpTarget = robot.follower.getCurrentPose().headingToDegrees();
+        //robot.follower.teleOpTarget = robot.follower.getCurrentPose()
+        // .headingToDegrees();
+        //robot.follower.set
         
         robot.spindexer.rotateToSlot(0);
         robot.intakeRamp.uptake();

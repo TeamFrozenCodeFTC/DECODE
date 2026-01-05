@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.miniblackice.core;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.miniblackice.drivetrain.Drivetrain;
@@ -10,6 +11,8 @@ import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.miniblackice.geometry.Vector;
 import org.firstinspires.ftc.teamcode.miniblackice.localizers.Localizer;
 import org.firstinspires.ftc.teamcode.miniblackice.localizers.LocalizerConfig;
+
+import java.util.function.DoubleSupplier;
 
 public class Follower {
     /**
@@ -33,8 +36,9 @@ public class Follower {
     
     boolean isBraking = false;
     Vector brakingVector;
-    double deltaTime;
+    public double deltaTime;
     double lastTime = System.nanoTime();
+    DoubleSupplier voltageSupplier;
 
     public Follower(PDController headingController,
                     PredictiveBrakingController positionalController,
@@ -50,6 +54,14 @@ public class Follower {
         this.drivetrain.zeroPowerFloatMode();
         this.poseTolerance = poseTolerance;
         this.motionTolerance = motionTolerance;
+        this.voltageSupplier = () -> {
+            double minV = Double.POSITIVE_INFINITY;
+            for (VoltageSensor vs : hardwareMap.getAll(VoltageSensor.class)) {
+                double v = vs.getVoltage();
+                if (v > 0) minV = Math.min(minV, v);
+            }
+            return Math.max(9.0, Math.min(14.5, minV));
+        };
     }
 
     public void reset() {
@@ -60,12 +72,21 @@ public class Follower {
     
     public boolean isStoppedAt(Pose pose) {
         return poseTolerance.atPose(pose, localizer.getPose())
-            && motionTolerance.isStopped(localizer.getVelocity(), localizer.getAngularVelocity());
+            && motionTolerance.isStopped(localizer.getVelocity(),
+                     localizer.getAngularVelocity());
     }
     
     public boolean isWithinBraking(Pose pose) {
         return computeHoldPower(pose.getPosition()).dot(pose.getPosition().minus(localizer.getPose()
                                                                                      .getPosition())) < 1;
+    }
+    
+    public double getVoltage() {
+        return voltageSupplier.getAsDouble();
+    }
+    
+    public Pose getCurrentPose() {
+        return localizer.getPose();
     }
 
     /**
@@ -120,10 +141,10 @@ public class Follower {
 //            turnPower = 0;
 //        }
         
-        FtcDashboard.getInstance().getTelemetry().addData("power",
-                                                          holdPower.dot(new Vector(1,
-                                                                                   0)));
-        FtcDashboard.getInstance().getTelemetry().update();
+//        FtcDashboard.getInstance().getTelemetry().addData("power",
+//                                                          holdPower.dot(new Vector(1,
+//                                                                                   0)));
+//        FtcDashboard.getInstance().getTelemetry().update();
 
         followFieldVector(holdPower, turnPower);
         
@@ -165,6 +186,11 @@ public class Follower {
         localizer.update(deltaTime);
     }
     
+    public void setCurrentHeading(double headingDegrees) {
+        setCurrentPose(new Pose(localizer.getPose().getPosition().getX(),
+                                localizer.getPose().getPosition().getY(), headingDegrees));
+    }
+    
     public void setCurrentPose(Pose pose) {
         localizer.setCurrentPose(pose.getPosition().getX(), pose.getPosition().getY(),
                         pose.getHeading());
@@ -179,7 +205,7 @@ public class Follower {
     }
     
     public static class Config {
-        public double stopVelocityThreshold = 0.1;
+        public double stopVelocityThreshold = 0.02;
         public boolean holdPositionOnStop = true;
         public boolean autoBrakeEnabled = true;
         public boolean headingLockEnabled = true;
@@ -226,8 +252,7 @@ public class Follower {
         
         if (driveState == DriveState.DECELERATING) {
             if (localizer.getVelocity().computeMagnitude() < config.stopVelocityThreshold) {
-                teleOpTarget = localizer.getPose()
-                    .withHeading(localizer.getPose().getHeading());
+                teleOpTarget = localizer.getPose();
                 driveState = DriveState.HOLDING;
             }
         }
@@ -235,6 +260,7 @@ public class Follower {
     
     private void driveManual(double forward, double lateral, double turn) {
         if (lockedHeading != null && config.headingLockEnabled) {
+            // locked heading is radians
             turn = computeHeadingCorrectionPower(lockedHeading);
         }
         
@@ -245,18 +271,20 @@ public class Follower {
     }
     
     private void driveDecelerating() {
-        if (config.autoBrakeEnabled) {
-            drivetrain.followVector(computeBrakingPower(),
-                                    computeHeadingCorrectionPower(
-                                        teleOpTarget.getHeading()));
-        } else {
-            drivetrain.zeroPower();
-        }
+//        if (config.autoBrakeEnabled) {
+//            drivetrain.followVector(computeBrakingPower(),
+//                                    computeHeadingCorrectionPower(
+//                                        teleOpTarget.getHeading()));
+//        } else {
+//            drivetrain.zeroPower();
+//        }
+        drivetrain.zeroPower();
     }
     
     private void driveHolding() {
         if (lockedHeading != null) {
-            teleOpTarget = teleOpTarget.withHeading(lockedHeading);
+            teleOpTarget =
+                new Pose(teleOpTarget.getPosition(), Math.toDegrees(lockedHeading));
         }
         holdPose(teleOpTarget);
     }

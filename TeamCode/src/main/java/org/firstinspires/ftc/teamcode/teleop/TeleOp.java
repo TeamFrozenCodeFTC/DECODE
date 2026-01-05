@@ -44,18 +44,18 @@ public class TeleOp extends TeleOps {
             return;
         }
         
-        if (robot.spindexer.getNumberOfArtifacts() == 0
-            && robot.intakedArtifact == Artifact.NONE
-            && robot.spindexer.artifactIsInSpindexer()
-            && !robot.spindexer.getDetectedArtifact().isArtifact()) {
-            robot.paddles.close();
-            robot.spindexer.rotateToSlot(0.5);
-            robot.preload(new Artifact[]
-                              {Artifact.GREEN,
-                                  Artifact.PURPLE,
-                                  Artifact.PURPLE});
-            robot.setState(Robot.State.IDLE);
-        }
+//        if (robot.spindexer.getNumberOfArtifacts() == 0
+//            && robot.intakedArtifact == Artifact.NONE
+//            && robot.spindexer.artifactIsInSpindexer()
+//            && !robot.spindexer.getDetectedArtifact().isArtifact()) {
+//            robot.paddles.close();
+//            robot.spindexer.rotateToSlot(0.5);
+//            robot.preload(new Artifact[]
+//                              {Artifact.GREEN,
+//                                  Artifact.PURPLE,
+//                                  Artifact.PURPLE});
+//            robot.setState(Robot.State.IDLE);
+//        }
         
         int numberOfArtifacts = robot.spindexer.getNumberOfArtifacts();
         
@@ -100,12 +100,13 @@ public class TeleOp extends TeleOps {
         }
         
         if (gamepad1.right_stick_x != 0) {
-            robot.follower.lockHeadingAt(null);
+            //robot.follower.lockHeadingAt(null);
+            robot.follower.setLockedHeading(null);
         }
         if (gamepad1.optionsWasPressed()) {
             robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
-            robot.follower.teleOpTarget =
-                robot.follower.getMotionState().pose.headingToDegrees();
+//            robot.follower.teleOpTarget =
+//                robot.follower.getMotionState().pose.headingToDegrees();
         }
 
         if (Robot.allianceColor == AllianceColor.BLUE) {

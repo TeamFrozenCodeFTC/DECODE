@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import org.firstinspires.ftc.blackice.util.geometry.Pose;
-import org.firstinspires.ftc.blackice.util.geometry.Vector;
+import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.miniblackice.geometry.Vector;
 
 public enum AllianceColor {
+    // 16.5, 17.66
     BLUE(new Vector(3.5, 144-3.5),
-         new Pose(144-16.5/2, 18.0/2, 0),
-         new Pose(18, 121, -36)),
+         new Pose(144-17.66/2, 16.5/2, 0),
+         new Pose(18.85, 119.32, -35.92)),
     RED(BLUE.goalPosition.mirroredAcrossYAxis(),
         BLUE.humanResetZone.mirroredAcrossYAxis(),
         BLUE.goalReset.mirroredAcrossYAxis());

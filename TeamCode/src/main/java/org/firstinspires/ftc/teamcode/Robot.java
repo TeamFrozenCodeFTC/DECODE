@@ -2,9 +2,12 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.blackice.core.follower.Follower;
+//import org.firstinspires.ftc.blackice.core.follower.Follower;
 import org.firstinspires.ftc.blackice.util.Timeout;
-import org.firstinspires.ftc.blackice.util.geometry.Pose;
+//import org.firstinspires.ftc.blackice.util.geometry.Pose;
+import org.firstinspires.ftc.teamcode.miniblackice.core.Follower;
+import org.firstinspires.ftc.teamcode.miniblackice.core.FollowerConstants;
+import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -67,7 +70,8 @@ public class Robot {
     }
 
     public Robot(HardwareMap hardwareMap) {
-        follower = new Follower(hardwareMap);
+        //follower = new Follower(hardwareMap);
+        follower = FollowerConstants.createFollower(hardwareMap);
         intake = new Intake(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
         intakeRamp = new Ramp(hardwareMap);
@@ -78,12 +82,13 @@ public class Robot {
     }
 
     private void revLauncher() {
-        flywheel.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.getCurrentPose().getPosition()));
+        flywheel.setRpmFromDistance(allianceColor.getGoalPosition().distanceTo(follower.localizer.getPose().getPosition()));
     }
     
     public void revTowardGoal() {
         revLauncher();
-        follower.lockHeadingAt(getAngleToGoal());
+        follower.setLockedHeading(getAngleToGoal());
+        //follower.lockHeadingAt(getAngleToGoal());
     }
     
     public void fireThrough() {
@@ -251,12 +256,15 @@ public class Robot {
         
         Artifact detectedArtifact2 = spindexer.getDetectedArtifact();
         
+        
+        boolean artifactIsInSpindexer = spindexer.artifactIsInSpindexer();
+        
         if (detectedArtifact2.isArtifact()) {
             if (!intakedArtifact.isArtifact()) {
                 intakedArtifact = detectedArtifact2;
             }
             
-            if (spindexer.getNumberOfArtifacts() == 2 && !spindexer.artifactIsInSpindexer()) {
+            if (spindexer.getNumberOfArtifacts() == 2 && !artifactIsInSpindexer) {
                 paddles.close();
             }
         }
@@ -271,7 +279,8 @@ public class Robot {
         //                        setState(State.IDLE);
         //                    }
         //                }
-        if (spindexer.artifactIsInSpindexer() && intakedArtifact.isArtifact() && !spindexerIsRotating) {
+        
+        if (intakedArtifact.isArtifact() && !spindexerIsRotating && artifactIsInSpindexer) {
             spindexerIsRotating = true;
             spindexer.intakeArtifact(intakedArtifact);
             intakedArtifact = Artifact.NONE;
@@ -280,7 +289,7 @@ public class Robot {
                 setState(State.REVVING);
             }
         }
-        else if (!spindexer.artifactIsInSpindexer() && spindexerIsRotating) {
+        else if (spindexerIsRotating && !artifactIsInSpindexer) {
             spindexerIsRotating = false;
         }
     }
@@ -298,7 +307,8 @@ public class Robot {
                 
                 flywheel.stop();
                 intake.stop();
-                follower.lockHeadingAt(null);
+                //follower.lockHeadingAt(null);
+                follower.setLockedHeading(null);
                 break;
             case GROUND_FIRE:
                 fireThrough();
@@ -323,12 +333,14 @@ public class Robot {
                 break;
         }
         
-        intake.update(follower.getMotionState().deltaTime);
+//        intake.update(follower.localizer.deltaTime);
+        double deltaTime = follower.deltaTime;
+        intake.update(deltaTime);
 
-        flywheel.update(follower.getMotionState().deltaTime, follower.getVoltage());
+        flywheel.update(deltaTime, follower.getVoltage());
         
         Robot.artifacts = spindexer.artifacts;
-        Robot.currentPose = follower.getCurrentPose();
+        Robot.currentPose = follower.localizer.getPose();
     }
     
     public void resetSpindexer() {
@@ -342,6 +354,6 @@ public class Robot {
     }
     
     public double getAngleToGoal() {
-        return follower.getCurrentPose().getPosition().getAngleToLookAt(allianceColor.getGoalPosition());
+        return follower.localizer.getPose().getPosition().getAngleToLookAt(allianceColor.getGoalPosition());
     }
 }

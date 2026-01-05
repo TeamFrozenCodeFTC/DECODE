@@ -81,7 +81,7 @@ public class Follower extends PathRoutineController {
     }
     
     public void holdPose(Pose pose, double maxPower) {
-        drivePowerController.holdPose(pose, getMotionState(), maxPower);
+        drivePowerController.holdPose(pose, getMotionState(), 1);
     }
     
     public boolean isWithinBraking(Pose pose) {
@@ -99,8 +99,8 @@ public class Follower extends PathRoutineController {
     }
     
     public boolean isStoppedAt(Pose pose) {
-        return isAt(pose, new PoseTolerance(0.5, 3))
-            && (new VelocityTolerance(0.25, 5))
+        return isAt(pose, new PoseTolerance(0.5, 5))
+            && (new VelocityTolerance(0.25, 20))
          .isVelocityWithinTolerance(getMotionState());
     }
     

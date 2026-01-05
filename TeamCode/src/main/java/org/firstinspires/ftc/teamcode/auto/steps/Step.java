@@ -43,4 +43,11 @@ public class Step {
     public boolean isFinished() {
         return isDone.getAsBoolean() || timer.seconds() >= timeoutSeconds;
     }
+    
+    public static Step timeout(double seconds) {
+        return new Step(
+            () -> {},
+            () -> false
+        ).withTimeout(seconds);
+    }
 }

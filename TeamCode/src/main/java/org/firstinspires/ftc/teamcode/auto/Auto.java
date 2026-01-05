@@ -5,13 +5,12 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.blackice.util.geometry.Pose;
-import org.firstinspires.ftc.blackice.util.geometry.Vector;
 import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.auto.steps.Step;
+import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 
 import java.lang.reflect.Field;
@@ -59,6 +58,15 @@ public abstract class Auto extends OpMode {
         return new Step(
             () -> robot.setState(state),
             () -> robot.follower.holdPose(pose),
+            () -> robot.follower.isWithinBraking(pose)
+        );
+    }
+    
+    
+    public Step goToPoseFast(Pose pose, Robot.State state, double power) {
+        return new Step(
+            () -> robot.setState(state),
+            () -> robot.follower.holdPose(pose, power),
             () -> robot.follower.isWithinBraking(pose)
         );
     }

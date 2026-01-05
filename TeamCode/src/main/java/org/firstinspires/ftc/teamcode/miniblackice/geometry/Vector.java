@@ -9,6 +9,10 @@ public class Vector {
         this.x = x;
         this.y = y;
     }
+    
+    public Vector mirroredAcrossYAxis() {
+        return new Vector(144 - getX(), getY());
+    }
 
     public double getX() { return x; }
     public double getY() { return y; }

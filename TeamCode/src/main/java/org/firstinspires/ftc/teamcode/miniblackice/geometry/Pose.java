@@ -66,7 +66,7 @@ public class Pose {
     }
     
     /**
-     * Change the internal heading value (in radians).
+     * Change the internal heading value (in deg).
      */
     public Pose withHeading(double heading) {
         return new Pose(position, heading);
