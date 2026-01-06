@@ -8,25 +8,20 @@ import org.firstinspires.ftc.teamcode.auto.steps.Step;
 import org.firstinspires.ftc.teamcode.auto.steps.StepRunner;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 
-
-// 315 degrees
-
 @Autonomous
-public class CloseAuto extends Auto {
-    // 16.5, 17 + 3/4
-    public Pose startingPose = new Pose(19, 119.61, -36.42);
-
-    public Pose motifPose = new Pose(55.37, 81.82, -95);
-    public Pose firePose = new Pose(55.37, 81.82, -44.83);
+public class CloseAuto2 extends Auto {
+    public Pose startingPose = new Pose(19, 119.5, -36);
     
-    public Pose prePickupPose1 = new Pose(43, 81, 180);
-    public Pose pickupPose1 = new Pose(19, 81, 180);
-    public Pose prePickupPose2 = new Pose(43, 58.5, 180);
-    public Pose pickupPose2 = new Pose(18, 79.25-24, 180);
-    public Pose prePickupPose3 = new Pose(43, 79.25-48, 180);
-    public Pose pickupPose3 = new Pose(18, 33.5, 180);
-
-    public Pose endPose = new Pose(60, 90, -44.83);
+    public Pose firePose = new Pose(46, 91, -47);
+    
+    public Pose prePickupPose1 = new Pose(43, 84, 180);
+    public Pose pickupPose1 = new Pose(17, 84, 180);
+    public Pose prePickupPose2 = new Pose(42, 60, 180);
+    public Pose pickupPose2 = new Pose(16, 60, 180);
+    public Pose prePickupPose3 = new Pose(42, 36, 180);
+    public Pose pickupPose3 = new Pose(16, 36, 180);
+    
+    public Pose endPose = new Pose(41, 85, -47);
     
     StepRunner auto = new StepRunner();
     
@@ -46,8 +41,6 @@ public class CloseAuto extends Auto {
                               Artifact.PURPLE,
                               Artifact.PURPLE});
         
-        //auto.add(goToPose(motifPose, Robot.State.REVVING));
-        //auto.add(detectMotif());
         auto.add(goToPose(firePose, Robot.State.REVVING));
         auto.add(getFireStep());
         auto.add(goToPose(prePickupPose1, Robot.State.IDLE));
@@ -84,7 +77,7 @@ public class CloseAuto extends Auto {
     public void loop() {
         robot.update();
         auto.run();
-   
+        
         telemetry.addData("pose", robot.follower.localizer.getPose());
         //telemetry.update();
         telemetry.addData("state", robot.state);

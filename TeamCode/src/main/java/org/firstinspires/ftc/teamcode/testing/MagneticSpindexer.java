@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.blackice.util.Timeout;
+import org.firstinspires.ftc.teamcode.utils.Timeout;
 
 @Autonomous
 public class MagneticSpindexer extends OpMode {

@@ -1,24 +1,24 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import org.firstinspires.ftc.blackice.util.actions.Action;
-import org.firstinspires.ftc.blackice.util.actions.Condition;
 import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 
+import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.BooleanSupplier;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends TeleOps {
     boolean gamepad2Enabled = false;
     
-    public void notifyFailedOperation(Condition requirement, Action action) {
-        if (!requirement.isTrue()) {
+    public void notifyFailedOperation(BooleanSupplier requirement, Runnable action) {
+        if (!requirement.getAsBoolean()) {
             gamepad1.rumbleBlips(2);
         } else {
-            action.execute();
+            action.run();
             gamepad1.rumble(Haptics.CONFIRM);
         }
     }

@@ -2,20 +2,15 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-//import org.firstinspires.ftc.blackice.core.follower.Follower;
-import org.firstinspires.ftc.blackice.util.Timeout;
-//import org.firstinspires.ftc.blackice.util.geometry.Pose;
-import org.firstinspires.ftc.teamcode.miniblackice.core.Follower;
-import org.firstinspires.ftc.teamcode.miniblackice.core.FollowerConstants;
-import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.blackice.FollowerConstants;
+import org.firstinspires.ftc.teamcode.blackice.core.Follower;
+import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Ramp;
 import org.firstinspires.ftc.teamcode.subsystems.Paddles;
-
-import java.util.Arrays;
-import java.util.Collections;
+import org.firstinspires.ftc.teamcode.utils.Timeout;
 
 public class Robot {
     // robot is 17 inches long, 16.5 wide

@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.auto.steps.Step;
-import org.firstinspires.ftc.teamcode.miniblackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 
 import java.lang.reflect.Field;
