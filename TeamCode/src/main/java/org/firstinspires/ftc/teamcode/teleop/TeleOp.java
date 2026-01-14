@@ -5,7 +5,6 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 
-import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.BooleanSupplier;
@@ -26,6 +25,9 @@ public class TeleOp extends TeleOps {
     private static final int QUEUE_SIZE = 3;
     private Artifact[] firingQueue = new Artifact[QUEUE_SIZE];
     private int queueCount = 0;
+    
+    boolean leftTriggerWasReleased = false;
+    boolean leftTriggerWasPressed = false;
     
     private void enqueueArtifact(Artifact artifact) {
         int numberOfArtifactsLeft = robot.spindexer.count(artifact) - Collections.frequency(
@@ -87,7 +89,8 @@ public class TeleOp extends TeleOps {
             robot.flywheel.manualAdjustmentMultiplier -= 0.01;
         } else if (gamepad1.dpadUpWasPressed()) {
             robot.flywheel.manualAdjustmentMultiplier += 0.01;
-        } else if (gamepad1.left_trigger == 1) {
+        } else if (gamepad1.left_trigger == 1 && !leftTriggerWasPressed) {
+            leftTriggerWasPressed = true;
             robot.resetSpindexer();
             robot.intake.outtake(); // new
             robot.intake.motor.setPower(-1);
@@ -99,14 +102,20 @@ public class TeleOp extends TeleOps {
                 Math.toDegrees(robot.follower.getCurrentPose().getHeading()) - 1);
         }
         
+        if (gamepad1.left_trigger == 0 && leftTriggerWasPressed) {
+            leftTriggerWasPressed = false;
+            robot.intake.stop();
+        }
+        
         if (gamepad1.right_stick_x != 0) {
             //robot.follower.lockHeadingAt(null);
             robot.follower.setLockedHeading(null);
         }
         if (gamepad1.optionsWasPressed()) {
             robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
-//            robot.follower.teleOpTarget =
-//                robot.follower.getMotionState().pose.headingToDegrees();
+        }
+        if (gamepad1.shareWasPressed()) {
+            robot.follower.setCurrentPose(Robot.allianceColor.getGoalReset());
         }
 
         if (Robot.allianceColor == AllianceColor.BLUE) {
@@ -164,14 +173,6 @@ public class TeleOp extends TeleOps {
         if (robot.state == Robot.State.IDLE) {
             gamepad2Enabled = false;
         }
-        
-        // TODO
-        // create a queue so silas can spam the order and it remembers
-        // test mini black ice
-        // test motif firing for auto
-        // create auto
-        // black ice curves
-
         
         super.loop();
     }

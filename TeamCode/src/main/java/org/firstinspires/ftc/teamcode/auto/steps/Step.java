@@ -10,6 +10,7 @@ public class Step {
     Runnable onEnter;
     Runnable onLoop;
     BooleanSupplier isDone;
+    Runnable done = () -> {};
     
     double timeoutSeconds = DEFAULT_TIMEOUT;
     ElapsedTime timer = new ElapsedTime();
@@ -17,6 +18,14 @@ public class Step {
     
     public Step(Runnable onLoop, BooleanSupplier isDone) {
         this(null, onLoop, isDone);
+    }
+    
+    public Step(Runnable onEnter, Runnable onLoop, BooleanSupplier isDone,
+                Runnable done) {
+        this.onEnter = onEnter;
+        this.onLoop = onLoop;
+        this.isDone = isDone;
+        this.done = done;
     }
     
     public Step(Runnable onEnter, Runnable onLoop, BooleanSupplier isDone) {

@@ -20,7 +20,6 @@ public abstract class Auto extends OpMode {
     
     MotifDetector motifDetector;
     
-    
     @Override
     public void init() {
         robot = new Robot(hardwareMap);
@@ -44,6 +43,23 @@ public abstract class Auto extends OpMode {
         
         telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
         telemetry.update();
+    }
+    
+    public Step getFireStep(Pose firePose) {
+        return new Step(
+            () -> robot.setState(Robot.State.FIRING),
+            () -> robot.follower.holdPose(firePose),
+            () -> robot.state == Robot.State.IDLE,
+            () -> robot.spindexer.artifacts = Artifact.getEmptyPattern()
+        ).withTimeout(3);
+    }
+    
+    public Step driveIntoArtifacts(Pose pose) {
+        return new Step(
+            () -> robot.setState(Robot.State.CONTINUOUS_INTAKE),
+            () -> robot.follower.holdPose(pose),
+            () -> robot.spindexer.getNumberOfArtifacts() == 3
+        ).withTimeout(4);
     }
     
     public Step goToPose(Pose pose, Robot.State state) {

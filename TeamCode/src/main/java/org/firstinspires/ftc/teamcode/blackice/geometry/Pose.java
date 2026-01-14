@@ -54,7 +54,7 @@ public class Pose {
     
     public Pose mirroredAcrossYAxis() {
         return new Pose(144 - position.getX(), position.getY(), heading == null ? null :
-            180 - heading);
+            180 - Math.toDegrees(heading));
     }
     
     public @NonNull Double getHeading() {

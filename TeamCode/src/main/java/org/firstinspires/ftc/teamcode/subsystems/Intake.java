@@ -28,6 +28,14 @@ public class Intake {
         motor.setPower(currentPower);
     }
     
+    public void setTargetPower(double power) {
+        targetPower = power;
+    }
+    
+    public double getTargetPower() {
+        return targetPower;
+    }
+    
     public void intake() {
         targetPower = 1;
     }

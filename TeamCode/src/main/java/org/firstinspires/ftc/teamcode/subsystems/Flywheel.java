@@ -26,10 +26,14 @@ public class Flywheel {
     
     // Tunable Constants
     public static double alpha = 0.01;
-    public static double kP = 0.005;
+//    public static double kP = 0.005;
+//    public static double kI = 0.002;
+//    public static double kS = 0.85;
+//    public static double kV = 0.0022;
+    public static double kP = 0.01;
     public static double kI = 0.002;
-    public static double kS = 0.85;
-    public static double kV = 0.0022;
+    public static double kS = 0.5;
+    public static double kV = 0.0025;
     public static double shotCooldown = 0.15;
     public static double I_ENABLE_ERROR = 300;
     public static double RPM_TOLERANCE = 50;
@@ -40,13 +44,15 @@ public class Flywheel {
     private boolean shotDetected = false;
     
     public double manualAdjustmentMultiplier = 1;
-    
+    // 0.00225, 0.5
     private final DoubleUnaryOperator distanceToRpm =
         LinearRegression.fit(new double[][]{
             //{54.48908, 3000}, // y=17.17072x+2064.38333
-//            {112.72775, 4000}
-            {97.58, 3900},
-            {142, 4950}
+
+//            {95.6, 3700},
+//            {135.3, 4500}
+            {141, 4450},
+            {100.12, 3850}
         });
     
     public Flywheel(HardwareMap hardwareMap) {
