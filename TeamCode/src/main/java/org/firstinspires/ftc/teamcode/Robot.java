@@ -49,7 +49,8 @@ public class Robot {
         FIRING,
         CONTINUOUS_INTAKE,
         STUFF_INTAKE,
-        DRIVE_INTAKE
+        DRIVE_INTAKE,
+        AUTO_FIRE
     }
     
     public void preload(Artifact[] artifacts) {
@@ -217,7 +218,6 @@ public class Robot {
             intake.stop();
         }
         
-        revTowardGoal();
         intakeRamp.outtake();
         
         stateTimer.resume();
@@ -322,6 +322,12 @@ public class Robot {
                 break;
             case FIRING:
                 firing();
+                revTowardGoal();
+                break;
+            case AUTO_FIRE:
+                firing();
+                flywheel.setRpmFromDistance(76.83);
+                follower.setLockedHeading(getAngleToGoal());
                 break;
             case REVVING:
                 revving();

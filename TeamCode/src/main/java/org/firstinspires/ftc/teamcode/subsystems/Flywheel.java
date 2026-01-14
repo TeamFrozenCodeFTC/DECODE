@@ -20,7 +20,8 @@ public class Flywheel {
     private double currentTargetRPM = 0;
 
     public static final int TICKS_PER_REV = 28;
-    public static final double MAX_ACCEL_RPM_PER_SEC = 3000;
+//    public static final double MAX_ACCEL_RPM_PER_SEC = 3000;
+    public static final double MAX_ACCEL_RPM_PER_SEC = 6000;
     
     public double filteredVoltage = 13;
     

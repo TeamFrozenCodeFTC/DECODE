@@ -47,11 +47,11 @@ public abstract class Auto extends OpMode {
     
     public Step getFireStep(Pose firePose) {
         return new Step(
-            () -> robot.setState(Robot.State.FIRING),
+            () -> robot.setState(Robot.State.AUTO_FIRE),
             () -> robot.follower.holdPose(firePose),
             () -> robot.state == Robot.State.IDLE,
             () -> robot.spindexer.artifacts = Artifact.getEmptyPattern()
-        ).withTimeout(3);
+        ).withTimeout(4); // was 3
     }
     
     public Step driveIntoArtifacts(Pose pose) {
