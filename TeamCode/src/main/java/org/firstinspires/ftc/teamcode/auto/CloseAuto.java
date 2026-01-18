@@ -20,11 +20,11 @@ public class CloseAuto extends Auto {
     public Pose prePickupPose1 = new Pose(43, 81, 180);
     public Pose pickupPose1 = new Pose(19, 81, 180);
     public Pose prePickupPose2 = new Pose(43, 58.5, 180);
-    public Pose pickupPose2 = new Pose(12, 58.5, 180);
+    public Pose pickupPose2 = new Pose(10, 58.5, 180);
     public Pose prePickupPose3 = new Pose(43, 33.5, 180);
-    public Pose pickupPose3 = new Pose(12, 33.5, 180);
+    public Pose pickupPose3 = new Pose(10, 33.5, 180);
 
-    public Pose endPose = new Pose(60, 90, -44.83);
+    public Pose endPose = new Pose(50, 76, -44.83);
     
     StepRunner auto = new StepRunner();
     
@@ -35,6 +35,12 @@ public class CloseAuto extends Auto {
                           {Artifact.GREEN,
                               Artifact.PURPLE,
                               Artifact.PURPLE});
+        
+    }
+    
+    @Override
+    public void start() {
+        super.start();
         
         //auto.add(goToPose(motifPose, Robot.State.REVVING));
         //auto.add(detectMotif());
@@ -54,11 +60,6 @@ public class CloseAuto extends Auto {
         auto.add(getFireStep(firePose));
         
         auto.add(goToPose(endPose, Robot.State.IDLE));
-    }
-    
-    @Override
-    public void start() {
-        super.start();
         
         telemetry.addData("startingPose", startingPose);
         telemetry.update();

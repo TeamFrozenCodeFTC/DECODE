@@ -67,7 +67,6 @@ public class Robot {
     }
 
     public Robot(HardwareMap hardwareMap) {
-        //follower = new Follower(hardwareMap);
         follower = FollowerConstants.createFollower(hardwareMap);
         intake = new Intake(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
@@ -85,7 +84,6 @@ public class Robot {
     public void revTowardGoal() {
         revLauncher();
         follower.setLockedHeading(getAngleToGoal());
-        //follower.lockHeadingAt(getAngleToGoal());
     }
     
     public void fireThrough() {
@@ -198,7 +196,7 @@ public class Robot {
             }
         }
         
-        if (flywheel.artifactLaunched()) {
+        if (flywheel.artifactLaunched() && spindexer.getNumberOfArtifacts() > 0) {
             spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
         }
         
@@ -337,7 +335,6 @@ public class Robot {
                 break;
         }
         
-//        intake.update(follower.localizer.deltaTime);
         double deltaTime = follower.deltaTime;
         intake.update(deltaTime);
 

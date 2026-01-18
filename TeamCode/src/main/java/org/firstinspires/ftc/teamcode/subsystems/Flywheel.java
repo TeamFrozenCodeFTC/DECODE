@@ -26,15 +26,15 @@ public class Flywheel {
     public double filteredVoltage = 13;
     
     // Tunable Constants
-    public static double alpha = 0.01;
+    public static double alpha = 0.1;
 //    public static double kP = 0.005;
 //    public static double kI = 0.002;
 //    public static double kS = 0.85;
 //    public static double kV = 0.0022;
     public static double kP = 0.01;
-    public static double kI = 0.002;
+    public static double kI = 0.003;
     public static double kS = 0.5;
-    public static double kV = 0.0025;
+    public static double kV = 0.0022;
     public static double shotCooldown = 0.15;
     public static double I_ENABLE_ERROR = 300;
     public static double RPM_TOLERANCE = 50;

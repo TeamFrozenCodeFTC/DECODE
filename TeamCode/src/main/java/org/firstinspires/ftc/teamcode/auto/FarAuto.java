@@ -18,8 +18,8 @@ public class FarAuto extends Auto {
     public Pose startingPose = new Pose(56, 17.75/2, -90);
     public Pose firePose = new Pose(57, 17, -65);
     
-    public Pose prePickupPose = new Pose(9, 30, 0);
-    public Pose pickupPose = new Pose(9, 10, 0);
+    public Pose prePickupPose = new Pose(9, 30, -90);
+    public Pose pickupPose = new Pose(9, 10, -90);
     
     public Pose prePickupPose1 = new Pose(43, 36, 180);
     public Pose pickupPose1 = new Pose(11, 36, 180);
@@ -36,22 +36,12 @@ public class FarAuto extends Auto {
                               Artifact.PURPLE,
                               Artifact.PURPLE});
         
-        auto.add(goToPose(firePose, Robot.State.REVVING));
-        auto.add(getFireStep(firePose));
-        auto.add(goToPose(prePickupPose1, Robot.State.IDLE));
-        auto.add(driveIntoArtifacts(pickupPose1));
-        auto.add(goToPose(firePose, Robot.State.REVVING));
-        auto.add(getFireStep(firePose));
-        auto.add(goToPose(prePickupPose, Robot.State.IDLE));
-        auto.add(driveIntoArtifacts(pickupPose));
-        auto.add(goToPose(firePose, Robot.State.REVVING));
-        auto.add(getFireStep(firePose));
-        auto.add(goToPose(endPose, Robot.State.IDLE));
     }
     
     @Override
     public void start() {
         super.start();
+        
         
         Robot.motifPattern = motifDetector.getMotifPattern();
         if (Robot.motifPattern == null) {
@@ -63,6 +53,22 @@ public class FarAuto extends Auto {
         telemetry.update();
         
         robot.follower.setCurrentPose(startingPose);
+        
+        auto.add(goToPose(firePose, Robot.State.REVVING));
+        auto.add(getFireStep2(firePose));
+        auto.add(goToPose(prePickupPose1, Robot.State.IDLE));
+        auto.add(driveIntoArtifacts(pickupPose1));
+        auto.add(goToPose(firePose, Robot.State.REVVING));
+        auto.add(getFireStep2(firePose));
+        auto.add(goToPose(prePickupPose, Robot.State.IDLE));
+        auto.add(new Step(
+            () -> robot.setState(Robot.State.CONTINUOUS_INTAKE),
+            () -> robot.follower.holdPose(pickupPose, 0.5),
+            () -> robot.spindexer.getNumberOfArtifacts() == 3
+        ).withTimeout(4));
+        auto.add(goToPose(firePose, Robot.State.REVVING));
+        auto.add(getFireStep2(firePose));
+        auto.add(goToPose(endPose, Robot.State.IDLE));
     }
     
     

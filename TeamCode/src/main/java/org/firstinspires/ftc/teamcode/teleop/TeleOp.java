@@ -84,6 +84,7 @@ public class TeleOp extends TeleOps {
                                   this::humanPlayerLoad);
         } else if (gamepad1.leftBumperWasPressed()) {
             robot.setState(Robot.State.IDLE);
+            robot.spindexer.servo.setPwmDisable();
             gamepad1.rumble(Haptics.CONFIRM);
         } else if (gamepad1.dpadDownWasPressed()) {
             robot.flywheel.manualAdjustmentMultiplier -= 0.01;
@@ -137,6 +138,7 @@ public class TeleOp extends TeleOps {
             gamepad2Enabled = true;
             gamepad2.rumble(Haptics.CONFIRM);
             robot.setState(Robot.State.REVVING);
+            robot.intakeRamp.outtake();
         }
         
         if (gamepad2.dpadUpWasPressed()) {
@@ -162,6 +164,7 @@ public class TeleOp extends TeleOps {
             if (robot.firedArtifacts == 3 || robot.spindexer.getNumberOfArtifacts() == 0) {
                 firingQueue = new Artifact[QUEUE_SIZE];
                 queueCount = 0;
+                robot.firedArtifacts = 0;
                 gamepad2Enabled = false;
             }
             else {
@@ -172,6 +175,8 @@ public class TeleOp extends TeleOps {
         
         if (robot.state == Robot.State.IDLE) {
             gamepad2Enabled = false;
+            firingQueue = new Artifact[QUEUE_SIZE];
+            queueCount = 0;
         }
         
         super.loop();

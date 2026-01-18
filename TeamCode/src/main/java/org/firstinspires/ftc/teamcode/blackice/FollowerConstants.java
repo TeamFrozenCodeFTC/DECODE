@@ -34,7 +34,8 @@ public class FollowerConstants {
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new Follower(
-            new PDController(2, 0.15),
+//            new PDController(2, 0.15),
+            new PDController(1.5, 0.1),
 //            new PredictiveBrakingController(0.3, 0.0881, 0.00117),
 //            new PredictiveBrakingController(0.3, 0.0308, 0.0017),
             //new PredictiveBrakingController(0.2, 0.0332, 0.0016),

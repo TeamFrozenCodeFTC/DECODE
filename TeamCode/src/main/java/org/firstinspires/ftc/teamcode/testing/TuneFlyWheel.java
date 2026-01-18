@@ -50,7 +50,7 @@ public class TuneFlyWheel extends Auto {
         robot.follower.drivetrain.followVector(new Vector(0, 0), turn);
 
         robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
-        robot.intakeRamp.outtake();
+        robot.intakeRamp.intakeThrough();
         robot.resetSpindexer();
     }
 

@@ -65,8 +65,8 @@ public class Spindexer {
     }
     
     public boolean artifactIsInSpindexer() {
-        return leftDistanceSensor.getDistance(DistanceUnit.INCH) < 4
-            || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 4;
+        return leftDistanceSensor.getDistance(DistanceUnit.INCH) < 3
+            || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 3;
     }
     
     // +1 is to the right, clockwise
@@ -149,7 +149,8 @@ public class Spindexer {
     }
     
     public void rotateToSlot(double slotIndex) {
-        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .485);
+//        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .485);
+        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .505);
         
         currentSlotIndex = slotIndex;
     }
