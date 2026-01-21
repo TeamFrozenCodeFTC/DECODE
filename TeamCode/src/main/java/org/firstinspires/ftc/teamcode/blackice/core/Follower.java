@@ -62,6 +62,8 @@ public class Follower {
             return Math.max(9.0, Math.min(14.5, minV));
         };
     }
+    
+    // hold pose, follow path, follow composite path
 
     public void reset() {
         headingController.reset();
@@ -129,21 +131,8 @@ public class Follower {
             holdPower = holdPower.times(maxPower / powerMag);
         }
 
-//        if (localizer.getVelocity().computeMagnitude() < 0.1 && powerMag < 0.1) {
-//            holdPower = new Vector(0, 0);
-//        }
-
         double turnPower = Math.min(maxPower,
             computeHeadingCorrectionPower(pose.getHeading()));
-
-//        if (localizer.getAngularVelocity() < Math.toRadians(1) && Math.abs(turnPower) < 0.1) {
-//            turnPower = 0;
-//        }
-        
-//        FtcDashboard.getInstance().getTelemetry().addData("power",
-//                                                          holdPower.dot(new Vector(1,
-//                                                                                   0)));
-//        FtcDashboard.getInstance().getTelemetry().update();
 
         followFieldVector(holdPower, turnPower);
         

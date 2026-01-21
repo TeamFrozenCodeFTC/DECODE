@@ -13,6 +13,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+//enum State {
+//    IDLE,
+//    ROTATING,
+//    HOLDING
+//}
+
 public class Spindexer {
     public ServoImplEx servo;
     public ArtifactDetector rightColorSensor;

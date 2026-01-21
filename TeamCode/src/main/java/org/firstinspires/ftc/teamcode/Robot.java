@@ -93,7 +93,7 @@ public class Robot {
         
         revTowardGoal();
         
-        if (flywheel.isUpToSpeed()) {
+        if (flywheel.isAtSpeed()) {
             intake.intake();
         }
     }
@@ -139,7 +139,7 @@ public class Robot {
             firedArtifacts++;
         }
         
-        if (flywheel.isUpToSpeed()) {
+        if (flywheel.isAtSpeed()) {
             if (spindexer.getNumberOfArtifacts() == 0) {
                 spindexer.resetSlots();
                 spindexer.rotateToSlot(0);
@@ -200,7 +200,7 @@ public class Robot {
             spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
         }
         
-        if (flywheel.isUpToSpeed()) {
+        if (flywheel.isAtSpeed()) {
             spindexer.rotateToSlot(firingAllIndex);
             
             if (spindexer.getNumberOfArtifacts() == 0) {
@@ -243,7 +243,7 @@ public class Robot {
             firedArtifacts++;
         }
         
-        if (flywheel.isUpToSpeed() && spindexer.getNumberOfArtifacts() == 0) {
+        if (flywheel.isAtSpeed() && spindexer.getNumberOfArtifacts() == 0) {
             resetSpindexer();
             setState(State.IDLE);
         }

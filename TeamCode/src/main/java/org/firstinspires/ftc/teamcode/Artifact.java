@@ -22,4 +22,10 @@ public enum Artifact {
         return new Artifact[]
             {Artifact.NONE, Artifact.NONE, Artifact.NONE};
     }
+    
+    public static boolean patternIsPGP(Artifact[] pattern) {
+        return pattern[0] == Artifact.PURPLE
+            && pattern[1] == Artifact.GREEN
+            && pattern[2] == Artifact.PURPLE;
+    }
 }

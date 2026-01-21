@@ -160,7 +160,7 @@ public class TeleOp extends TeleOps {
             enqueueArtifact(Artifact.GREEN);
         }
 
-        if (gamepad2Enabled && robot.flywheel.isUpToSpeed()) {
+        if (gamepad2Enabled && robot.flywheel.isAtSpeed()) {
             if (robot.firedArtifacts == 3 || robot.spindexer.getNumberOfArtifacts() == 0) {
                 firingQueue = new Artifact[QUEUE_SIZE];
                 queueCount = 0;

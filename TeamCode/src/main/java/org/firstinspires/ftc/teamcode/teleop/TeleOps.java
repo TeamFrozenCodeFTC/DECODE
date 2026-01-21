@@ -87,7 +87,7 @@ public class TeleOps extends OpMode {
             telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.artifacts));
             telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
             telemetry.addData("spindexerIsRotating", robot.spindexerIsRotating);
-            telemetry.addData("isUpToSpeed", robot.flywheel.isUpToSpeed());
+            telemetry.addData("isUpToSpeed", robot.flywheel.isAtSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
             telemetry.addData("distanceToGoal",
                               Robot.allianceColor.getGoalPosition()

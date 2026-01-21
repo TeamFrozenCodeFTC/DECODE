@@ -69,7 +69,7 @@ public class FastIntake extends TeleOps {
                     numberOfArtifacts -= 1;
                 }
 
-                if (!robot.flywheel.isUpToSpeed()) {
+                if (!robot.flywheel.isAtSpeed()) {
                     break;
                 }
 
@@ -99,7 +99,7 @@ public class FastIntake extends TeleOps {
                         Artifact.NONE;
                 }
 
-                if (robot.flywheel.isUpToSpeed()) {
+                if (robot.flywheel.isAtSpeed()) {
                     robot.spindexer.rotateToSlot(0);
 
                     if (robot.spindexer.getNumberOfArtifacts() == 0) {
