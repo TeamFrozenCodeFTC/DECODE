@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.testing;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.LinearRegression;
 import java.util.function.DoubleUnaryOperator;
 
 @Config
-public class Flywheel {
+public class Flywheel2 {
     public static final int TICKS_PER_REV = 28;
     public static final double MAX_ACCEL_RPM_PER_SEC = 6000;
     
@@ -52,7 +52,7 @@ public class Flywheel {
             {100.12, 3850}
         });
         
-    public Flywheel(HardwareMap hardwareMap) {
+    public Flywheel2(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
         
@@ -76,29 +76,6 @@ public class Flywheel {
         state = State.OFF;
     }
     
-    private double lastShotTime = 0;
-    private double lastRPM = 0;
-    private boolean shotDetected = false;
-    public static double shotCooldown = 0.15;
-    
-    public boolean artifactLaunched() {
-        return shotDetected;
-    }
-    
-    boolean updateShotDetection(double rpm) {
-        double delta = rpm - lastRPM;
-        lastRPM = rpm;
-        
-        double now = System.currentTimeMillis() / 1000.0;
-        if (now - lastShotTime < shotCooldown) return false;
-        
-        if (delta < -300) {
-            lastShotTime = now;
-            return true;
-        }
-        return false;
-    }
-    
     public void setRpmFromDistance(double dist) {
         setRPM(distanceToRpm.applyAsDouble(dist) * manualAdjustmentMultiplier);
     }
@@ -111,8 +88,8 @@ public class Flywheel {
             rightMotor.setPower(0);
             return;
         }
+        
         currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
-        updateShotDetection(currentRPM);
         currentError = currentTargetRPM - currentRPM;
         double absError = Math.abs(currentError);
         

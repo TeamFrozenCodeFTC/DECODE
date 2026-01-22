@@ -74,7 +74,6 @@ public class Robot {
         paddles = new Paddles(hardwareMap);
         flywheel = new Flywheel(hardwareMap);
         
-        flywheel.filteredVoltage = follower.getVoltage();
     }
 
     private void revLauncher() {
@@ -200,7 +199,8 @@ public class Robot {
             spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
         }
         
-        if (flywheel.isUpToSpeed()) {
+        if (flywheel.isUpToSpeed()
+            && getAngleToGoal() - follower.localizer.getPose().getHeading() < Math.toRadians(2.5)) {
             spindexer.rotateToSlot(firingAllIndex);
             
             if (spindexer.getNumberOfArtifacts() == 0) {

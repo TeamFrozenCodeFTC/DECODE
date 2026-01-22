@@ -4,15 +4,12 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.AllianceColor;
-import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.auto.Auto;
-import org.firstinspires.ftc.teamcode.blackice.FollowerConstants;
-import org.firstinspires.ftc.teamcode.blackice.core.Follower;
-import org.firstinspires.ftc.teamcode.blackice.geometry.Vector;
 
 @TeleOp
 public class TuneFlyWheel extends Auto {
+    Flywheel2 flywheel2;
+    
     @Override
     public void init() {
         super.init();
@@ -21,40 +18,47 @@ public class TuneFlyWheel extends Auto {
                                           telemetry);
 
 
-        robot.flywheel.setRPM(4000);
-        robot.flywheel.filteredVoltage = robot.follower.getVoltage();
-        robot.follower.drivetrain.zeroPowerFloatMode();
-
-        robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
+//        robot.flywheel.setRPM(4000);
+//        robot.flywheel.filteredVoltage = robot.follower.getVoltage();
+//        robot.follower.drivetrain.zeroPowerFloatMode();
+//
+        flywheel2 = new Flywheel2(hardwareMap);
+//
+//        robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
     }
 
     @Override
     public void loop() {
+        robot.follower.update();
+        flywheel2.update(robot.follower.deltaTime, robot.follower.getVoltage());
+        
         if (gamepad1.dpad_down) {
-            robot.flywheel.setRPM(robot.flywheel.getTargetRPM() - 50);
+            flywheel2.setRPM(flywheel2.getTargetRPM() - 50);
         }
         else if (gamepad1.dpad_up) {
-            robot.flywheel.setRPM(robot.flywheel.getTargetRPM() + 50);
+            flywheel2.setRPM(flywheel2.getTargetRPM() + 50);
         }
-
-        telemetry.addData("distanceToGoal",
-                          Robot.allianceColor.getGoalPosition().distanceTo(robot.follower.getCurrentPose().getPosition()));
-        telemetry.addData("current RPM", robot.flywheel.getRpm());
-        telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
+        
+        telemetry.addData("current RPM", flywheel2.getRpm());
+        telemetry.addData("target RPM", flywheel2.getTargetRPM());
         telemetry.update();
         
-        robot.follower.update();
-
-        double turn =
-            robot.follower.computeHeadingCorrectionPower(getAngleToGoal());
-        robot.follower.drivetrain.followVector(new Vector(0, 0), turn);
-
-        robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
-        robot.intakeRamp.intakeThrough();
-        robot.resetSpindexer();
+//
+//        telemetry.addData("distanceToGoal",
+//                          Robot.allianceColor.getGoalPosition().distanceTo(robot.follower.getCurrentPose().getPosition()));
+//        telemetry.addData("current RPM", robot.flywheel.getRpm());
+//        telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
+//        telemetry.update();
+//
+//        robot.follower.update();
+//
+//        double turn =
+//            robot.follower.computeHeadingCorrectionPower(getAngleToGoal());
+//        robot.follower.drivetrain.followVector(new Vector(0, 0), turn);
+//
+//        robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
+//        robot.intakeRamp.intakeThrough();
+//        robot.resetSpindexer();
     }
 
-    public double getAngleToGoal() {
-        return robot.follower.getCurrentPose().getPosition().getAngleToLookAt(AllianceColor.BLUE.getGoalPosition());
-    }
 }
