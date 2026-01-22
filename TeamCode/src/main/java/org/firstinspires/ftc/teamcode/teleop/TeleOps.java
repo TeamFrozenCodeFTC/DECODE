@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer3;
 
 import java.util.Arrays;
 
@@ -71,8 +71,8 @@ public class TeleOps extends OpMode {
             int leftIndex = robot.spindexer.shiftLeft(robot.spindexer.currentSlotIndex, 1);
             int rightIndex = robot.spindexer.shiftRight(robot.spindexer.currentSlotIndex, 1);
             
-            int leftSlotIndex = Spindexer.rollIndex(leftIndex);
-            int rightSlotIndex = Spindexer.rollIndex(rightIndex);
+            int leftSlotIndex = Spindexer3.rollIndex(leftIndex);
+            int rightSlotIndex = Spindexer3.rollIndex(rightIndex);
             
             telemetry.addData("leftIndex", leftIndex);
             telemetry.addData("rightIndex", rightIndex);

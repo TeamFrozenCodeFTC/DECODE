@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.blackice.FollowerConstants;
 import org.firstinspires.ftc.teamcode.blackice.core.Follower;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer3;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Ramp;
 import org.firstinspires.ftc.teamcode.subsystems.Paddles;
@@ -17,7 +17,7 @@ public class Robot {
     
     public Intake intake;
     public Flywheel flywheel;
-    public Spindexer spindexer;
+    public Spindexer3 spindexer;
     public Follower follower;
     public Ramp intakeRamp;
     public Paddles paddles;
@@ -69,7 +69,7 @@ public class Robot {
     public Robot(HardwareMap hardwareMap) {
         follower = FollowerConstants.createFollower(hardwareMap);
         intake = new Intake(hardwareMap);
-        spindexer = new Spindexer(hardwareMap);
+        spindexer = new Spindexer3(hardwareMap);
         intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
         flywheel = new Flywheel(hardwareMap);
@@ -132,7 +132,7 @@ public class Robot {
     
     public void motifFire() {
         if (flywheel.artifactLaunched()) {
-            int droppedIndex = Spindexer.rollIndex((int) spindexer.currentSlotIndex);
+            int droppedIndex = Spindexer3.rollIndex((int) spindexer.currentSlotIndex);
             spindexer.artifacts[droppedIndex] =
                 Artifact.NONE;
             firedArtifacts++;
@@ -237,7 +237,7 @@ public class Robot {
         }
         
         if (flywheel.artifactLaunched()) {
-            int droppedIndex = Spindexer.rollIndex((int) spindexer.currentSlotIndex);
+            int droppedIndex = Spindexer3.rollIndex((int) spindexer.currentSlotIndex);
             spindexer.artifacts[droppedIndex] =
                 Artifact.NONE;
             firedArtifacts++;
