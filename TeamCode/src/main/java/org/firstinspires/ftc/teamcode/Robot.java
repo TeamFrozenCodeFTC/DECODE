@@ -183,6 +183,34 @@ public class Robot {
         }
     }
     
+    public void firing2() {
+        Artifact motifArtifact = Robot.motifPattern[firedArtifacts];
+    
+        if (!spindexer.artifactIsInSpindexer() && spindexer.getNumberOfArtifacts() > 0) {
+            spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
+        }
+        
+        if (flywheel.isUpToSpeed()
+            && getAngleToGoal() - follower.localizer.getPose().getHeading() < Math.toRadians(2.5)) {
+            spindexer.rotateToSlot(spindexer.findBestRotationToArtifact(motifArtifact));
+        }
+        
+        if (spindexer.getDetectedArtifact().isArtifact()) {
+            intake.setTargetPower(0.2);
+        }
+        else {
+            intake.stop();
+        }
+        
+        intakeRamp.outtake();
+        
+        stateTimer.resume();
+        
+        if (stateTimer.seconds() > 0.7) {
+            paddles.open();
+        }
+    }
+    
     public void firing() {
         if (firingAllIndex == null) {
             int leftIndex = spindexer.shiftLeft(spindexer.currentSlotIndex, 3);
@@ -319,7 +347,8 @@ public class Robot {
                 intake.intake();
                 break;
             case FIRING:
-                firing();
+                //firing();
+                firing2();
                 revTowardGoal();
                 break;
             case AUTO_FIRE:

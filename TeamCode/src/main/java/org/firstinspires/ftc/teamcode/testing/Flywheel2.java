@@ -48,8 +48,10 @@ public class Flywheel2 {
     
     private final DoubleUnaryOperator distanceToRpm =
         LinearRegression.fit(new double[][]{
-            {141, 4450},
-            {100.12, 3850}
+//            {141, 4450},
+//            {100.12, 3850}
+            {150.82, 3428.5},
+            {102.0225, 2957.28}
         });
         
     public Flywheel2(HardwareMap hardwareMap) {

@@ -66,6 +66,38 @@ public class Spindexer3 {
             || rightDistanceSensor.getDistance(DistanceUnit.INCH) < 3;
     }
     
+    public enum Direction {
+        LEFT,
+        RIGHT
+    }
+    
+    public Direction lastDirection = null;
+    
+    public int findBestRotationToArtifact(Artifact artifact) {
+        int leftIndex = shiftLeft(currentSlotIndex, 1);
+        int rightIndex = shiftRight(currentSlotIndex, 1);
+        
+        int leftSlotIndex = rollIndex(leftIndex);
+        int rightSlotIndex = rollIndex(rightIndex);
+        
+        boolean leftIsArtifact = artifacts[leftSlotIndex] == artifact;
+        boolean rightIsArtifact = artifacts[rightSlotIndex] == artifact;
+        
+        if (!(leftIsArtifact || rightIsArtifact)) {
+            return lastDirection == Direction.LEFT ? leftIndex : rightIndex;
+        }
+        
+        if (leftIsArtifact && rightIsArtifact && lastDirection != null) {
+            // keep direction
+        } else if (leftIsArtifact) {
+            lastDirection = Direction.LEFT;
+        } else {
+            lastDirection = Direction.RIGHT;
+        }
+        
+        return lastDirection == Direction.LEFT ? leftIndex : rightIndex;
+    }
+    
     // +1 is to the right, clockwise
     public boolean intakeArtifact(Artifact artifact) {
         int count = getNumberOfArtifacts();

@@ -19,7 +19,7 @@ public class Ramp {
     }
     
     public void outtake() {
-        servo.setPosition(0.725);
+        servo.setPosition(0.657);
     }
     
     public void disable() {
