@@ -42,7 +42,7 @@ public class Test extends OpMode {
             final double[] servoPos = {servo.getPosition()};
             servoMenu.addOption(name, () -> {
                 servo.setPwmEnable();
-                double delta = -gamepad1.right_stick_y * 0.005;
+                double delta = -gamepad1.right_stick_y * 0.002;
                 servoPos[0] = clamp(servoPos[0] + delta, 0, 1);
                 servo.setPosition(servoPos[0]);
                 telemetry.addData("servoPos", "%.3f", servoPos[0]);

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.blackice.FollowerConstants;
 import org.firstinspires.ftc.teamcode.blackice.core.Follower;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
@@ -73,7 +74,6 @@ public class Robot {
         intakeRamp = new Ramp(hardwareMap);
         paddles = new Paddles(hardwareMap);
         flywheel = new Flywheel(hardwareMap);
-        
     }
 
     private void revLauncher() {
@@ -183,18 +183,49 @@ public class Robot {
         }
     }
     
-    public void firing2() {
-        Artifact motifArtifact = Robot.motifPattern[firedArtifacts];
     
-        if (!spindexer.artifactIsInSpindexer() && spindexer.getNumberOfArtifacts() > 0) {
-            spindexer.artifacts[spindexer.getNumberOfArtifacts() - 1] = Artifact.NONE;
-        }
+    boolean waitingForArtifact = false;
+    
+    boolean firingInProgress = false;
+    
+    boolean lastArtifactPresent = true;
+    
+    public void firing2() {
+        if (firedArtifacts >= Robot.motifPattern.length) return;
         
+        Artifact motifArtifact = Robot.motifPattern[firedArtifacts];
+        
+        boolean artifactPresent =
+            spindexer.leftDistanceSensor.getDistance(DistanceUnit.INCH) <= 6.5 ||
+                spindexer.rightDistanceSensor.getDistance(DistanceUnit.INCH) <= 6.5;
+        
+        // Command rotation ONCE
         if (flywheel.isUpToSpeed()
-            && getAngleToGoal() - follower.localizer.getPose().getHeading() < Math.toRadians(2.5)) {
-            spindexer.rotateToSlot(spindexer.findBestRotationToArtifact(motifArtifact));
+            && Math.abs(getAngleToGoal() - follower.localizer.getPose().getHeading()) < Math.toRadians(2.5)
+            && !firingInProgress) {
+            
+            spindexer.rotateToSlot(
+                spindexer.findBestRotationToArtifact(motifArtifact)
+            );
+            
+            firingInProgress = true;
         }
         
+        // EDGE detect: present → gone
+        if (firingInProgress && lastArtifactPresent && !artifactPresent) {
+            
+            int clearedIndex = Spindexer3.rollIndex(
+                spindexer.shiftLeft(spindexer.currentSlotIndex, 0)
+            );
+            
+            spindexer.artifacts[clearedIndex] = Artifact.NONE;
+            
+            firingInProgress = false;
+            firedArtifacts++;
+        }
+        
+        lastArtifactPresent = artifactPresent;
+
         if (spindexer.getDetectedArtifact().isArtifact()) {
             intake.setTargetPower(0.2);
         }
@@ -299,12 +330,13 @@ public class Robot {
         }
 
         if (intakedArtifact.isArtifact() && !spindexerIsRotating && artifactIsInSpindexer
-            && stateTimer.seconds() > 0.25) {
+            && stateTimer.seconds() > 0.125) {
             spindexerIsRotating = true;
             spindexer.intakeArtifact(intakedArtifact);
             intakedArtifact = Artifact.NONE;
             
             if (spindexer.getNumberOfArtifacts() == 3) {
+                spindexerIsRotating = false;
                 setState(State.REVVING);
             }
         }

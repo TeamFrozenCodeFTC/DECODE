@@ -12,14 +12,20 @@ public class Paddles {
         this.rightPaddle = hardwareMap.get(ServoImplEx.class, "rightPaddle");
     }
     
+//    public void open() {
+//        leftPaddle.setPosition(0.842);
+//        rightPaddle.setPosition(0.172);
+//    }
     public void open() {
-        leftPaddle.setPosition(0.842);
-        rightPaddle.setPosition(0.172);
+        leftPaddle.setPosition(0.950);
+        rightPaddle.setPosition(.200);
     }
     
+    // 343
+    
     public void close() {
-        leftPaddle.setPosition(0.479);
-        rightPaddle.setPosition(0.515);
+        leftPaddle.setPosition(0.950-.343);
+        rightPaddle.setPosition(.2-.343);
     }
     
     public void disable() {
