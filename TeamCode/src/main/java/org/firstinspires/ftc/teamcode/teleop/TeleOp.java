@@ -5,8 +5,6 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.function.BooleanSupplier;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -28,17 +26,17 @@ public class TeleOp extends TeleOps {
     
     boolean leftTriggerWasReleased = false;
     boolean leftTriggerWasPressed = false;
-    
-    private void enqueueArtifact(Artifact artifact) {
-        int numberOfArtifactsLeft = robot.spindexer.count(artifact) - Collections.frequency(
-            Arrays.asList(firingQueue), artifact);
-        if (queueCount >= QUEUE_SIZE || numberOfArtifactsLeft <= 0) {
-            return;
-        }
-        
-        firingQueue[queueCount] = artifact;
-        queueCount++;
-    }
+//
+//    private void enqueueArtifact(Artifact artifact) {
+//        int numberOfArtifactsLeft = robot.spindexer.count(artifact) - Collections.frequency(
+//            Arrays.asList(firingQueue), artifact);
+//        if (queueCount >= QUEUE_SIZE || numberOfArtifactsLeft <= 0) {
+//            return;
+//        }
+//
+//        firingQueue[queueCount] = artifact;
+//        queueCount++;
+//    }
     
     @Override
     public void loop() {
@@ -70,9 +68,9 @@ public class TeleOp extends TeleOps {
         } else if (gamepad1.rightBumperWasPressed()) {
             notifyFailedOperation(() -> numberOfArtifacts > 0,
                                   () -> robot.setState(Robot.State.FIRING));
-        } else if (gamepad1.rightStickButtonWasPressed()) {
-            notifyFailedOperation(() -> numberOfArtifacts < 3,
-                                  () -> robot.setState(Robot.State.STUFF_INTAKE));
+//        } else if (gamepad1.rightStickButtonWasPressed()) {
+//            notifyFailedOperation(() -> numberOfArtifacts < 3,
+//                                  () -> robot.setState(Robot.State.STUFF_INTAKE));
 //        } else if (gamepad1.circleWasPressed()) {
 //            notifyFailedOperation(() -> numberOfArtifacts > 0,
 //                                  () -> robot.setState(Robot.State.MOTIF_FIRING));
@@ -143,41 +141,50 @@ public class TeleOp extends TeleOps {
         
         if (gamepad2.dpadUpWasPressed()) {
             robot.firedArtifacts = 0;
-            robot.spindexer.resetSlots();
+            robot.spindexer.reset();
             robot.spindexer.rotateToSlot(0);
         }
         
-        if (!gamepad2Enabled) {
         
-        } else if (gamepad2.dpadRightWasPressed()) {
-            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
-        } else if (gamepad2.dpadLeftWasPressed()) {
+        if (gamepad2.dpadLeftWasPressed()) {
             robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
-        } else if (gamepad2.squareWasPressed()) {
-            enqueueArtifact(Artifact.PURPLE);
         }
-        else if (gamepad2.circleWasPressed()) {
-            enqueueArtifact(Artifact.GREEN);
-        }
-
-        if (gamepad2Enabled && robot.flywheel.isUpToSpeed()) {
-            if (robot.firedArtifacts == 3 || robot.spindexer.getNumberOfArtifacts() == 0) {
-                firingQueue = new Artifact[QUEUE_SIZE];
-                queueCount = 0;
-                robot.firedArtifacts = 0;
-                gamepad2Enabled = false;
-            }
-            else {
-                robot.spindexer.rotateToArtifact(firingQueue[robot.firedArtifacts]);
-            } // slight optimization of rotating twice sometimes
+        if (gamepad2.dpadRightWasPressed()) {
+            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
         }
         
-        
-        if (robot.state == Robot.State.IDLE) {
-            gamepad2Enabled = false;
-            firingQueue = new Artifact[QUEUE_SIZE];
-            queueCount = 0;
-        }
+//
+//        if (!gamepad2Enabled) {
+//
+//        } else if (gamepad2.dpadRightWasPressed()) {
+//            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
+//        } else if (gamepad2.dpadLeftWasPressed()) {
+//            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
+//        } else if (gamepad2.squareWasPressed()) {
+//            enqueueArtifact(Artifact.PURPLE);
+//        }
+//        else if (gamepad2.circleWasPressed()) {
+//            enqueueArtifact(Artifact.GREEN);
+//        }
+//
+//        if (gamepad2Enabled && robot.flywheel.isUpToSpeed()) {
+//            if (robot.firedArtifacts == 3 || robot.spindexer.getNumberOfArtifacts() == 0) {
+//                firingQueue = new Artifact[QUEUE_SIZE];
+//                queueCount = 0;
+//                robot.firedArtifacts = 0;
+//                gamepad2Enabled = false;
+//            }
+//            else {
+//                robot.spindexer.rotateToArtifact(firingQueue[robot.firedArtifacts]);
+//            } // slight optimization of rotating twice sometimes
+//        }
+//
+//
+//        if (robot.state == Robot.State.IDLE) {
+//            gamepad2Enabled = false;
+//            firingQueue = new Artifact[QUEUE_SIZE];
+//            queueCount = 0;
+//        }
         
         super.loop();
     }

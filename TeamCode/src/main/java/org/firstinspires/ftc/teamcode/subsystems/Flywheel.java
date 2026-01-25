@@ -16,8 +16,8 @@ public class Flywheel {
     public static final int TICKS_PER_REV = 28;
     public static final double MAX_ACCEL_RPM_PER_SEC = 6000;
     
-    public static double kP = 0.1;
-    public static double kI = 0; //0.003;
+    public static double kP = 0.01;
+    public static double kI = 0.001;
     public static double kS = 0.5;
     public static double kV = 0.00222;
     public static double I_ENABLE_ERROR = 300;
@@ -70,35 +70,24 @@ public class Flywheel {
     
     public void setRPM(double rpm) {
         targetRPM = Math.round(rpm / RPM_RESOLUTION) * RPM_RESOLUTION;
-        state = State.SPINNING_UP;
+        
+        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
+        currentError = targetRPM - currentRPM;
+        double absError = Math.abs(currentError);
+        
+        if (absError <= RPM_TOLERANCE) {
+            state = State.AT_SPEED;
+        } else {
+            state = State.SPINNING_UP;
+        }
     }
     
     public void stop() {
+        currentTargetRPM = 0;
         targetRPM = 0;
         state = State.OFF;
-    }
-    
-    private double lastShotTime = 0;
-    private double lastRPM = 0;
-    private boolean shotDetected = false;
-    public static double shotCooldown = 0.15;
-    
-    public boolean artifactLaunched() {
-        return shotDetected;
-    }
-    
-    boolean updateShotDetection(double rpm) {
-        double delta = rpm - lastRPM;
-        lastRPM = rpm;
-        
-        double now = System.currentTimeMillis() / 1000.0;
-        if (now - lastShotTime < shotCooldown) return false;
-        
-        if (delta < -300) {
-            lastShotTime = now;
-            return true;
-        }
-        return false;
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
     }
     
     public void setRpmFromDistance(double dist) {
@@ -106,15 +95,7 @@ public class Flywheel {
     }
     
     public void update(double dt, double voltage) {
-        if (state == State.OFF) {
-            currentTargetRPM = 0;
-            totalError = 0;
-            leftMotor.setPower(0);
-            rightMotor.setPower(0);
-            return;
-        }
         currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
-        updateShotDetection(currentRPM);
         currentError = currentTargetRPM - currentRPM;
         double absError = Math.abs(currentError);
         
@@ -172,6 +153,14 @@ public class Flywheel {
     }
     
     public boolean isUpToSpeed() {
-        return state == State.AT_SPEED;
+        if (targetRPM == 0) {
+            return false;
+        }
+        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
+        currentError = targetRPM - currentRPM;
+        double absError = Math.abs(currentError);
+        
+        return absError <= RPM_TOLERANCE;
+        //return state == State.AT_SPEED;
     }
 }

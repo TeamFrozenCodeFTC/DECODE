@@ -8,28 +8,21 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer3;
+import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.testing.Menu;
 
 import java.util.Arrays;
 
 public class TeleOps extends OpMode {
     Robot robot;
-
-    @Override
-    public void init_loop() {
-        if (gamepad1.triangleWasPressed()) {
-            Robot.allianceColor = (AllianceColor.BLUE == Robot.allianceColor) ?
-                AllianceColor.RED :
-                AllianceColor.BLUE;
-            gamepad1.rumble(Haptics.CONFIRM);
-        }
-        
-        telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
-        telemetry.addData("position", Robot.currentPose);
-        telemetry.addData("allianceColor", Robot.allianceColor);
-        telemetry.addData("motifPattern", Arrays.deepToString(Robot.motifPattern));
-        telemetry.update();
-    }
+    
+    private int motifIndex = 0;
+    
+    private final Artifact[][] MOTIF_PATTERNS = {
+        {Artifact.PURPLE, Artifact.PURPLE, Artifact.GREEN}, // PPG
+        {Artifact.PURPLE, Artifact.GREEN, Artifact.PURPLE}, // PGP
+        {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE}  // GPP
+    };
     
     @Override
     public void init() {
@@ -38,6 +31,13 @@ public class TeleOps extends OpMode {
             .getTelemetry());
         
         robot.follower.drivetrain.zeroPowerBrakeMode();
+        
+        for (int i = 0; i < MOTIF_PATTERNS.length; i++) {
+            if (Arrays.equals(Robot.motifPattern, MOTIF_PATTERNS[i])) {
+                motifIndex = i;
+                break;
+            }
+        }
         
         if (Robot.artifacts != null) {
             robot.spindexer.artifacts = Robot.artifacts;
@@ -49,16 +49,33 @@ public class TeleOps extends OpMode {
     }
     
     @Override
+    public void init_loop() {
+        if (gamepad1.triangleWasPressed()) {
+            Robot.allianceColor = (AllianceColor.BLUE == Robot.allianceColor)
+                ? AllianceColor.RED
+                : AllianceColor.BLUE;
+            gamepad1.rumble(Haptics.CONFIRM);
+        }
+        
+        if (gamepad1.squareWasPressed()) {
+            motifIndex = (motifIndex + 1) % MOTIF_PATTERNS.length;
+            Robot.motifPattern = MOTIF_PATTERNS[motifIndex];
+            gamepad1.rumble(Haptics.CONFIRM);
+        }
+        
+        telemetry.addData("Alliance Color (△)", Robot.allianceColor);
+        telemetry.addData("Motif Pattern (□)", Arrays.deepToString(Robot.motifPattern));
+        telemetry.addData("position", Robot.currentPose);
+        telemetry.update();
+    }
+    
+    @Override
     public void start() {
         robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
         
         if (Robot.currentPose != null) {
             robot.follower.setCurrentPose(Robot.currentPose);
         }
-        
-        //robot.follower.teleOpTarget = robot.follower.getCurrentPose()
-        // .headingToDegrees();
-        //robot.follower.set
         
         robot.spindexer.rotateToSlot(0);
         robot.intakeRamp.uptake();
@@ -68,11 +85,11 @@ public class TeleOps extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.guide) {
-            int leftIndex = robot.spindexer.shiftLeft(robot.spindexer.currentSlotIndex, 1);
-            int rightIndex = robot.spindexer.shiftRight(robot.spindexer.currentSlotIndex, 1);
+            int leftIndex = robot.spindexer.shiftLeft(1);
+            int rightIndex = robot.spindexer.shiftRight(1);
             
-            int leftSlotIndex = Spindexer3.rollIndex(leftIndex);
-            int rightSlotIndex = Spindexer3.rollIndex(rightIndex);
+            int leftSlotIndex = Spindexer.rollIndex(leftIndex);
+            int rightSlotIndex = Spindexer.rollIndex(rightIndex);
             
             telemetry.addData("leftIndex", leftIndex);
             telemetry.addData("rightIndex", rightIndex);
@@ -93,7 +110,12 @@ public class TeleOps extends OpMode {
                               Robot.allianceColor.getGoalPosition()
                                   .distanceTo(
                                       robot.follower.getCurrentPose().getPosition()));
-            telemetry.addData("firingAllIndex", robot.firingAllIndex);
+            telemetry.addData("firedArtifacts", robot.firedArtifacts);
+            telemetry.addData("isLookingAtGoal()", robot.isLookingAtGoal());
+            telemetry.addData("goal angle", robot.getAngleToGoal());
+            telemetry.addData("current angle",
+                              robot.follower.localizer.getPose().getHeading());
+            telemetry.addData("waitingForDrop", robot.spindexer.waitingForDrop);
             telemetry.update();
         }
         
