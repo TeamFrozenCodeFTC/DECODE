@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.LinearRegression;
 import java.util.function.DoubleUnaryOperator;
 
 @Config
-public class Flywheel {
+public class Flywheel2 {
     public static final int TICKS_PER_REV = 28;
     public static final double MAX_ACCEL_RPM_PER_SEC = 6000;
     
@@ -54,7 +54,7 @@ public class Flywheel {
             {102.0225, 2957.28}
         });
     
-    public Flywheel(HardwareMap hardwareMap) {
+    public Flywheel2(HardwareMap hardwareMap) {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightShooter");
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
         
@@ -70,10 +70,24 @@ public class Flywheel {
     
     public void setRPM(double rpm) {
         targetRPM = Math.round(rpm / RPM_RESOLUTION) * RPM_RESOLUTION;
+        
+        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
+        currentError = targetRPM - currentRPM;
+        double absError = Math.abs(currentError);
+        
+        if (absError <= RPM_TOLERANCE) {
+            state = State.AT_SPEED;
+        } else {
+            state = State.SPINNING_UP;
+        }
     }
     
     public void stop() {
+        currentTargetRPM = 0;
         targetRPM = 0;
+        state = State.OFF;
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
     }
     
     public void setRpmFromDistance(double dist) {
@@ -81,14 +95,6 @@ public class Flywheel {
     }
     
     public void update(double dt, double voltage) {
-        if (state == State.OFF) {
-            currentTargetRPM = 0;
-            totalError = 0;
-            leftMotor.setPower(0);
-            rightMotor.setPower(0);
-            return;
-        }
-        
         currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
         currentError = currentTargetRPM - currentRPM;
         double absError = Math.abs(currentError);
@@ -115,7 +121,7 @@ public class Flywheel {
         if (Math.abs(currentError) < I_ENABLE_ERROR) {
             totalError += currentError * dt;
         }
-     
+        
         double i = kI * totalError;
         double power = (ff + p + i) / voltage;
         
@@ -145,7 +151,15 @@ public class Flywheel {
         return state;
     }
     
-    public boolean isAtSpeed() {
-        return state == State.AT_SPEED;
+    public boolean isUpToSpeed() {
+        if (targetRPM == 0) {
+            return false;
+        }
+        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
+        currentError = targetRPM - currentRPM;
+        double absError = Math.abs(currentError);
+        
+        return absError <= RPM_TOLERANCE;
+        //return state == State.AT_SPEED;
     }
 }
