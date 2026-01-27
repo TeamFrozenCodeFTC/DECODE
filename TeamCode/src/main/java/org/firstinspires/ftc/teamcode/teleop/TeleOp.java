@@ -22,63 +22,29 @@ public class TeleOp extends TeleOps {
         }
     }
     
-    private static final int QUEUE_SIZE = 3;
-    private Artifact[] firingQueue = new Artifact[QUEUE_SIZE];
-    private int queueCount = 0;
-    
     boolean leftTriggerWasReleased = false;
     boolean leftTriggerWasPressed = false;
-    
-    private void enqueueArtifact(Artifact artifact) {
-        int numberOfArtifactsLeft = robot.spindexer.count(artifact) - Collections.frequency(
-            Arrays.asList(firingQueue), artifact);
-        if (queueCount >= QUEUE_SIZE || numberOfArtifactsLeft <= 0) {
-            return;
-        }
-        
-        firingQueue[queueCount] = artifact;
-        queueCount++;
-    }
     
     @Override
     public void loop() {
         if (gamepad1.options) {
             return;
         }
-        
-//        if (robot.spindexer.getNumberOfArtifacts() == 0
-//            && robot.intakedArtifact == Artifact.NONE
-//            && robot.spindexer.artifactIsInSpindexer()
-//            && !robot.spindexer.getDetectedArtifact().isArtifact()) {
-//            robot.paddles.close();
-//            robot.spindexer.rotateToSlot(0.5);
-//            robot.preload(new Artifact[]
-//                              {Artifact.GREEN,
-//                                  Artifact.PURPLE,
-//                                  Artifact.PURPLE});
-//            robot.setState(Robot.State.IDLE);
-//        }
-        
+
         int numberOfArtifacts = robot.spindexer.getNumberOfArtifacts();
         
         if (gamepad1.crossWasPressed()) {
             notifyFailedOperation(() -> numberOfArtifacts < 3,
-                                  () -> robot.setState(Robot.State.GROUND_FIRE));
+                                  () -> robot.setState(Robot.State.FIRE_THROUGH));
         } else if (gamepad1.right_trigger == 1) {
             notifyFailedOperation(() -> numberOfArtifacts < 3,
-                                  () -> robot.setState(Robot.State.CONTINUOUS_INTAKE));
+                                  () -> robot.setState(Robot.State.INTAKING));
         } else if (gamepad1.rightBumperWasPressed()) {
             notifyFailedOperation(() -> numberOfArtifacts > 0,
-                                  () -> robot.setState(Robot.State.FIRING));
-        } else if (gamepad1.rightStickButtonWasPressed()) {
-            notifyFailedOperation(() -> numberOfArtifacts < 3,
-                                  () -> robot.setState(Robot.State.STUFF_INTAKE));
-//        } else if (gamepad1.circleWasPressed()) {
-//            notifyFailedOperation(() -> numberOfArtifacts > 0,
-//                                  () -> robot.setState(Robot.State.MOTIF_FIRING));
-        } else if (gamepad1.triangleWasPressed()) {
-            notifyFailedOperation(() -> numberOfArtifacts < 3,
-                                  () -> robot.setState(Robot.State.PADDLE_INTAKE));
+                                  () -> robot.setState(Robot.State.LAUNCHING));
+//        } else if (gamepad1.triangleWasPressed()) {
+//            notifyFailedOperation(() -> numberOfArtifacts < 3,
+//                                  () -> robot.setState(Robot.State.PADDLE_INTAKE));
         } else if (gamepad1.squareWasPressed()) { // Human Player Load
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   this::humanPlayerLoad);
@@ -138,45 +104,10 @@ public class TeleOp extends TeleOps {
             gamepad2Enabled = true;
             gamepad2.rumble(Haptics.CONFIRM);
             robot.setState(Robot.State.REVVING);
-            robot.intakeRamp.outtake();
-        }
-        
-        if (gamepad2.dpadUpWasPressed()) {
-            robot.firedArtifacts = 0;
-            robot.spindexer.resetSlots();
-            robot.spindexer.rotateToSlot(0);
-        }
-        
-        if (!gamepad2Enabled) {
-        
-        } else if (gamepad2.dpadRightWasPressed()) {
-            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex - 1);
-        } else if (gamepad2.dpadLeftWasPressed()) {
-            robot.spindexer.rotateToSlot(robot.spindexer.currentSlotIndex + 1);
-        } else if (gamepad2.squareWasPressed()) {
-            enqueueArtifact(Artifact.PURPLE);
-        }
-        else if (gamepad2.circleWasPressed()) {
-            enqueueArtifact(Artifact.GREEN);
-        }
-
-        if (gamepad2Enabled && robot.flywheel.isAtSpeed()) {
-            if (robot.firedArtifacts == 3 || robot.spindexer.getNumberOfArtifacts() == 0) {
-                firingQueue = new Artifact[QUEUE_SIZE];
-                queueCount = 0;
-                robot.firedArtifacts = 0;
-                gamepad2Enabled = false;
+            if (robot.paddles.isStationary()) {
+                robot.ramp.feedFromSpindexer(); // TODo like request ramp to move after
+                // paddles move
             }
-            else {
-                robot.spindexer.rotateToArtifact(firingQueue[robot.firedArtifacts]);
-            } // slight optimization of rotating twice sometimes
-        }
-        
-        
-        if (robot.state == Robot.State.IDLE) {
-            gamepad2Enabled = false;
-            firingQueue = new Artifact[QUEUE_SIZE];
-            queueCount = 0;
         }
         
         super.loop();

@@ -48,8 +48,6 @@ public class Flywheel {
     
     private final DoubleUnaryOperator distanceToRpm =
         LinearRegression.fit(new double[][]{
-            //            {141, 4450},
-            //            {100.12, 3850}
             {150.82, 3428.5},
             {102.0225, 2957.28}
         });
@@ -70,39 +68,47 @@ public class Flywheel {
     
     public void setRPM(double rpm) {
         targetRPM = Math.round(rpm / RPM_RESOLUTION) * RPM_RESOLUTION;
+        
+        if (targetRPM > 0 && state == State.OFF) {
+            state = State.SPINNING_UP;
+        }
     }
     
     public void stop() {
         targetRPM = 0;
+        currentTargetRPM = 0;
+        totalError = 0;
+        currentRPM = 0;
+        currentError = 0;
+        state = State.OFF;
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
     }
     
     public void setRpmFromDistance(double dist) {
         setRPM(distanceToRpm.applyAsDouble(dist) * manualAdjustmentMultiplier);
     }
     
+    public void readSensors() {
+        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
+    }
+    
     public void update(double dt, double voltage) {
         if (state == State.OFF) {
-            currentTargetRPM = 0;
-            totalError = 0;
-            leftMotor.setPower(0);
-            rightMotor.setPower(0);
             return;
         }
         
-        currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
         currentError = currentTargetRPM - currentRPM;
         double absError = Math.abs(currentError);
         
-        if (absError <= RPM_TOLERANCE) {
-            state = State.AT_SPEED;
-        } else {
-            state = State.SPINNING_UP;
-        }
+        state = (absError <= RPM_TOLERANCE)
+            ? State.AT_SPEED
+            : State.SPINNING_UP;
         
         double targetDiff = targetRPM - currentTargetRPM;
         double maxStep = MAX_ACCEL_RPM_PER_SEC * dt;
         
-        if (absError > maxStep)
+        if (Math.abs(targetDiff) > maxStep)
             currentTargetRPM += Math.copySign(maxStep, targetDiff);
         else
             currentTargetRPM = targetRPM;
@@ -112,12 +118,12 @@ public class Flywheel {
         
         double p = kP * currentError;
         
-        if (Math.abs(currentError) < I_ENABLE_ERROR) {
+        if (absError < I_ENABLE_ERROR) {
             totalError += currentError * dt;
         }
      
         double i = kI * totalError;
-        double power = (ff + p + i) / voltage;
+        double power = (ff / voltage + p + i);
         
         power = Range.clip(power, 0, 1);
         
@@ -125,7 +131,7 @@ public class Flywheel {
         rightMotor.setPower(power);
     }
     
-    public double getRpm() {
+    public double getRPM() {
         return currentRPM;
     }
     

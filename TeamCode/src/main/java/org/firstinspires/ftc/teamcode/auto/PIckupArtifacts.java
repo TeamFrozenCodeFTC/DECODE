@@ -29,7 +29,7 @@ public class PIckupArtifacts extends Auto {
         robot.update();
         if (robot.spindexer.getNumberOfArtifacts() < 3) {
             robot.follower.holdPose(endPose);
-            robot.state = Robot.State.CONTINUOUS_INTAKE;
+            robot.state = Robot.State.INTAKING;
         }
         else {
             robot.follower.holdPose(new Pose(0,0,0));

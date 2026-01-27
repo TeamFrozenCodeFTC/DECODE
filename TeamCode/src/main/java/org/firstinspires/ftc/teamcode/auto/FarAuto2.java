@@ -41,12 +41,12 @@ public class FarAuto2 extends Auto {
     public void start() {
         super.start();
         
-        Robot.motifPattern = motifDetector.getMotifPattern();
-        if (Robot.motifPattern == null) {
-            Robot.motifPattern = new Artifact[]
-                {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
-        }
-        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
+//        Robot.motifPattern = motifDetector.getMotifPattern();
+//        if (Robot.motifPattern == null) {
+//            Robot.motifPattern = new Artifact[]
+//                {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
+//        }
+//        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
         telemetry.addData("startingPose", startingPose);
         telemetry.update();
         

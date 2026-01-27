@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.auto.Auto;
-import org.firstinspires.ftc.teamcode.blackice.FollowerConstants;
-import org.firstinspires.ftc.teamcode.blackice.core.Follower;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Vector;
 
 @TeleOp
@@ -22,10 +20,11 @@ public class TuneFlyWheel extends Auto {
 
 
         robot.flywheel.setRPM(4000);
-        robot.flywheel.filteredVoltage = robot.follower.getVoltage();
         robot.follower.drivetrain.zeroPowerFloatMode();
 
         robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
+        
+        robot.resetSpindexer();
     }
 
     @Override
@@ -39,7 +38,7 @@ public class TuneFlyWheel extends Auto {
 
         telemetry.addData("distanceToGoal",
                           Robot.allianceColor.getGoalPosition().distanceTo(robot.follower.getCurrentPose().getPosition()));
-        telemetry.addData("current RPM", robot.flywheel.getRpm());
+        telemetry.addData("current RPM", robot.flywheel.getRPM());
         telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
         telemetry.update();
         
@@ -50,8 +49,7 @@ public class TuneFlyWheel extends Auto {
         robot.follower.drivetrain.followVector(new Vector(0, 0), turn);
 
         robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
-        robot.intakeRamp.intakeThrough();
-        robot.resetSpindexer();
+        robot.ramp.feedFromSpindexer();
     }
 
     public double getAngleToGoal() {

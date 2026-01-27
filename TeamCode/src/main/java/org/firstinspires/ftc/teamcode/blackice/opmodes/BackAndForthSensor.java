@@ -23,7 +23,7 @@ public class BackAndForthSensor extends OpMode {
         follower = FollowerConstants.createFollower(hardwareMap);
         robot = new Robot(hardwareMap);
         
-        robot.setState(Robot.State.CONTINUOUS_INTAKE);
+        robot.setState(Robot.State.INTAKING);
     }
     
     @Override

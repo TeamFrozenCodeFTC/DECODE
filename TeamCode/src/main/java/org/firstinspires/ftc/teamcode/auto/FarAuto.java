@@ -42,13 +42,13 @@ public class FarAuto extends Auto {
     public void start() {
         super.start();
         
-        
-        Robot.motifPattern = motifDetector.getMotifPattern();
-        if (Robot.motifPattern == null) {
-            Robot.motifPattern = new Artifact[]
-                {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
-        }
-        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
+//
+//        Robot.motifPattern = motifDetector.getMotifPattern();
+//        if (Robot.motifPattern == null) {
+//            Robot.motifPattern = new Artifact[]
+//                {Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE};
+//        }
+//        telemetry.addData("pattern", Arrays.deepToString(Robot.motifPattern));
         telemetry.addData("startingPose", startingPose);
         telemetry.update();
         
@@ -62,7 +62,7 @@ public class FarAuto extends Auto {
         auto.add(getFireStep2(firePose));
         auto.add(goToPose(prePickupPose, Robot.State.IDLE));
         auto.add(new Step(
-            () -> robot.setState(Robot.State.CONTINUOUS_INTAKE),
+            () -> robot.setState(Robot.State.INTAKING),
             () -> robot.follower.holdPose(pickupPose, 0.5),
             () -> robot.spindexer.getNumberOfArtifacts() == 3
         ).withTimeout(4));

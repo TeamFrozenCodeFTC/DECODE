@@ -24,16 +24,18 @@ public class DetectArtifact extends OpMode {
         telemetry.addData("detectedArtifact",
                                   robot.spindexer.getDetectedArtifact().toString());
         telemetry.addData("right hue",
-                                  robot.spindexer.rightColorSensor.hue);
+                                  robot.spindexer.artifactDetector.getRightHue());
         telemetry.addData("left hue",
-                                  robot.spindexer.leftColorSensor.hue);
+                                  robot.spindexer.artifactDetector.getLeftHue());
+        
+        telemetry.addData("didArtifactJustEnterSpindexer",
+                          robot.spindexer.didArtifactJustEnterSpindexer());
+        telemetry.addData("didArtifactJustDrop", robot.spindexer.didArtifactJustDrop());
         
         telemetry.addData("leftDistance",
-                          robot.spindexer.leftDistanceSensor.getDistance(DistanceUnit.INCH));
+                          robot.spindexer.distanceSensors.getLeftDistance());
         telemetry.addData("rightDistance",
-                          robot.spindexer.rightDistanceSensor.getDistance(DistanceUnit.INCH));
-        
-        telemetry.addData("artifactIsInSpindexer", robot.spindexer.artifactIsInSpindexer());
+                          robot.spindexer.distanceSensors.getRightDistance());
         
         telemetry.update();
     }

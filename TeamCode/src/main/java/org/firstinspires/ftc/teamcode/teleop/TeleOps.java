@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.subsystems.spindexer.Spindexer;
 
 import java.util.Arrays;
 
@@ -27,7 +27,8 @@ public class TeleOps extends OpMode {
         telemetry.addData("Alliance Color (Press △)", Robot.allianceColor);
         telemetry.addData("position", Robot.currentPose);
         telemetry.addData("allianceColor", Robot.allianceColor);
-        telemetry.addData("motifPattern", Arrays.deepToString(Robot.motifPattern));
+        telemetry.addData("motifPattern", Arrays.deepToString(
+            Robot.motifPattern.getPattern()));
         telemetry.update();
     }
     
@@ -56,20 +57,27 @@ public class TeleOps extends OpMode {
             robot.follower.setCurrentPose(Robot.currentPose);
         }
         
-        //robot.follower.teleOpTarget = robot.follower.getCurrentPose()
-        // .headingToDegrees();
-        //robot.follower.set
-        
-        robot.spindexer.rotateToSlot(0);
-        robot.intakeRamp.uptake();
-        robot.paddles.open();
+//        robot.spindexer.rotateToSlot(Robot.currentSpindexerIndex);
+//        robot.ramp.loadToSpindexer();
+//        robot.paddles.open();
     }
     
     @Override
     public void loop() {
+        if (robot.spindexer.distanceSensors.leftDistanceSensorIsFailing()) {
+            telemetry.addData("⚠ RIGHT DISTANCE sensor failing",
+                              robot.spindexer.distanceSensors.getLeftDistance());
+            telemetry.update();
+        }
+        if (robot.spindexer.distanceSensors.rightDistanceSensorIsFailing()) {
+            telemetry.addData("⚠ RIGHT DISTANCE sensor failing",
+                              robot.spindexer.distanceSensors.getRightDistance());
+            telemetry.update();
+        }
+
         if (gamepad1.guide) {
-            int leftIndex = robot.spindexer.shiftLeft(robot.spindexer.currentSlotIndex, 1);
-            int rightIndex = robot.spindexer.shiftRight(robot.spindexer.currentSlotIndex, 1);
+            int leftIndex = robot.spindexer.shiftLeft(1);
+            int rightIndex = robot.spindexer.shiftRight(1);
             
             int leftSlotIndex = Spindexer.rollIndex(leftIndex);
             int rightSlotIndex = Spindexer.rollIndex(rightIndex);
@@ -81,19 +89,18 @@ public class TeleOps extends OpMode {
             telemetry.addData("leftIsArtifact", robot.spindexer.artifacts[leftSlotIndex]);
             telemetry.addData("rightIsArtifact", robot.spindexer.artifacts[rightSlotIndex]);
             telemetry.addData("state", robot.state);
-            telemetry.addData("current rpm", "%.2f", robot.flywheel.getRpm());
+            telemetry.addData("current rpm", "%.2f", robot.flywheel.getRPM());
             telemetry.addData("target rpm", "%.2f", robot.flywheel.getTargetRPM());
             telemetry.addData("numOfArtifacts", robot.spindexer.getNumberOfArtifacts());
             telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.artifacts));
             telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
-            telemetry.addData("spindexerIsRotating", robot.spindexerIsRotating);
             telemetry.addData("isUpToSpeed", robot.flywheel.isAtSpeed());
             telemetry.addData("position", robot.follower.getCurrentPose());
             telemetry.addData("distanceToGoal",
                               Robot.allianceColor.getGoalPosition()
                                   .distanceTo(
                                       robot.follower.getCurrentPose().getPosition()));
-            telemetry.addData("firingAllIndex", robot.firingAllIndex);
+            telemetry.addData("incomingArtifacts", robot.incomingArtifact);
             telemetry.update();
         }
         
