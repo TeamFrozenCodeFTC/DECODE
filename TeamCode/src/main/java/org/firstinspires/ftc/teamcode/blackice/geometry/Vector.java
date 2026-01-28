@@ -57,6 +57,10 @@ public class Vector {
         );
     }
     
+    public double getAngle() {
+        return Math.atan2(getY(), getX());
+    }
+    
     /**
      * Apply a custom operation to each pair of components.
      * <code>new Vector(operation(x1, x2), operation(y1, y2))</code>

@@ -17,7 +17,8 @@ public class BezierGeometry implements PathGeometry {
         this.controlPoints = controlPoints;
         this.length = calculateAndCacheArcLength(1000);
         this.endPathPoint = new PathPoint(this.controlPoints[this.controlPoints.length - 1],
-                                          calculateFirstDerivative(1), 0, this.length, 0, 1, 1);
+                                          calculateFirstDerivative(1).getAngle(), 0, this.length,
+                                          0, 1, 1);
     }
 
     @Override
@@ -105,7 +106,7 @@ public class BezierGeometry implements PathGeometry {
         Vector tangent = firstDerivative.normalized();
         double curvature = computeCurvature(firstDerivative, secondDerivative);
         double arcLength = getArcLengthAt(t);
-        return new PathPoint(bezierPoint, tangent, curvature, arcLength,
+        return new PathPoint(bezierPoint, tangent.getAngle(), curvature, arcLength,
                              length - arcLength,
                              arcLength / length, t);
     }

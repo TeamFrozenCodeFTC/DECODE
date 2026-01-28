@@ -8,8 +8,7 @@ import org.firstinspires.ftc.teamcode.blackice.geometry.Vector;
  */
 public class PathPoint {
     public final Vector point;
-    public final Vector tangent;
-    public final Vector normal;
+    public final double tangent;
     public final double curvature;
     public final double distanceAlongPath;
     public final double distanceRemaining;
@@ -24,12 +23,11 @@ public class PathPoint {
      */
     public final double tValue;
 
-    public PathPoint(Vector point, Vector tangent, double curvature,
+    public PathPoint(Vector point, double tangent, double curvature,
                      double distanceAlongPath,
                      double distanceRemaining,
                      double percentAlongPath, double tValue) {
         this.tangent = tangent;
-        this.normal = tangent.perpendicularLeft();
         this.point = point;
         this.curvature = curvature;
         this.distanceAlongPath = distanceAlongPath;

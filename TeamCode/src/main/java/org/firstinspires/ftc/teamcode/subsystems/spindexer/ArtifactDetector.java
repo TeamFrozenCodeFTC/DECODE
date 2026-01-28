@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.teamcode.Artifact;
 
 public class ArtifactDetector {
-    private static final int POLL_MS = 40;
+    private static final int POLL_MS = 0;
     
     public Poller<Float> leftColor;
     public Poller<Float> rightColor;

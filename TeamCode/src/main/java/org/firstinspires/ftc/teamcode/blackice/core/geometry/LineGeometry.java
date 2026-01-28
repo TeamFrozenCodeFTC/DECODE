@@ -22,7 +22,7 @@ public class LineGeometry implements PathGeometry {
         Vector displacement = end.minus(start);
         this.length = displacement.computeMagnitude();
         this.tangent = displacement.dividedBy(length);
-        this.endPathPoint = new PathPoint(end, tangent, 0, length, 0, 1, 1);
+        this.endPathPoint = new PathPoint(end, tangent.getAngle(), 0, length, 0, 1, 1);
     }
 
     public Vector computePointAt(double t) {
@@ -45,7 +45,8 @@ public class LineGeometry implements PathGeometry {
         double t = Range.clip(startToPoint.dot(tangent) / length, 0, 1);
         Vector closestPoint = computePointAt(t);
         double distanceAlongPath = t * length;
-        return new PathPoint(closestPoint, tangent, 0, distanceAlongPath, length - distanceAlongPath, t, t);
+        return new PathPoint(closestPoint, tangent.getAngle(), 0, distanceAlongPath,
+                             length - distanceAlongPath, t, t);
     }
 
     @Override

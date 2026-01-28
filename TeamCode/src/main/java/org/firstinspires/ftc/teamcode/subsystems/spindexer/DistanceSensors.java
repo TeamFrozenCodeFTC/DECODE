@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class DistanceSensors {
     private static final double HANDOFF_DISTANCE = 3.0;
     private static final double CLEAR_DISTANCE = 6.5;
-    private static final long POLL_MS = 20;
+    private static final long POLL_MS = 0;
     private static final long COOLDOWN_MS = 3000;
     
     private static final double FAILING_THRESHOLD = 100; // 322.5197 static, 2580.1

@@ -21,6 +21,9 @@ public class DetectArtifact extends OpMode {
 
     @Override
     public void loop() {
+        robot.spindexer.distanceSensors.update();
+//        robot.spindexer.artifactDetector.update();
+        
         telemetry.addData("detectedArtifact",
                                   robot.spindexer.getDetectedArtifact().toString());
         telemetry.addData("right hue",
@@ -36,6 +39,7 @@ public class DetectArtifact extends OpMode {
                           robot.spindexer.distanceSensors.getLeftDistance());
         telemetry.addData("rightDistance",
                           robot.spindexer.distanceSensors.getRightDistance());
+        
         
         telemetry.update();
     }
