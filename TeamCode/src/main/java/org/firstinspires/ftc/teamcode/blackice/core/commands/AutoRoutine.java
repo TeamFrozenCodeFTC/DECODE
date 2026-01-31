@@ -1,0 +1,47 @@
+package org.firstinspires.ftc.teamcode.blackice.core.commands;
+
+import org.firstinspires.ftc.teamcode.blackice.core.FollowPathCommand;
+import org.firstinspires.ftc.teamcode.blackice.core.HeadingInterpolator;
+import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.miniblackice.core.geometry.LineGeometry;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AutoRoutine {
+    public List<Command> routineSteps = new ArrayList<>();
+
+    private int index = 0;
+
+    Pose previousPose;
+    
+    public AutoRoutine(Pose startingPose) {
+        this.previousPose = startingPose;
+    }
+
+    public void run() {
+        if (index >= routineSteps.size()) return;
+
+        Command command = routineSteps.get(index);
+        command.update();
+
+        if (command.isFinished()) {
+            index++;
+            routineSteps.get(index).start();
+        }
+    }
+
+    public void add(Command step) {
+        routineSteps.add(step);
+    }
+
+    public void addAction(Runnable action) {
+        routineSteps.add(Command.singleAction(action));
+    }
+
+    public void lineTo(Pose pose) {
+        routineSteps.add(new FollowPathCommand(
+            new LineGeometry(previousPose.getPosition(), pose.getPosition()),
+            HeadingInterpolator.constant(pose.getHeading())));
+    }
+}
