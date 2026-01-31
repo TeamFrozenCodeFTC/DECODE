@@ -4,34 +4,29 @@ package org.firstinspires.ftc.teamcode.subsystems.spindexer;
 import java.util.function.Supplier;
 
 public class Poller<T> {
-    private final long pollIntervalMs;
-    private final long offsetMs;
-    private long lastPollTime = 0;
-    private T lastValue;
     private final Supplier<T> readFunction;
+    private final long pollIntervalMs;
     
-    public Poller(Supplier<T> readFunction, long pollIntervalMs,
-                  long offsetMs) {
+    private long nextPollTime = 0;
+    private T lastValue;
+    
+    public Poller(Supplier<T> readFunction, long pollIntervalMs) {
         this.readFunction = readFunction;
         this.pollIntervalMs = pollIntervalMs;
-        this.offsetMs = offsetMs;
     }
     
     public T poll() {
         long now = System.currentTimeMillis();
-        if (now - lastPollTime + offsetMs >= pollIntervalMs) {
+        
+        if (now >= nextPollTime) {
             lastValue = readFunction.get();
-            lastPollTime = now;
+            nextPollTime = now + pollIntervalMs;
         }
+        
         return lastValue;
     }
     
-    public void delayNextPoll(long ms) {
-        lastPollTime += ms;
-    }
-    
-    public void reset() {
-        lastPollTime = 0;
-        lastValue = null;
+    public void delayNextPoll(long delayMs) {
+        nextPollTime += delayMs;
     }
 }

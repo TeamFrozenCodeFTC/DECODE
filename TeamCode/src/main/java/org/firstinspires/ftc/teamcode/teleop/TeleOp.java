@@ -50,7 +50,8 @@ public class TeleOp extends TeleOps {
                                   this::humanPlayerLoad);
         } else if (gamepad1.leftBumperWasPressed()) {
             robot.setState(Robot.State.IDLE);
-            robot.spindexer.servo.setPwmDisable();
+            //robot.spindexer.servo.setPwmDisable();
+            robot.transfer.openPaddles();
             gamepad1.rumble(Haptics.CONFIRM);
         } else if (gamepad1.dpadDownWasPressed()) {
             robot.flywheel.manualAdjustmentMultiplier -= 0.01;
@@ -104,11 +105,16 @@ public class TeleOp extends TeleOps {
             gamepad2Enabled = true;
             gamepad2.rumble(Haptics.CONFIRM);
             robot.setState(Robot.State.REVVING);
-            if (robot.paddles.isStationary()) {
-                robot.ramp.feedFromSpindexer(); // TODo like request ramp to move after
-                // paddles move
-            }
+            robot.transfer.feedFromSpindexer();
         }
+        
+        if (gamepad1.dpadRightWasPressed()) {
+            robot.spindexer.rotateRight();
+        }
+        if (gamepad1.dpadLeftWasPressed()) {
+            robot.spindexer.rotateLeft();
+        }
+        
         
         super.loop();
     }

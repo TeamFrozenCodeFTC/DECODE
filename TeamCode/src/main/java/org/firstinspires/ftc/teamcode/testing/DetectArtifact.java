@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -31,15 +32,14 @@ public class DetectArtifact extends OpMode {
         telemetry.addData("left hue",
                                   robot.spindexer.artifactDetector.getLeftHue());
         
-        telemetry.addData("didArtifactJustEnterSpindexer",
-                          robot.spindexer.didArtifactJustEnterSpindexer());
-        telemetry.addData("didArtifactJustDrop", robot.spindexer.didArtifactJustDrop());
+        telemetry.addData("isSpindexerClear", robot.spindexer.isSpindexerClear());
+        telemetry.addData("isArtifactInHandoffZone", robot.spindexer.isArtifactInHandoffZone());
+        
         
         telemetry.addData("leftDistance",
                           robot.spindexer.distanceSensors.getLeftDistance());
         telemetry.addData("rightDistance",
                           robot.spindexer.distanceSensors.getRightDistance());
-        
         
         telemetry.update();
     }

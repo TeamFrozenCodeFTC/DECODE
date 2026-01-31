@@ -63,6 +63,17 @@ public class Follower {
         };
     }
     
+    public Vector getVelocity() {
+        return localizer.getVelocity();
+    }
+    
+    public Vector getPosition() {
+        return localizer.getPose().getPosition();
+    }
+    
+    public double getHeading() {
+        return localizer.getPose().getHeading();
+    }
     
     
     // hold pose, follow path, follow composite path
@@ -80,8 +91,11 @@ public class Follower {
     }
     
     public boolean isWithinBraking(Pose pose) {
-        return computeHoldPower(pose.getPosition()).dot(pose.getPosition().minus(localizer.getPose()
-                                                                                     .getPosition())) < 1;
+        return isWithinBraking(pose.getPosition());
+    }
+    
+    public boolean isWithinBraking(Vector position) {
+        return computeHoldPower(position).dot(position.minus(localizer.getPose().getPosition())) < 1;
     }
     
     public double getVoltage() {

@@ -29,6 +29,7 @@ public class TuneFlyWheel extends Auto {
 
     @Override
     public void loop() {
+        robot.flywheel.readSensors();
         if (gamepad1.dpad_down) {
             robot.flywheel.setRPM(robot.flywheel.getTargetRPM() - 50);
         }
@@ -49,7 +50,7 @@ public class TuneFlyWheel extends Auto {
         robot.follower.drivetrain.followVector(new Vector(0, 0), turn);
 
         robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
-        robot.ramp.feedFromSpindexer();
+        robot.transfer.feedFromSpindexer();
     }
 
     public double getAngleToGoal() {

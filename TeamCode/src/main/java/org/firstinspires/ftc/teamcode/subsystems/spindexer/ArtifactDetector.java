@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.spindexer;
 
+import android.graphics.Color;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -21,8 +23,8 @@ public class ArtifactDetector {
             hardwareMap.get(NormalizedColorSensor.class, "leftColorSensor");
         NormalizedColorSensor rightColorSensor =
                 hardwareMap.get(NormalizedColorSensor.class, "rightColorSensor");
-        rightColor = new Poller<>(() -> computeHue(rightColorSensor), POLL_MS, 0);
-        leftColor = new Poller<>(() -> computeHue(leftColorSensor), POLL_MS, POLL_MS / 2);
+        rightColor = new Poller<>(() -> computeHue(rightColorSensor), POLL_MS);
+        leftColor = new Poller<>(() -> computeHue(leftColorSensor), POLL_MS);
     }
     
     public void update() {
@@ -49,27 +51,13 @@ public class ArtifactDetector {
         return detectedArtifact;
     }
     
-    /** Computes hue without calculating HSV */
-    private float computeHue(NormalizedColorSensor sensor) {
+    public float computeHue(NormalizedColorSensor sensor) {
         NormalizedRGBA colors = sensor.getNormalizedColors();
         
-        float r = colors.red;
-        float g = colors.green;
-        float b = colors.blue;
+        final float[] hsvValues = new float[3];
+        Color.colorToHSV(colors.toColor(), hsvValues);
         
-        float max = Math.max(r, Math.max(g, b));
-        float min = Math.min(r, Math.min(g, b));
-        float delta = max - min;
-        
-        if (delta == 0) return 0;
-        
-        float hue;
-        if (max == r) hue = 60 * (((g - b) / delta) % 6);
-        else if (max == g) hue = 60 * (((b - r) / delta) + 2);
-        else hue = 60 * (((r - g) / delta) + 4);
-        
-        if (hue < 0) hue += 360;
-        return hue;
+        return hsvValues[0];
     }
     
     private Artifact detectFromHue(float hue) {

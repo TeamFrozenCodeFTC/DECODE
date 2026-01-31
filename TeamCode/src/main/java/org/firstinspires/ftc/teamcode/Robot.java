@@ -7,8 +7,7 @@ import org.firstinspires.ftc.teamcode.blackice.core.Follower;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Paddles;
-import org.firstinspires.ftc.teamcode.subsystems.Ramp;
+import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
 import org.firstinspires.ftc.teamcode.subsystems.spindexer.Spindexer;
 import org.firstinspires.ftc.teamcode.utils.Timeout;
@@ -24,8 +23,7 @@ public class Robot {
     
     public static Artifact[] artifacts = null;
     public Spindexer spindexer;
-    public Paddles paddles;
-    public Ramp ramp;
+    public Transfer transfer;
     public Intake intake;
     public Flywheel flywheel;
     public Artifact incomingArtifact = Artifact.NONE;
@@ -34,15 +32,19 @@ public class Robot {
     public boolean isAuto = false;
     
     public Robot.State state = Robot.State.IDLE;
-    Timeout stateTimer = new Timeout();
-    Timeout intakeTimer = new Timeout();
+    public Timeout stateTimer = new Timeout();
+    
+    // Prevents quick misfires
+    public Timeout intakeTimer = new Timeout();
+    Timeout firingTimer = new Timeout();
+    
+    boolean dropping = true;
     
     public Robot(HardwareMap hardwareMap) {
         follower = FollowerConstants.createFollower(hardwareMap);
         intake = new Intake(hardwareMap);
         spindexer = new Spindexer(hardwareMap);
-        ramp = new Ramp(hardwareMap);
-        paddles = new Paddles(hardwareMap);
+        transfer = new Transfer(hardwareMap);
         flywheel = new Flywheel(hardwareMap);
     }
     
@@ -77,12 +79,13 @@ public class Robot {
     
     public void intake() {
         flywheel.stop();
-        ramp.loadToSpindexer();
+        transfer.loadToSpindexer();
         intake.intake();
         stateTimer.resume();
         
         Artifact detectedArtifact = spindexer.getDetectedArtifact();
         
+        //  && spindexer.isSpindexerClear()
         if (detectedArtifact.isArtifact() && !incomingArtifact.isArtifact()) {
             incomingArtifact = detectedArtifact;
             spindexer.artifacts[Spindexer.rollIndex((int) spindexer.currentSlotIndex)] =
@@ -90,8 +93,7 @@ public class Robot {
             intakeTimer.resetAndStart();
         }
         
-        if (incomingArtifact.isArtifact() && spindexer.didArtifactJustEnterSpindexer() &&
-            intakeTimer.seconds() > 0.25) {
+        if (incomingArtifact.isArtifact() && spindexer.isArtifactInHandoffZone() && intakeTimer.seconds() > 0.5) {
             spindexer.intakeArtifact(incomingArtifact, motifPattern);
             incomingArtifact = Artifact.NONE;
         }
@@ -101,30 +103,33 @@ public class Robot {
         if (firedArtifacts >= Robot.motifPattern.getPattern().length) return;
         
         Artifact motifArtifact = Robot.motifPattern.getPattern()[firedArtifacts];
+
+//        if (!spindexer.isSpindexerClear()) {
+//            dropping = true;
+//            firingTimer.resetAndStart();
+//        }
+//
+//        if (dropping
+//            && spindexer.isSpindexerClear()
+//            && firingTimer.seconds() > 0.100) {
+        if (flywheel.isAtSpeed() && (isAuto || isLookingAtGoal())) {
+            spindexer.rotateAndDrop(spindexer.findBestRotationToArtifact(motifArtifact));
+        }
         
         if (spindexer.didArtifactJustDrop()) {
             spindexer.artifacts[Spindexer.rollIndex((int) spindexer.currentSlotIndex)] =
                 Artifact.NONE;
             firedArtifacts++;
+            //dropping = false;
         }
         
-        if (flywheel.isAtSpeed() && (isAuto || isLookingAtGoal())) {
-            spindexer.rotateToSlot(spindexer.findBestRotationToArtifact(motifArtifact));
-        }
-        
-        if (paddles.isStationary()) {
-            ramp.feedFromSpindexer();
-        }
-        if (ramp.isStationary()) {
-            paddles.open();
-        }
+        transfer.feedFromSpindexer();
+        transfer.openPaddles();
     }
     
     public void update() {
         follower.update();
         flywheel.readSensors();
-        paddles.update();
-        ramp.update();
         
         switch (state) {
             case IDLE:
@@ -138,8 +143,8 @@ public class Robot {
                 break;
             case FIRE_THROUGH:
                 stateTimer.resume();
-                ramp.feedFromIntake();
-                paddles.open();
+                transfer.feedFromIntake();
+                transfer.openPaddles();
                 
                 revTowardGoal();
                 
@@ -159,47 +164,51 @@ public class Robot {
                 }
                 break;
             case REVVING:
-                revTowardGoal();
-                
                 intakeExcessArtifacts();
-                if (!isAuto && paddles.isStationary()) {
-                    ramp.feedFromSpindexer();
+                revTowardGoal();
+                if (!incomingArtifact.isArtifact()) {
+                    transfer.feedFromSpindexer();
                 }
-                
                 intake.stop();
-
                 break;
             case INTAKING:
                 intake();
                 if (spindexer.getNumberOfArtifacts() == 3) {
-                    state = State.REVVING;
+                    setState(State.REVVING);
                     return;
                 }
                 break;
         }
         
+        transfer.update();
         intake.update(follower.deltaTime);
         flywheel.update(follower.deltaTime, follower.getVoltage());
-        
+
+        saveData();
+    }
+    
+    public void saveData() {
         Robot.artifacts = spindexer.artifacts;
         Robot.currentPose = follower.localizer.getPose();
         Robot.currentSpindexerIndex = spindexer.currentSlotIndex;
     }
     
     public void intakeExcessArtifacts() {
-        if (incomingArtifact.isArtifact()) {
-            if (ramp.isStationary()) {
-                paddles.close();
-            }
-            if (spindexer.didArtifactJustEnterSpindexer()) {
-                spindexer.intakeArtifact(incomingArtifact, motifPattern);
-                incomingArtifact = Artifact.NONE;
-                stateTimer.resume();
-            }
+        if (incomingArtifact.isArtifact() && spindexer.isSpindexerClear()) {
+            transfer.closePaddles();
+        }
+        
+        if (
+            incomingArtifact.isArtifact()
+                && transfer.getPaddleMode() == Transfer.PaddleMode.CLOSED
+                && spindexer.isArtifactInHandoffZone() && intakeTimer.seconds() > 0.5) {
+            spindexer.intakeArtifact(incomingArtifact, motifPattern);
+            incomingArtifact = Artifact.NONE;
+            stateTimer.resume();
         }
         
         if (stateTimer.seconds() > 0.5) {
-            paddles.open();
+            transfer.openPaddles();
         }
     }
     

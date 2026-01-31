@@ -64,43 +64,48 @@ public class TeleOps extends OpMode {
     
     @Override
     public void loop() {
-        if (robot.spindexer.distanceSensors.leftDistanceSensorIsFailing()) {
-            telemetry.addData("⚠ RIGHT DISTANCE sensor failing",
-                              robot.spindexer.distanceSensors.getLeftDistance());
-            telemetry.update();
-        }
-        if (robot.spindexer.distanceSensors.rightDistanceSensorIsFailing()) {
-            telemetry.addData("⚠ RIGHT DISTANCE sensor failing",
-                              robot.spindexer.distanceSensors.getRightDistance());
-            telemetry.update();
-        }
+
 
         if (gamepad1.guide) {
-            int leftIndex = robot.spindexer.shiftLeft(1);
-            int rightIndex = robot.spindexer.shiftRight(1);
+            if (robot.spindexer.distanceSensors.isLeftFailing()) {
+                telemetry.addData("⚠ LEFT DISTANCE sensor failing",
+                                  robot.spindexer.distanceSensors.getLeftDistance());
+            }
+            if (robot.spindexer.distanceSensors.isRightFailing()) {
+                telemetry.addData("⚠ RIGHT DISTANCE sensor failing",
+                                  robot.spindexer.distanceSensors.getRightDistance());
+            }
             
-            int leftSlotIndex = Spindexer.rollIndex(leftIndex);
-            int rightSlotIndex = Spindexer.rollIndex(rightIndex);
-            
-            telemetry.addData("leftIndex", leftIndex);
-            telemetry.addData("rightIndex", rightIndex);
-            telemetry.addData("leftSlotIndex", leftSlotIndex);
-            telemetry.addData("rightSlotIndex", rightSlotIndex);
-            telemetry.addData("leftIsArtifact", robot.spindexer.artifacts[leftSlotIndex]);
-            telemetry.addData("rightIsArtifact", robot.spindexer.artifacts[rightSlotIndex]);
             telemetry.addData("state", robot.state);
+            telemetry.addData("leftArtifact", robot.spindexer.getLeftArtifact());
+            telemetry.addData("rightArtifact", robot.spindexer.getRightArtifact());
             telemetry.addData("current rpm", "%.2f", robot.flywheel.getRPM());
             telemetry.addData("target rpm", "%.2f", robot.flywheel.getTargetRPM());
             telemetry.addData("numOfArtifacts", robot.spindexer.getNumberOfArtifacts());
             telemetry.addData("artifacts", Arrays.deepToString(robot.spindexer.artifacts));
-            telemetry.addData("spindexer index", robot.spindexer.currentSlotIndex);
-            telemetry.addData("isUpToSpeed", robot.flywheel.isAtSpeed());
+            telemetry.addData("spindexerIndex", robot.spindexer.currentSlotIndex);
+            telemetry.addData("flywheelState", robot.flywheel.getState());
             telemetry.addData("position", robot.follower.getCurrentPose());
             telemetry.addData("distanceToGoal",
                               Robot.allianceColor.getGoalPosition()
                                   .distanceTo(
                                       robot.follower.getCurrentPose().getPosition()));
             telemetry.addData("incomingArtifacts", robot.incomingArtifact);
+            telemetry.addData("paddleMode", robot.transfer.getPaddleMode());
+            telemetry.addData("rampMode", robot.transfer.getRampMode());
+            telemetry.addData("detectedArtifact",
+                              robot.spindexer.getDetectedArtifact().toString());
+            telemetry.addData("isSpindexerClear", robot.spindexer.isSpindexerClear());
+            telemetry.addData("isArtifactInHandoffZone", robot.spindexer.isArtifactInHandoffZone());
+            telemetry.addData("leftDistance",
+                              robot.spindexer.distanceSensors.getLeftDistance());
+            telemetry.addData("rightDistance",
+                              robot.spindexer.distanceSensors.getRightDistance());
+            telemetry.addData("arePaddlesMoving", robot.transfer.arePaddlesMoving());
+            telemetry.addData("isRampMoving", robot.transfer.isRampMoving());
+            telemetry.addData("isLookingAtGoal", robot.isLookingAtGoal());
+            telemetry.addData("stateTimer.seconds()", robot.stateTimer.seconds());
+            telemetry.addData("intakeTimer", robot.intakeTimer.seconds());
             telemetry.update();
         }
         

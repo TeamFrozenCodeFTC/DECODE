@@ -10,6 +10,13 @@ public class Vector {
         this.y = y;
     }
     
+    public static Vector fromPolar(double magnitude, double angle) {
+        return new Vector(
+            magnitude * Math.cos(angle),
+            magnitude * Math.sin(angle)
+        );
+    }
+    
     public Vector mirroredAcrossYAxis() {
         return new Vector(144 - getX(), getY());
     }
