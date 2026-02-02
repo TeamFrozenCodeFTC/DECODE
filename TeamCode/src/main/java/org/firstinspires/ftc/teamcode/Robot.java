@@ -103,15 +103,7 @@ public class Robot {
         if (firedArtifacts >= Robot.motifPattern.getPattern().length) return;
         
         Artifact motifArtifact = Robot.motifPattern.getPattern()[firedArtifacts];
-
-//        if (!spindexer.isSpindexerClear()) {
-//            dropping = true;
-//            firingTimer.resetAndStart();
-//        }
-//
-//        if (dropping
-//            && spindexer.isSpindexerClear()
-//            && firingTimer.seconds() > 0.100) {
+        
         if (flywheel.isAtSpeed() && (isAuto || isLookingAtGoal())) {
             spindexer.rotateAndDrop(spindexer.findBestRotationToArtifact(motifArtifact));
         }
@@ -155,7 +147,7 @@ public class Robot {
             case LAUNCHING:
                 revTowardGoal();
                 launch();
-                if (flywheel.isAtSpeed() && spindexer.getNumberOfArtifacts() == 0) {
+                if (flywheel.isAtSpeed() && spindexer.getNumberOfArtifacts() == 0 && firingTimer.seconds() > 0.1) {
                     firedArtifacts = 0;
                     spindexer.reset();
                     spindexer.rotateToSlot(0);

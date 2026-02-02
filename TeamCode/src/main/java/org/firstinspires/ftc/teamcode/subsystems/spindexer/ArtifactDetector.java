@@ -8,27 +8,26 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.teamcode.Artifact;
 
 public class ArtifactDetector {
-    private static final int POLL_MS = 0;
-    
     public Poller<Float> leftColor;
     public Poller<Float> rightColor;
     
     private float leftHue;
     private float rightHue;
     
+    NormalizedColorSensor leftColorSensor;
+    NormalizedColorSensor rightColorSensor;
+    
     private Artifact detectedArtifact;
 
     public ArtifactDetector(HardwareMap hardwareMap) {
-        NormalizedColorSensor leftColorSensor =
+        leftColorSensor =
             hardwareMap.get(NormalizedColorSensor.class, "leftColorSensor");
-        NormalizedColorSensor rightColorSensor =
+        rightColorSensor =
                 hardwareMap.get(NormalizedColorSensor.class, "rightColorSensor");
-        rightColor = new Poller<>(() -> computeHue(rightColorSensor), POLL_MS);
-        leftColor = new Poller<>(() -> computeHue(leftColorSensor), POLL_MS);
     }
     
     public void update() {
-        rightHue = rightColor.poll();
+        rightHue = computeHue(rightColorSensor);
         Artifact rightArtifact = detectFromHue(rightHue);
         
         if (rightArtifact.isArtifact()) {
@@ -36,7 +35,7 @@ public class ArtifactDetector {
             return;
         }
         
-        leftHue = leftColor.poll();
+        leftHue = computeHue(leftColorSensor);
         Artifact leftArtifact = detectFromHue(leftHue);
         
         if (leftArtifact.isArtifact()) {

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.blackice.core.commands;
 
 public abstract class Command {
-    private static final double DEFAULT_TIMEOUT = 5.0; // default 5 seconds
+    private static final double DEFAULT_TIMEOUT = 99; // default 5 seconds
     private final double timeoutSeconds;
     private double startTime = 0;
     
@@ -35,6 +35,7 @@ public abstract class Command {
     public final void start() {
         startTime = now();
         onStart();
+        update();
     }
     
     public final boolean isFinished() {

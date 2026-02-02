@@ -27,8 +27,13 @@ public class AutoRoutine {
 
         if (command.isFinished()) {
             index++;
+            if (index >= routineSteps.size()) return;
             routineSteps.get(index).start();
         }
+    }
+    
+    public void start() {
+        routineSteps.get(index).start();
     }
 
     public void add(Command step) {
@@ -37,11 +42,5 @@ public class AutoRoutine {
 
     public void addAction(Runnable action) {
         routineSteps.add(Command.singleAction(action));
-    }
-
-    public void lineTo(Pose pose) {
-        routineSteps.add(new FollowPathCommand(
-            new LineGeometry(previousPose.getPosition(), pose.getPosition()),
-            HeadingInterpolator.constant(pose.getHeading())));
     }
 }

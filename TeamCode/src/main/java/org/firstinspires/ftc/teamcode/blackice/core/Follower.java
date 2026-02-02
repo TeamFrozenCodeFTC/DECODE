@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode.blackice.core;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoBuilder;
+import org.firstinspires.ftc.teamcode.blackice.core.geometry.PathPoint;
 import org.firstinspires.ftc.teamcode.blackice.drivetrain.Drivetrain;
 import org.firstinspires.ftc.teamcode.blackice.drivetrain.DrivetrainConfig;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
@@ -29,6 +32,7 @@ public class Follower {
 
     public final Drivetrain drivetrain;
     public final Localizer localizer;
+    public Telemetry telemetry;
     
     public PoseTolerance poseTolerance;
     public MotionTolerance motionTolerance;
@@ -63,6 +67,19 @@ public class Follower {
         };
     }
     
+    public void stop() {
+        drivetrain.zeroPowerBrakeMode();
+        drivetrain.zeroPower();
+    }
+    
+    public void setTelemetry(Telemetry telemetry) {
+        this.telemetry = telemetry;
+    }
+    
+    public AutoBuilder autoBuilder(Pose startingPose) {
+        return new AutoBuilder(startingPose, this);
+    }
+    
     public Vector getVelocity() {
         return localizer.getVelocity();
     }
@@ -75,9 +92,6 @@ public class Follower {
         return localizer.getPose().getHeading();
     }
     
-    
-    // hold pose, follow path, follow composite path
-
     public void reset() {
         headingController.reset();
         isBraking = false;
@@ -94,8 +108,11 @@ public class Follower {
         return isWithinBraking(pose.getPosition());
     }
     
+//    public boolean isWithinBraking(Vector position) {
+//        return computeHoldPower(position).dot(position.minus(localizer.getPose().getPosition())) < 1;
+//    }
     public boolean isWithinBraking(Vector position) {
-        return computeHoldPower(position).dot(position.minus(localizer.getPose().getPosition())) < 1;
+        return computeHoldPower(position).dot(localizer.getVelocity().normalized()) < 1;
     }
     
     public double getVoltage() {
@@ -142,6 +159,10 @@ public class Follower {
      */
     public boolean holdPose(Pose pose, double maxPower) {
         Vector holdPower = computeHoldPower(pose.getPosition());
+
+//        double appliedVoltage = getVoltage() * maxPower;
+//        double power = 14 / appliedVoltage;
+        
         double powerMag = holdPower.computeMagnitude();
         if (powerMag > maxPower) {
             holdPower = holdPower.times(maxPower / powerMag);
