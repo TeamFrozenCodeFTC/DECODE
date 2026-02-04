@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.spindexer.Spindexer;
 
 import java.util.Arrays;
 
@@ -62,9 +61,16 @@ public class TeleOps extends OpMode {
 //        robot.paddles.open();
     }
     
+    boolean initialized = false;
+    boolean moved = false;
+    
     @Override
     public void loop() {
-
+        if (moved && !initialized) {
+            robot.spindexer.rotateToSlot(Robot.currentSpindexerIndex);
+            robot.transfer.openPaddles();
+            initialized = true;
+        }
 
         if (gamepad1.guide) {
             if (robot.spindexer.distanceSensors.isLeftFailing()) {
@@ -109,6 +115,8 @@ public class TeleOps extends OpMode {
             telemetry.update();
         }
         
-        robot.update();
+        if (moved) {
+            robot.update();
+        }
     }
 }

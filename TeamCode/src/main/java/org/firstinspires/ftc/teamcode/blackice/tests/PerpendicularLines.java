@@ -43,6 +43,8 @@ public class PerpendicularLines extends OpMode {
     
     @Override
     public void loop() {
+        follower.update();
+        
         autoRoutine.run();
     }
 }

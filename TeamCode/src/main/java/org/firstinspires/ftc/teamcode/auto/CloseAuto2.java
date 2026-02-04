@@ -11,18 +11,17 @@ import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 
 @Autonomous
-public class FarAuto2 extends OpMode {
+public class CloseAuto2 extends OpMode {
     Robot robot;
     
-    Pose startingPose = new Pose(60, 17.75/2, -90);
-    Pose launchingPose = new Pose(60, 18, -67);
-    Pose farPickUp = new Pose(12.5, 19.5, -135);
-    Pose farPickUpEnd = new Pose(16.5/2, 17.75/2, -90);
-    
+    Pose startingPose = new Pose(33, 135, -90);
+    Pose launchingPose = new Pose(50, 87, -48);
+
     AutoRoutine autoRoutine;
     
     @Override
     public void init() {
+        
         robot = new Robot(hardwareMap);
         robot.isAuto = true;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
@@ -35,20 +34,17 @@ public class FarAuto2 extends OpMode {
         
         autoRoutine = robot.follower.autoBuilder(startingPose)
             .addAction(() -> robot.setState(Robot.State.REVVING))
-            .lineTo(launchingPose).stop()
-            .addAction(() -> robot.setState(Robot.State.LAUNCHING))
-            .holdLastPath().until(() -> robot.state == Robot.State.IDLE)
-            .lineTo(farPickUp)
-                .stop()
-            .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(farPickUpEnd)
+            .lineTo(launchingPose)
                 .linearHeadingInterpolation()
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+                .stop()
+            .addAction(() -> robot.setState(Robot.State.LAUNCHING))
+            //.holdLastPath().until(() -> robot.state == Robot.State.IDLE)
             .build();
     }
     
     @Override
     public void start() {
+        robot.follower.setCurrentPose(startingPose);
         autoRoutine.start();
     }
     
@@ -59,6 +55,7 @@ public class FarAuto2 extends OpMode {
         
         telemetry.addData("index", autoRoutine.getIndex());
         telemetry.addData("state", robot.state);
+        telemetry.addData("pose", robot.follower.getCurrentPose());
         telemetry.update();
     }
 }

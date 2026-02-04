@@ -52,6 +52,7 @@ public class TeleOp extends TeleOps {
             robot.setState(Robot.State.IDLE);
             //robot.spindexer.servo.setPwmDisable();
             robot.transfer.openPaddles();
+            robot.transfer.update();
             gamepad1.rumble(Haptics.CONFIRM);
         } else if (gamepad1.dpadDownWasPressed()) {
             robot.flywheel.manualAdjustmentMultiplier -= 0.01;
@@ -61,13 +62,8 @@ public class TeleOp extends TeleOps {
             leftTriggerWasPressed = true;
             robot.resetSpindexer();
             robot.intake.outtake(); // new
+            robot.incomingArtifact = Artifact.NONE;
             robot.intake.motor.setPower(-1);
-        } else if (gamepad1.dpad_right) {
-            robot.follower.setCurrentHeading(
-                Math.toDegrees(robot.follower.getCurrentPose().getHeading()) + 1);
-        } else if (gamepad1.dpad_left) {
-            robot.follower.setCurrentHeading(
-                Math.toDegrees(robot.follower.getCurrentPose().getHeading()) - 1);
         }
         
         if (gamepad1.left_trigger == 0 && leftTriggerWasPressed) {
@@ -99,6 +95,10 @@ public class TeleOp extends TeleOps {
                 -gamepad1.left_stick_x,
                 -gamepad1.right_stick_x
             );
+        }
+        
+        if (gamepad1.left_stick_y > 0 || gamepad1.left_stick_x > 0) {
+            moved = true;
         }
         
         if (gamepad1.circleWasPressed()) {

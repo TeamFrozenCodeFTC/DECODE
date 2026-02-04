@@ -14,7 +14,7 @@ import java.util.function.DoubleUnaryOperator;
 @Config
 public class Flywheel {
     public static final int TICKS_PER_REV = 28;
-    public static final double MAX_ACCEL_RPM_PER_SEC = 6000;
+    public static final double MAX_ACCEL_RPM_PER_SEC = 4000;
     
     public static double kP = 0.01;
     public static double kI = 0.001;

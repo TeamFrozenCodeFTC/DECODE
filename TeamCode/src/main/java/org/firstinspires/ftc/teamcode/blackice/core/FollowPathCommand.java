@@ -8,11 +8,13 @@ import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Vector;
 
 public class FollowPathCommand extends Command  {
-    PathGeometry pathGeometry;
-    HeadingInterpolator headingInterpolator;
-    PathFinishCondition finishCondition;
-    Follower follower;
+    final PathGeometry pathGeometry;
+    final HeadingInterpolator headingInterpolator;
+    final PathFinishCondition finishCondition;
+    final Follower follower;
     double lastTValue = 0;
+    
+    Pose endPose;
     
     public FollowPathCommand(PathGeometry pathGeometry,
                              HeadingInterpolator headingInterpolator,
@@ -22,6 +24,11 @@ public class FollowPathCommand extends Command  {
         this.headingInterpolator = headingInterpolator;
         this.finishCondition = finishCondition;
         this.follower = follower;
+        
+        endPose = new Pose(
+            pathGeometry.getEndPathPoint().point,
+            Math.toDegrees(headingInterpolator.interpolate(pathGeometry.getEndPathPoint())
+        ));
     }
     
     @Override
@@ -31,8 +38,6 @@ public class FollowPathCommand extends Command  {
     
     @Override
     public void update() {
-        follower.update();
-        
         Vector position = follower.getPosition();
         
         PathPoint closest =
@@ -51,16 +56,24 @@ public class FollowPathCommand extends Command  {
                 velocity.dot(normal)
             ); // * normalAuthority (lower for swerve and tank cause no normal correction)
         
+        double distanceToEnd;
+        if (closest.distanceRemaining == 0) {
+            distanceToEnd =
+                pathGeometry.getEndPathPoint().point.minus(position).dot(tangent);
+        }
+        else {
+            distanceToEnd = closest.distanceRemaining;
+        }
+        
         double tangentPower =
             follower.positionalController.computeOutput(
-                closest.distanceRemaining,
+                distanceToEnd,
                 velocity.dot(tangent)
             );
-
+    
+        double targetHeading = headingInterpolator.interpolate(closest);
         double headingPower =
-            follower.computeHeadingCorrectionPower(
-                headingInterpolator.interpolate(closest)
-            );
+            follower.computeHeadingCorrectionPower(targetHeading);
         
         double maxMagnitude = 1.0;
         double normalUsed = allocatePower(normalPower, maxMagnitude);
@@ -86,24 +99,24 @@ public class FollowPathCommand extends Command  {
                 .plus(tangent.times(tangentUsed));
         
         follower.followFieldVector(drivePower, headingPower);
-        
-//        follower.telemetry.addData("endPoint", pathGeometry.getEndPathPoint().point);
-//        follower.telemetry.addData("holdPower",
-//                                   follower.computeHoldPower(pathGeometry.getEndPathPoint().point));
-//        follower.telemetry.addData("isWithinBraking",finishCondition.isFinished(follower,
-//                                                                                new Pose(pathGeometry.getEndPathPoint().point
-//                                                                                    , headingInterpolator.interpolate(
-//                                                                                    pathGeometry.getEndPathPoint()
-//                                                                                ))));
-//        follower.telemetry.addData("position", position);
-//        follower.telemetry.addData("closestT", closest.tValue);
-//        follower.telemetry.addData("normalError", normalError);
-//        follower.telemetry.addData("normalPower", normalPower);
-//        follower.telemetry.addData("tangentPower", tangentPower);
-//        follower.telemetry.addData("headingPower", headingPower);
-//
-//        follower.telemetry.addData("drivePower", drivePower);
-//        follower.telemetry.update();
+  
+        follower.telemetry.addData("holdPower",
+                                   follower.computeHoldPower(pathGeometry.getEndPathPoint().point));
+        follower.telemetry.addData("isWithinBraking",
+                                   finishCondition.isFinished(follower, endPose));
+        follower.telemetry.addData("distanceToEnd", distanceToEnd);
+        follower.telemetry.addData("position", position);
+        follower.telemetry.addData("closestT", closest.tValue);
+        follower.telemetry.addData("normalError", normalError);
+        follower.telemetry.addData("normalPower", normalPower);
+        follower.telemetry.addData("tangentPower", tangentPower);
+        follower.telemetry.addData("headingPower", headingPower);
+
+        follower.telemetry.addData("percentAlongPath", closest.percentAlongPath);
+        follower.telemetry.addData("currentPose", follower.getCurrentPose());
+        follower.telemetry.addData("endPose", endPose);
+        follower.telemetry.addData("drivePower", drivePower);
+        follower.telemetry.update();
     }
     
     public double allocatePower(double requested, double budget) {
@@ -115,11 +128,7 @@ public class FollowPathCommand extends Command  {
     
     @Override
     public boolean onIsFinished() {
-        return finishCondition.isFinished(follower,
-                                          new Pose(pathGeometry.getEndPathPoint().point
-                                              , headingInterpolator.interpolate(
-                                                  pathGeometry.getEndPathPoint()
-                                              )));
+        return finishCondition.isFinished(follower, endPose);
     }
 }
 

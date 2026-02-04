@@ -18,8 +18,7 @@ public interface HeadingInterpolator {
      * Offsets the heading interpolator by a given amount.
      */
     default HeadingInterpolator offset(double angle) {
-        double headingOffsetRadians = Math.toRadians(angle);
-        return pathPoint -> this.interpolate(pathPoint) + headingOffsetRadians;
+        return pathPoint -> this.interpolate(pathPoint) + angle;
     }
     
     /**
@@ -53,8 +52,7 @@ public interface HeadingInterpolator {
      * A constant heading along a path.
      */
     static HeadingInterpolator constant(double heading) {
-        double headingRadians = Math.toRadians(heading);
-        return pathPoint -> headingRadians;
+        return pathPoint -> heading;
     }
 
     /**
@@ -74,10 +72,8 @@ public interface HeadingInterpolator {
             @Override
             public double interpolate(PathPoint pathPoint) {
                 double t = Math.min(pathPoint.percentAlongPath / finishPercent, 1.0);
-                double startHeading_ = Math.toRadians(startHeading);
-                double endHeading_ = Math.toRadians(endHeading);
-                double deltaHeading = AngleUnit.RADIANS.normalize(endHeading_ - startHeading_);
-                return startHeading_ + deltaHeading * t;
+                double deltaHeading = AngleUnit.RADIANS.normalize(endHeading - startHeading);
+                return startHeading + deltaHeading * t;
             }
             @Override
             public HeadingInterpolator reversed() {

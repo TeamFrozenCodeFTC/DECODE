@@ -43,4 +43,8 @@ public class AutoRoutine {
     public void addAction(Runnable action) {
         routineSteps.add(Command.singleAction(action));
     }
+    
+    public int getIndex() {
+        return index;
+    }
 }
