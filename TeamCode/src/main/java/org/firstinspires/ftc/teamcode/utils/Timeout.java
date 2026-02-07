@@ -20,6 +20,10 @@ public class Timeout {
         }
     }
     
+    public void addTime(double time) {
+        accumulatedTime += time;
+    }
+    
     public void pauseAtZero() {
         resetAndStart();
         pause();

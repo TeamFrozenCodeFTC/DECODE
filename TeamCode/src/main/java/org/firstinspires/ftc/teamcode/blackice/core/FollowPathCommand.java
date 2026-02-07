@@ -8,13 +8,13 @@ import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Vector;
 
 public class FollowPathCommand extends Command  {
-    final PathGeometry pathGeometry;
+    public final PathGeometry pathGeometry;
     final HeadingInterpolator headingInterpolator;
     final PathFinishCondition finishCondition;
     final Follower follower;
     double lastTValue = 0;
     
-    Pose endPose;
+    public Pose endPose;
     
     public FollowPathCommand(PathGeometry pathGeometry,
                              HeadingInterpolator headingInterpolator,
@@ -29,6 +29,11 @@ public class FollowPathCommand extends Command  {
             pathGeometry.getEndPathPoint().point,
             Math.toDegrees(headingInterpolator.interpolate(pathGeometry.getEndPathPoint())
         ));
+    }
+    
+    public Command withTimeout(double timeout) {
+        this.timeoutSeconds = timeout;
+        return this;
     }
     
     @Override

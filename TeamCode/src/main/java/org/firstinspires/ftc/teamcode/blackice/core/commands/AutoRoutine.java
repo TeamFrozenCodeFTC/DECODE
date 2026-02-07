@@ -18,6 +18,17 @@ public class AutoRoutine {
     public AutoRoutine(Pose startingPose) {
         this.previousPose = startingPose;
     }
+    
+    public Pose getEndPose() {
+        for (int i = routineSteps.size() - 1; i >= 0; i--) {
+            Command command = routineSteps.get(i);
+            if (command instanceof FollowPathCommand) {
+                FollowPathCommand pathCommand = (FollowPathCommand) command;
+                return pathCommand.endPose;
+            }
+        }
+        return null;
+    }
 
     public void run() {
         if (index >= routineSteps.size()) return;
@@ -42,6 +53,10 @@ public class AutoRoutine {
 
     public void addAction(Runnable action) {
         routineSteps.add(Command.singleAction(action));
+    }
+    
+    public void addRoutine(AutoRoutine autoRoutine) {
+        routineSteps.addAll(autoRoutine.routineSteps);
     }
     
     public int getIndex() {

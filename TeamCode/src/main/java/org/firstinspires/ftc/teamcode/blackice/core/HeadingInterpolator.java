@@ -25,7 +25,7 @@ public interface HeadingInterpolator {
      * Rotates the heading interpolator by 180 degrees.
      */
     default HeadingInterpolator backwards() {
-        return offset(180);
+        return offset(Math.PI);
     }
     
     /**

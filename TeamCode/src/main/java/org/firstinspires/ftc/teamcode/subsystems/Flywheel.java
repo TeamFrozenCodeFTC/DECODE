@@ -16,10 +16,10 @@ public class Flywheel {
     public static final int TICKS_PER_REV = 28;
     public static final double MAX_ACCEL_RPM_PER_SEC = 4000;
     
-    public static double kP = 0.01;
-    public static double kI = 0.001;
-    public static double kS = 0.5;
-    public static double kV = 0.00222;
+    public static double kP = 0.002;
+    public static double kI = 0;
+    public static double kS = 0.6;
+    public static double kV = 0.00225;
     public static double I_ENABLE_ERROR = 300;
     public static double RPM_TOLERANCE = 50;
     
@@ -48,8 +48,11 @@ public class Flywheel {
     
     private final DoubleUnaryOperator distanceToRpm =
         LinearRegression.fit(new double[][]{
-            {150.82, 3428.5},
-            {102.0225, 2957.28}
+//            {150.82, 3428.5},
+//            {102.0225, 2957.28}// .495
+            //{92.5, 2657.1},
+            {58.85, 2442.85},
+            {140.73, 3171.42}
         });
     
     public Flywheel(HardwareMap hardwareMap) {

@@ -26,7 +26,13 @@ public class TuneFlyWheel extends Auto {
         
         robot.resetSpindexer();
     }
-
+    
+    @Override
+    public void start() {
+        super.start();
+        robot.follower.setCurrentPose(Robot.allianceColor.getHumanResetZone());
+    }
+    
     @Override
     public void loop() {
         robot.flywheel.readSensors();
@@ -41,7 +47,14 @@ public class TuneFlyWheel extends Auto {
                           Robot.allianceColor.getGoalPosition().distanceTo(robot.follower.getCurrentPose().getPosition()));
         telemetry.addData("current RPM", robot.flywheel.getRPM());
         telemetry.addData("target RPM", robot.flywheel.getTargetRPM());
+        telemetry.addData("targetHeading", getAngleToGoal());
+        telemetry.addData("currentHeading", robot.follower.getHeading());
+        telemetry.addData("pos", robot.follower.getPosition());
+        telemetry.addData("goal Pos", Robot.allianceColor.getGoalPosition());
+        
         telemetry.update();
+        
+        // -1.5
         
         robot.follower.update();
 
@@ -52,8 +65,10 @@ public class TuneFlyWheel extends Auto {
         robot.flywheel.update(robot.follower.deltaTime, robot.follower.getVoltage());
         robot.transfer.feedFromSpindexer();
     }
-
+    
     public double getAngleToGoal() {
-        return robot.follower.getCurrentPose().getPosition().getAngleToLookAt(AllianceColor.BLUE.getGoalPosition());
+        return robot.follower.localizer.getPose()
+            .getPosition()
+            .getAngleToLookAt(Robot.allianceColor.getGoalPosition());
     }
 }

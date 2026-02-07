@@ -80,6 +80,10 @@ public class Follower {
         return new AutoBuilder(startingPose, this);
     }
     
+    public AutoBuilder autoBuilder() {
+        return new AutoBuilder(null, this);
+    }
+    
     public Vector getVelocity() {
         return localizer.getVelocity();
     }

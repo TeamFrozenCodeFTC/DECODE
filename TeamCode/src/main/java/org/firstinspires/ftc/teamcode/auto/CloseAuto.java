@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 
 @Autonomous
 public class CloseAuto extends Auto {
-    // 16.5, 17 + 3/4
+    // 16.5, 17.75
     public Pose startingPose = new Pose(19, 119.61, -36.42);
 
     public Pose motifPose = new Pose(55.37, 81.82, -95);

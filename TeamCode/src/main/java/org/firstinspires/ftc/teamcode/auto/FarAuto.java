@@ -85,6 +85,6 @@ public class FarAuto extends Auto {
     @Override
     public void stop() {
         super.stop();
-        motifDetector.stop();
+        //motifDetector.stop();
     }
 }

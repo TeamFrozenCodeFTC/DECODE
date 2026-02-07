@@ -16,11 +16,22 @@ public class AutoBuilder {
     
     private Pose currentPose;
     private PendingPath pendingPath;
+    private PendingPath lastPath;
     
     public AutoBuilder(Pose startPose, Follower follower) {
         this.currentPose = startPose;
         this.routine = new AutoRoutine(startPose);
         this.follower = follower;
+    }
+    
+    public AutoBuilder addRoutine(AutoRoutine addedRoutine) {
+        flushPending();
+        routine.addRoutine(addedRoutine);
+        Pose endPose = addedRoutine.getEndPose();
+        if (endPose != null) {
+            currentPose = endPose;
+        }
+        return this;
     }
     
     public AutoRoutine build() {
@@ -39,9 +50,14 @@ public class AutoBuilder {
             ),
             target
         );
+        lastPath = pendingPath;
         
         currentPose = target;
         return this;
+    }
+    
+    public AutoBuilder lineTo(Pose target, double timeout) {
+        return this.lineTo(target).withTimeout(timeout);
     }
     
     public AutoBuilder curveTo(Pose controlPoint, Pose endPoint) {
@@ -55,8 +71,14 @@ public class AutoBuilder {
             ),
             endPoint
         );
+        lastPath = pendingPath;
         
         currentPose = endPoint;
+        return this;
+    }
+    
+    public AutoBuilder holdLastPath() {
+        pendingPath = lastPath;
         return this;
     }
     
@@ -74,6 +96,13 @@ public class AutoBuilder {
         return this;
     }
     
+    public AutoBuilder withTimeout(double timeout) {
+        if (pendingPath != null) {
+            pendingPath.timeout = timeout;
+        }
+        return this;
+    }
+    
     public AutoBuilder stop() {
         if (pendingPath != null) {
             pendingPath.finishCondition =
@@ -82,20 +111,20 @@ public class AutoBuilder {
         return this;
     }
     
-    public AutoBuilder holdLastPath() {
-        if (pendingPath == null) return this;
-        
-        routine.add(
-            new FollowPathCommand(
-                pendingPath.geometry,
-                pendingPath.headingInterpolator,
-                pendingPath.finishCondition,
-                follower
-            )
-        );
-        
-        return this;
-    }
+//    public AutoBuilder holdLastPath() {
+//        if (pendingPath == null) return this;
+//
+//        routine.add(
+//            new FollowPathCommand(
+//                pendingPath.geometry,
+//                pendingPath.headingInterpolator,
+//                pendingPath.finishCondition,
+//                follower
+//            ).withTimeout(pendingPath.timeout)
+//        );
+//
+//        return this;
+//    }
     
     public AutoBuilder addAction(Runnable action) {
         flushPending();
@@ -121,7 +150,7 @@ public class AutoBuilder {
                 pendingPath.headingInterpolator,
                 pendingPath.finishCondition,
                 follower
-            )
+            ).withTimeout(pendingPath.timeout)
         );
         
         pendingPath = null;
@@ -133,6 +162,7 @@ public class AutoBuilder {
         HeadingInterpolator headingInterpolator;
         PathFinishCondition finishCondition =
             PathFinishConditions.withinBrakingDistance();
+        double timeout = 6;
         
         PendingPath(PathGeometry geometry, Pose endPose) {
             this.geometry = geometry;

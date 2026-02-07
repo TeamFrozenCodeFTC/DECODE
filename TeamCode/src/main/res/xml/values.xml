@@ -1,5 +1,5 @@
 <Robot type="FirstInspires-FTC">
-    <Webcam name="limelight" serialNumber="Ucamera001"/>
+    <Webcam name="limelight"/>
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
             <goBILDA5202SeriesMotor name="intake" port="0"/>

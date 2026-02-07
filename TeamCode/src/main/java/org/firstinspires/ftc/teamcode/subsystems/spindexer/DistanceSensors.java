@@ -3,35 +3,49 @@ package org.firstinspires.ftc.teamcode.subsystems.spindexer;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class DistanceSensors {
     private static final double HANDOFF_DISTANCE = 3.0;
     private static final double CLEAR_DISTANCE = 6.5;
     
-    private static final long POLL_MS = 100;
-   
     private final DistancePoller left;
     private final DistancePoller right;
     
     public DistanceSensors(HardwareMap hardwareMap) {
+        // NEW
+        DistanceSensor leftSensor =
+            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+        
         left = new DistancePoller(
-            new Poller<>(
-                () -> hardwareMap
-                    .get(DistanceSensor.class, "leftDistanceSensor")
-                    .getDistance(DistanceUnit.INCH),
-                POLL_MS
-            )
+            () -> leftSensor.getDistance(DistanceUnit.INCH)
         );
         
+        DistanceSensor rightSensor =
+            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+        
         right = new DistancePoller(
-            new Poller<>(
-                () -> hardwareMap
-                    .get(DistanceSensor.class, "rightDistanceSensor")
-                    .getDistance(DistanceUnit.INCH),
-                POLL_MS
-            )
+            () -> rightSensor.getDistance(DistanceUnit.INCH)
         );
+
+//        left = new DistancePoller(
+//            new Poller<>(
+//                () -> hardwareMap
+//                    .get(DistanceSensor.class, "leftDistanceSensor")
+//                    .getDistance(DistanceUnit.INCH),
+//                POLL_MS
+//            )
+//        );
+//
+//        right = new DistancePoller(
+//            new Poller<>(
+//                () -> hardwareMap
+//                    .get(DistanceSensor.class, "rightDistanceSensor")
+//                    .getDistance(DistanceUnit.INCH),
+//                POLL_MS
+//            )
+//        );
     }
     
     public void update() {
@@ -66,28 +80,44 @@ public class DistanceSensors {
     }
 }
 
+
 class DistancePoller {
-    private static final long COOLDOWN_MS = 10000;
+    private static final long POLL_MS = 100;
+    private static final long COOLDOWN_MS = 5_000; //10_000;
     private static final double FAILING_THRESHOLD = 100;
     
-    final Poller<Double> sensor;
-    double distance;
+    private final Supplier<Double> readFunction;
+    
+    double distance = Double.NaN;
     boolean failing;
     
-    DistancePoller(Poller<Double> sensor) {
-        this.sensor = sensor;
+    private long nextPollTime = 0;
+    private long nextRecoveryAttempt = 0;
+    
+    DistancePoller(Supplier<Double> readFunction) {
+        this.readFunction = readFunction;
     }
     
     void update() {
-        distance = sensor.poll();
+        long now = System.currentTimeMillis();
         
-        boolean nowFailing = distance >= FAILING_THRESHOLD;
+        if (failing) {
+            if (now < nextRecoveryAttempt) return;
+        } else {
+            if (now < nextPollTime) return;
+        }
         
-        if (!failing && nowFailing) {
+        double d = readFunction.get();
+        
+        boolean nowFailing = !Double.isFinite(d) || d >= FAILING_THRESHOLD;
+        
+        if (nowFailing) {
             failing = true;
-            sensor.delayNextPoll(COOLDOWN_MS);
-        } else if (failing && !nowFailing) {
+            nextRecoveryAttempt = now + (int)(COOLDOWN_MS * (Math.random() * 0.1 + 1));
+        } else {
             failing = false;
+            distance = d;
+            nextPollTime = now + POLL_MS;
         }
     }
 }

@@ -22,7 +22,6 @@ public class TeleOp extends TeleOps {
         }
     }
     
-    boolean leftTriggerWasReleased = false;
     boolean leftTriggerWasPressed = false;
     
     @Override
@@ -42,9 +41,6 @@ public class TeleOp extends TeleOps {
         } else if (gamepad1.rightBumperWasPressed()) {
             notifyFailedOperation(() -> numberOfArtifacts > 0,
                                   () -> robot.setState(Robot.State.LAUNCHING));
-//        } else if (gamepad1.triangleWasPressed()) {
-//            notifyFailedOperation(() -> numberOfArtifacts < 3,
-//                                  () -> robot.setState(Robot.State.PADDLE_INTAKE));
         } else if (gamepad1.squareWasPressed()) { // Human Player Load
             notifyFailedOperation(() -> numberOfArtifacts < 3,
                                   this::humanPlayerLoad);
@@ -61,9 +57,13 @@ public class TeleOp extends TeleOps {
         } else if (gamepad1.left_trigger == 1 && !leftTriggerWasPressed) {
             leftTriggerWasPressed = true;
             robot.resetSpindexer();
-            robot.intake.outtake(); // new
+            robot.intake.outtake();
             robot.incomingArtifact = Artifact.NONE;
             robot.intake.motor.setPower(-1);
+            
+            // NEW
+            robot.transfer.openPaddles();
+            robot.transfer.update();
         }
         
         if (gamepad1.left_trigger == 0 && leftTriggerWasPressed) {
@@ -72,7 +72,6 @@ public class TeleOp extends TeleOps {
         }
         
         if (gamepad1.right_stick_x != 0) {
-            //robot.follower.lockHeadingAt(null);
             robot.follower.setLockedHeading(null);
         }
         if (gamepad1.optionsWasPressed()) {

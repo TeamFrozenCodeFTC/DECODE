@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Artifact;
+import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class MotifDetector {
     }
 
     public void start() {
-        limelight = hardwareMap.get(Limelight3A.class, "Limelight");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(2);
         limelight.start();
     }
@@ -27,7 +28,7 @@ public class MotifDetector {
         limelight.shutdown();
     }
 
-    public Artifact[] getMotifPattern() {
+    public MotifPattern getMotifPattern() {
         int tagid;
         LLResult result = limelight.getLatestResult();
         if (result.isValid()) {
@@ -37,23 +38,11 @@ public class MotifDetector {
                 tagid = fr.getFiducialId();
                 // all detections
                 if (tagid == 22) {
-                    return new Artifact[]{
-                            Artifact.PURPLE,
-                            Artifact.GREEN,
-                            Artifact.PURPLE
-                    };
+                    return MotifPattern.PGP;
                 } else if (tagid == 23) {
-                    return new Artifact[]{
-                            Artifact.PURPLE,
-                            Artifact.PURPLE,
-                            Artifact.GREEN
-                    };
+                    return MotifPattern.PPG;
                 } else if (tagid == 21) {
-                    return new Artifact[]{
-                            Artifact.GREEN,
-                            Artifact.PURPLE,
-                            Artifact.PURPLE
-                    };
+                    return MotifPattern.GPP;
                 }
             }
         }

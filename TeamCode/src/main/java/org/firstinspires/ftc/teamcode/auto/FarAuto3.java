@@ -10,19 +10,21 @@ import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 
 @Autonomous
-public class FarAuto2 extends Auto2 {
+public class FarAuto3 extends Auto2 {
     Robot robot;
     
-    Pose startingPose = new Pose(60, 17.75/2, -90);
-    Pose launchingPose = new Pose(60, 18, -67);
-    Pose farPickUp = new Pose(12.5, 19.5, -135);
-    Pose farPickUpEnd = new Pose(16.5/2, 17.75/2, -90);
+    public Pose startingPose = new Pose(56, 17.75/2, -90);
+    public Pose launchingPose = new Pose(57, 17, -65);
     
-    Pose farPickUp2 = new Pose(17.75/2, 16.5/2+1, 180);
+    public Pose prePickupPose = new Pose(9, 30, -90);
+    public Pose pickupPose = new Pose(9, 10, -90);
     
-    Pose farPickUp3 = new Pose(17.75/2, 15.5, 180);
+    public Pose prePickupPose1 = new Pose(43, 36, 180);
+    public Pose pickupPose1 = new Pose(11, 36, 180);
     
-    Pose endPose = new Pose(39, 15, 0);
+    public Pose farPickUp3 = new Pose(17.75/2, 15.5, 180);
+    
+    public Pose endPose = new Pose(51, 21, -46);
     
     AutoRoutine autoRoutine;
     
@@ -41,27 +43,26 @@ public class FarAuto2 extends Auto2 {
         autoRoutine = robot.follower.autoBuilder(startingPose)
             .addRoutine(fireArtifacts(startingPose))
             
-            .lineTo(farPickUp)
-                .stop()
-            
+            .lineTo(prePickupPose)
             .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(farPickUpEnd)
-                .linearHeadingInterpolation()
+            .lineTo(pickupPose)
                 .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+                .withTimeout(5)
+            
+            .addRoutine(fireArtifacts(startingPose))
+            
+            .lineTo(prePickupPose1)
+            .addAction(() -> robot.setState(Robot.State.INTAKING))
+            .lineTo(pickupPose1)
+                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+                .withTimeout(4)
             
             .addRoutine(fireArtifacts(startingPose))
             
             .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(farPickUp2)
-                .linearHeadingInterpolation()
+            .lineTo(farPickUp3)
                 .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
-            
-            .addRoutine(fireArtifacts(startingPose))
-            
-            .addAction(() -> robot.setState(Robot.State.INTAKING))
-                .lineTo(farPickUp3)
-                .linearHeadingInterpolation()
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+                .withTimeout(5)
             
             .addRoutine(fireArtifacts(startingPose))
             
@@ -84,10 +85,14 @@ public class FarAuto2 extends Auto2 {
             .holdLastPath().until(() -> robot.state == Robot.State.IDLE)
             .build();
     }
-
+    
     @Override
     public void loop() {
         robot.update();
         autoRoutine.run();
+        
+//        telemetry.addData("index", autoRoutine.getIndex());
+//        telemetry.addData("state", robot.state);
+//        telemetry.update();
     }
 }

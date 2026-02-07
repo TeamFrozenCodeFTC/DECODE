@@ -14,32 +14,9 @@ public class Spindexer {
     public Artifact[] artifacts = Artifact.getEmptyPattern();
     
     public double currentSlotIndex = 0;
-    
-//    private boolean prevSpindexerClear = true;
-//    private boolean prevArtifactInHandoff = false;
-//
+
     public Direction lastDirection = null;
-//
-//    private final Poller<Boolean> artifactDroppedPoller =
-//        new Poller<>(() -> {
-//            distanceSensors.update();
-//            boolean artifactDroppedEvent = !prevSpindexerClear && isSpindexerClear();
-//            prevSpindexerClear = isSpindexerClear();
-//            return artifactDroppedEvent;
-//        }, 100, 0);
-//
-//    private final Poller<Boolean> artifactEnteredSpindexerPoller =
-//        new Poller<>(() -> {
-//            distanceSensors.update();
-////            boolean artifactEnteredEvent =
-////                !prevArtifactInHandoff && isArtifactInHandoffZone();
-////            prevArtifactInHandoff = isArtifactInHandoffZone();
-//            boolean artifactEnteredEvent =
-//                !prevArtifactInHandoff && isArtifactInHandoffZone();
-//            prevArtifactInHandoff = isSpindexerClear();
-//            return artifactEnteredEvent;
-//        }, 200, 0);
-//
+
     public Spindexer(HardwareMap hardwareMap) {
         servo = hardwareMap.get(ServoImplEx.class, "spindexer");
         
@@ -51,14 +28,6 @@ public class Spindexer {
         int slotIndex = rollIndex((int) currentSlotIndex);
         return artifacts[slotIndex];
     }
-    
-//    public boolean didArtifactJustDrop() {
-//        return artifactDroppedPoller.poll();
-//    }
-//
-//    public boolean didArtifactJustEnterSpindexer() {
-//        return artifactEnteredSpindexerPoller.poll();
-//    }
     
     public Artifact getDetectedArtifact() {
         artifactDetector.update();
@@ -75,41 +44,87 @@ public class Spindexer {
         return distanceSensors.isArtifactInHandoffZone();
     }
     
-    
     public boolean lastArtifactPresent = true;
     public boolean waitingForDrop = false;
     public Timeout firingTimer = new Timeout();
+    
+//    public void rotateAndDrop(double slotIndex) {
+//        if (waitingForDrop) return;
+//
+//        rotateToSlot(slotIndex);
+//        firingTimer.resetAndStart();
+//        //lastArtifactPresent = true;
+//        lastArtifactPresent = !isSpindexerClear(); // NEW capture truth ONCE
+//        waitingForDrop = true;
+//    }
+    
+    boolean hadArtifactInitially;
     
     public void rotateAndDrop(double slotIndex) {
         if (waitingForDrop) return;
         
         rotateToSlot(slotIndex);
+        
+        boolean clear = isSpindexerClear();
+        lastArtifactPresent = !clear;
+        hadArtifactInitially = lastArtifactPresent;
+        
+        clearCycles = 0;
         firingTimer.resetAndStart();
-        //lastArtifactPresent = true;
         waitingForDrop = true;
     }
     
+    private int clearCycles = 0;
+    private static final int REQUIRED_CLEAR_CYCLES = 3;
+    
     public boolean didArtifactJustDrop() {
-        boolean isSpindexerClear = isSpindexerClear();
+        if (!waitingForDrop) return false;
+        if (firingTimer.seconds() < 0.05) return false;
+        
+        boolean clear = isSpindexerClear();
+        
+        if (clear) {
+            clearCycles++;
+        } else {
+            clearCycles = 0;
+        }
         
         boolean dropped =
-            firingTimer.seconds() > 0.1 && waitingForDrop && lastArtifactPresent && isSpindexerClear;
-        
-        lastArtifactPresent = !isSpindexerClear;
+            hadArtifactInitially && lastArtifactPresent && clearCycles >= REQUIRED_CLEAR_CYCLES;
         
         if (dropped) {
             waitingForDrop = false;
+            clearCycles = 0;
         }
         
+        lastArtifactPresent = !clear;
         return dropped;
     }
+    
+    public boolean didSlotStartEmpty() {
+        return waitingForDrop && !hadArtifactInitially;
+    }
+    
+    //    public boolean didArtifactJustDrop() {
+//        boolean isSpindexerClear = isSpindexerClear();
+//
+//        boolean dropped =
+//            firingTimer.seconds() > 0.1 && waitingForDrop && lastArtifactPresent && isSpindexerClear;
+//
+//        lastArtifactPresent = !isSpindexerClear;
+//
+//        if (dropped) {
+//            waitingForDrop = false;
+//        }
+//
+//        return dropped;
+//    }
     
     public void reset() {
         artifacts = Artifact.getEmptyPattern();
         lastDirection = null;
+        waitingForDrop = false;
         rotateToSlot(0);
-//        prevSpindexerClear = false;
-//        prevArtifactInHandoff = false;
     }
     
     public int shiftLeft(int steps) {
@@ -186,7 +201,7 @@ public class Spindexer {
     public void rotateToSlot(double slotIndex) {
         //        if (slotIndex == currentSlotIndex) return; BROKEN
         //
-        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .483);
+        servo.setPosition(slotIndex * ((double) 120 / (360*4.5)) + .495);
         
         currentSlotIndex = slotIndex;
     }
