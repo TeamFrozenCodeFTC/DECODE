@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.spindexer;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.utils.ExecutorRegistry;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +29,8 @@ public class DistanceWithTimeout implements Callable<Double> {
         this.working = new AtomicBoolean(false);
         this.executor = Executors.newSingleThreadExecutor();
         this.distanceUnit = distanceUnit;
+
+        ExecutorRegistry.register(this.executor);
     }
 
     public double getDistance() {
