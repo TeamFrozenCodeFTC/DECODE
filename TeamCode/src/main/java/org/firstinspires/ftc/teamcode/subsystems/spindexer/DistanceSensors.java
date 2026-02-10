@@ -7,117 +7,175 @@ import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class DistanceSensors {
+    private final DistanceWithTimeout left;
+    private final DistanceWithTimeout right;
+    private double leftDistance;
+    private double rightDistance;
+    private static final double FAILING_THRESHOLD = 100;
+    private static final int SENSOR_TIMEOUT_MILLIS = 10;
+    
     private static final double HANDOFF_DISTANCE = 3.0;
     private static final double CLEAR_DISTANCE = 6.5;
     
-    private final DistancePoller left;
-    private final DistancePoller right;
-    
     public DistanceSensors(HardwareMap hardwareMap) {
-        // NEW
-        DistanceSensor leftSensor =
-            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+        left = new DistanceWithTimeout(
+            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor"),
+            DistanceUnit.INCH,
+            SENSOR_TIMEOUT_MILLIS);
         
-        left = new DistancePoller(
-            () -> leftSensor.getDistance(DistanceUnit.INCH)
-        );
+        right = new DistanceWithTimeout(
+            hardwareMap.get(DistanceSensor.class, "rightDistanceSensor"),
+            DistanceUnit.INCH,
+            SENSOR_TIMEOUT_MILLIS);
         
-        DistanceSensor rightSensor =
-            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
-        
-        right = new DistancePoller(
-            () -> rightSensor.getDistance(DistanceUnit.INCH)
-        );
-
-//        left = new DistancePoller(
-//            new Poller<>(
-//                () -> hardwareMap
-//                    .get(DistanceSensor.class, "leftDistanceSensor")
-//                    .getDistance(DistanceUnit.INCH),
-//                POLL_MS
-//            )
-//        );
-//
-//        right = new DistancePoller(
-//            new Poller<>(
-//                () -> hardwareMap
-//                    .get(DistanceSensor.class, "rightDistanceSensor")
-//                    .getDistance(DistanceUnit.INCH),
-//                POLL_MS
-//            )
-//        );
+        update();
     }
     
     public void update() {
-        left.update();
-        right.update();
+        leftDistance = left.getDistance();
+        rightDistance = right.getDistance();
     }
     
     public double getLeftDistance() {
-        return left.distance;
+        return leftDistance;
     }
     
     public double getRightDistance() {
-        return right.distance;
+        return rightDistance;
     }
     
     public boolean isLeftFailing() {
-        return left.failing;
+        return leftDistance >= FAILING_THRESHOLD;
     }
     
     public boolean isRightFailing() {
-        return right.failing;
+        return rightDistance >= FAILING_THRESHOLD;
     }
     
     public boolean isArtifactInHandoffZone() {
-        return left.distance < HANDOFF_DISTANCE
-            || right.distance < HANDOFF_DISTANCE;
+        return leftDistance < HANDOFF_DISTANCE
+            || rightDistance < HANDOFF_DISTANCE;
     }
     
     public boolean isSpindexerClear() {
-        return left.distance > CLEAR_DISTANCE
-            && right.distance > CLEAR_DISTANCE;
+        return leftDistance > CLEAR_DISTANCE
+            && rightDistance > CLEAR_DISTANCE;
+    }
+    
+    public void close() {
+        left.shutdown();
+        right.shutdown();
     }
 }
-
-
-class DistancePoller {
-    private static final long POLL_MS = 100;
-    private static final long COOLDOWN_MS = 5_000; //10_000;
-    private static final double FAILING_THRESHOLD = 100;
-    
-    private final Supplier<Double> readFunction;
-    
-    double distance = Double.NaN;
-    boolean failing;
-    
-    private long nextPollTime = 0;
-    private long nextRecoveryAttempt = 0;
-    
-    DistancePoller(Supplier<Double> readFunction) {
-        this.readFunction = readFunction;
-    }
-    
-    void update() {
-        long now = System.currentTimeMillis();
-        
-        if (failing) {
-            if (now < nextRecoveryAttempt) return;
-        } else {
-            if (now < nextPollTime) return;
-        }
-        
-        double d = readFunction.get();
-        
-        boolean nowFailing = !Double.isFinite(d) || d >= FAILING_THRESHOLD;
-        
-        if (nowFailing) {
-            failing = true;
-            nextRecoveryAttempt = now + (int)(COOLDOWN_MS * (Math.random() * 0.1 + 1));
-        } else {
-            failing = false;
-            distance = d;
-            nextPollTime = now + POLL_MS;
-        }
-    }
-}
+//
+//    private final DistancePoller left;
+//    private final DistancePoller right;
+//
+//    public DistanceSensors(HardwareMap hardwareMap) {
+//        // NEW
+//        DistanceSensor leftSensor =
+//            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+//
+//        left = new DistancePoller(
+//            () -> leftSensor.getDistance(DistanceUnit.INCH)
+//        );
+//
+//        DistanceSensor rightSensor =
+//            hardwareMap.get(DistanceSensor.class, "leftDistanceSensor");
+//
+//        right = new DistancePoller(
+//            () -> rightSensor.getDistance(DistanceUnit.INCH)
+//        );
+//
+////        left = new DistancePoller(
+////            new Poller<>(
+////                () -> hardwareMap
+////                    .get(DistanceSensor.class, "leftDistanceSensor")
+////                    .getDistance(DistanceUnit.INCH),
+////                POLL_MS
+////            )
+////        );
+////
+////        right = new DistancePoller(
+////            new Poller<>(
+////                () -> hardwareMap
+////                    .get(DistanceSensor.class, "rightDistanceSensor")
+////                    .getDistance(DistanceUnit.INCH),
+////                POLL_MS
+////            )
+////        );
+//    }
+//
+//    public void update() {
+//        left.update();
+//        right.update();
+//    }
+//
+//    public double getLeftDistance() {
+//        return left.distance;
+//    }
+//
+//    public double getRightDistance() {
+//        return right.distance;
+//    }
+//
+//    public boolean isLeftFailing() {
+//        return left.failing;
+//    }
+//
+//    public boolean isRightFailing() {
+//        return right.failing;
+//    }
+//
+//    public boolean isArtifactInHandoffZone() {
+//        return left.distance < HANDOFF_DISTANCE
+//            || right.distance < HANDOFF_DISTANCE;
+//    }
+//
+//    public boolean isSpindexerClear() {
+//        return left.distance > CLEAR_DISTANCE
+//            && right.distance > CLEAR_DISTANCE;
+//    }
+//}
+//
+//
+//class DistancePoller {
+//    private static final long POLL_MS = 100;
+//    private static final long COOLDOWN_MS = 5_000; //10_000;
+//    private static final double FAILING_THRESHOLD = 100;
+//
+//    private final Supplier<Double> readFunction;
+//
+//    double distance = Double.NaN;
+//    boolean failing;
+//
+//    private long nextPollTime = 0;
+//    private long nextRecoveryAttempt = 0;
+//
+//    DistancePoller(Supplier<Double> readFunction) {
+//        this.readFunction = readFunction;
+//    }
+//
+//    void update() {
+//        long now = System.currentTimeMillis();
+//
+//        if (failing) {
+//            if (now < nextRecoveryAttempt) return;
+//        } else {
+//            if (now < nextPollTime) return;
+//        }
+//
+//        double d = readFunction.get();
+//
+//        boolean nowFailing = !Double.isFinite(d) || d >= FAILING_THRESHOLD;
+//
+//        if (nowFailing) {
+//            failing = true;
+//            nextRecoveryAttempt = now + (int)(COOLDOWN_MS * (Math.random() * 0.1 + 1));
+//        } else {
+//            failing = false;
+//            distance = d;
+//            nextPollTime = now + POLL_MS;
+//        }
+//    }
+//}

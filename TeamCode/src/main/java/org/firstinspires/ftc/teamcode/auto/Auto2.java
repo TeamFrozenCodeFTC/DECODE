@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
 public abstract class Auto2 extends OpMode {
     public Robot robot;
     
-   // MotifDetector motifDetector;
+   MotifDetector motifDetector;
     
     @Override
     public void init() {
@@ -29,9 +29,9 @@ public abstract class Auto2 extends OpMode {
         
         robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
-//
-//        motifDetector = new MotifDetector(hardwareMap);
-//        motifDetector.start();
+
+        motifDetector = new MotifDetector(hardwareMap);
+        motifDetector.start();
     }
     
     @Override

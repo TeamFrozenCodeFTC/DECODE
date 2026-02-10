@@ -19,7 +19,7 @@ public class MotifDetector {
     }
 
     public void start() {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight = hardwareMap.get(Limelight3A.class, "Ethernet Device");
         limelight.pipelineSwitch(2);
         limelight.start();
     }

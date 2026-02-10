@@ -93,6 +93,7 @@ public class Flywheel {
     }
     
     public void readSensors() {
+        lastRPM = currentRPM;
         currentRPM = ticksPerSecondToRpm(rightMotor.getVelocity());
     }
     
@@ -132,6 +133,8 @@ public class Flywheel {
         
         leftMotor.setPower(power);
         rightMotor.setPower(power);
+        
+        //detectShot();
     }
     
     public double getRPM() {
@@ -152,6 +155,32 @@ public class Flywheel {
     
     public State getState() {
         return state;
+    }
+    
+    // --- shot detection ---
+    private static final double SHOT_DROP_RPM = 150;
+    private static final double SHOT_COOLDOWN_SEC = 0.2;
+    
+    private double lastRPM = 0;
+    private double lastShotTime = -1;
+    private boolean artifactJustLaunched = false;
+    
+    // call inside update()
+    private void detectShot() {
+        artifactJustLaunched = false;
+        
+        double rpmDrop = lastRPM - currentRPM;
+        if (rpmDrop > SHOT_DROP_RPM) {
+            double now = System.currentTimeMillis() / 1000.0;
+            if (lastShotTime < 0 || now - lastShotTime > SHOT_COOLDOWN_SEC) {
+                artifactJustLaunched = true;
+                lastShotTime = now;
+            }
+        }
+    }
+    
+    public boolean didArtifactJustLaunch() {
+        return artifactJustLaunched;
     }
     
     public boolean isAtSpeed() {

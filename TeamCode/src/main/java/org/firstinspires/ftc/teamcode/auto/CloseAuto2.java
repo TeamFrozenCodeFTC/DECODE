@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
 
 @Autonomous
 public class CloseAuto2 extends Auto2 {
@@ -42,7 +43,13 @@ public class CloseAuto2 extends Auto2 {
             
             .addAction(() -> robot.setState(Robot.State.INTAKING))
                 .curveTo(pickUpPose1ControlPoint, pickUpPose1)
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+                .until(() -> {
+                    MotifPattern pattern = motifDetector.getMotifPattern();
+                    if (pattern != null) {
+                        Robot.motifPattern = pattern;
+                    }
+                    return robot.spindexer.getNumberOfArtifacts() == 3;
+                })
                 .withTimeout(4)
             
             .addRoutine(fireArtifacts(pickUpPose1))
@@ -76,24 +83,6 @@ public class CloseAuto2 extends Auto2 {
             .build();
     }
     
-//    public Step detectMotif() {
-//        ElapsedTime timeout = new ElapsedTime();
-//
-//        return new Step(
-//            timeout::reset,
-//            () -> {
-//                Robot.motifPattern = motifDetector.getMotifPattern();
-//                if (Robot.motifPattern == null && timeout.seconds() > 1) {
-//                    Robot.motifPattern = new Artifact[]{
-//                        Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE
-//                    };
-//                }
-//            },
-//            () -> Robot.motifPattern != null || timeout.seconds() > 1
-//        );
-//    }
-//
-    
     @Override
     public void start() {
         robot.follower.setCurrentPose(startingPose);
@@ -101,6 +90,12 @@ public class CloseAuto2 extends Auto2 {
     }
     
     boolean foundPattern = false;
+    
+    @Override
+    public void stop() {
+        motifDetector.stop();
+        robot.spindexer.distanceSensors.close();
+    }
     
     @Override
     public void loop() {

@@ -125,16 +125,23 @@ public class Robot {
         
         Artifact motifArtifact = Robot.motifPattern.getPattern()[firedArtifacts];
         
-        if (flywheel.isAtSpeed() && (isAuto || isLookingAtGoal())) {
+        if (flywheel.isAtSpeed() && (isAuto || isLookingAtGoal()) && (firingTimer.isPaused() || firingTimer.seconds() > 0.2)) {
             spindexer.rotateAndDrop(spindexer.findBestRotationToArtifact(motifArtifact));
         }
         
-        if (spindexer.didArtifactJustDrop() || spindexer.didSlotStartEmpty()) { // NEW
+        if (spindexer.didArtifactJustDrop()) { // NEW
             spindexer.artifacts[Spindexer.rollIndex((int) spindexer.currentSlotIndex)] =
                 Artifact.NONE;
             firedArtifacts++;
             //dropping = false;
         }
+//        if (flywheel.didArtifactJustLaunch()) { // NEW
+//            spindexer.artifacts[Spindexer.rollIndex((int) spindexer.currentSlotIndex)] =
+//                Artifact.NONE;
+//            firedArtifacts++;
+//            //dropping = false;
+//        }
+//
         
         transfer.feedFromSpindexer();
         transfer.openPaddles();

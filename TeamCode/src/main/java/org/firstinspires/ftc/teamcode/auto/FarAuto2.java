@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
 
 @Autonomous
 public class FarAuto2 extends Auto2 {
@@ -49,21 +50,21 @@ public class FarAuto2 extends Auto2 {
                 .linearHeadingInterpolation()
                 .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
             
-            .addRoutine(fireArtifacts(startingPose))
+            .addRoutine(fireArtifacts(farPickUpEnd))
             
             .addAction(() -> robot.setState(Robot.State.INTAKING))
             .lineTo(farPickUp2)
                 .linearHeadingInterpolation()
                 .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
             
-            .addRoutine(fireArtifacts(startingPose))
+            .addRoutine(fireArtifacts(farPickUp2))
             
             .addAction(() -> robot.setState(Robot.State.INTAKING))
                 .lineTo(farPickUp3)
                 .linearHeadingInterpolation()
                 .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
             
-            .addRoutine(fireArtifacts(startingPose))
+            .addRoutine(fireArtifacts(farPickUp3))
             
             .lineTo(endPose)
                 .stop()
@@ -74,6 +75,11 @@ public class FarAuto2 extends Auto2 {
     public void start() {
         robot.follower.setCurrentPose(startingPose);
         autoRoutine.start();
+        
+        MotifPattern pattern = motifDetector.getMotifPattern();
+        if (pattern != null) {
+            Robot.motifPattern = pattern;
+        }
     }
     
     public AutoRoutine fireArtifacts(Pose startingPose) {

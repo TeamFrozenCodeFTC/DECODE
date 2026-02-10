@@ -56,7 +56,12 @@ public class TeleOp extends TeleOps {
             robot.flywheel.manualAdjustmentMultiplier += 0.01;
         } else if (gamepad1.left_trigger == 1 && !leftTriggerWasPressed) {
             leftTriggerWasPressed = true;
-            robot.resetSpindexer();
+            robot.firedArtifacts = 0;
+            robot.spindexer.artifacts = Artifact.getEmptyPattern();
+            robot.spindexer.lastDirection = null;
+            robot.spindexer.waitingForDrop = false;
+            robot.spindexer.rotateToSlot(0);
+            robot.setState(Robot.State.IDLE);
             robot.intake.outtake();
             robot.incomingArtifact = Artifact.NONE;
             robot.intake.motor.setPower(-1);
@@ -64,6 +69,7 @@ public class TeleOp extends TeleOps {
             // NEW
             robot.transfer.openPaddles();
             robot.transfer.update();
+            gamepad1.rumble(Haptics.CONFIRM);
         }
         
         if (gamepad1.left_trigger == 0 && leftTriggerWasPressed) {

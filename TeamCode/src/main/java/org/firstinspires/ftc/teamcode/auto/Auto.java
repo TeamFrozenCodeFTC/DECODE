@@ -28,6 +28,7 @@ public abstract class Auto extends OpMode {
         
         robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
+        
 //        motifDetector = new MotifDetector(hardwareMap);
 //        motifDetector.start();
     }
@@ -148,4 +149,10 @@ public abstract class Auto extends OpMode {
             }
         }
     }
+    
+//    @Override
+//    public void stop() {
+//        motifDetector.stop();
+//        robot.spindexer.distanceSensors.close();
+//    }
 }

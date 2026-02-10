@@ -19,6 +19,17 @@ public class DetectArtifact extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
     }
+    
+    @Override
+    public void start() {
+        boolean clear = robot.spindexer.isSpindexerClear();
+        robot.spindexer.lastArtifactPresent = !clear;
+        robot.spindexer.hadArtifactInitially = robot.spindexer.lastArtifactPresent;
+        
+        robot.spindexer.clearCycles = 0;
+        robot.spindexer.firingTimer.resetAndStart();
+        robot.spindexer.waitingForDrop = true;
+    }
 
     @Override
     public void loop() {
@@ -31,6 +42,12 @@ public class DetectArtifact extends OpMode {
                                   robot.spindexer.artifactDetector.getRightHue());
         telemetry.addData("left hue",
                                   robot.spindexer.artifactDetector.getLeftHue());
+        
+        telemetry.addData("didArtifactJustDrop", robot.spindexer.didArtifactJustDrop());
+        telemetry.addData("waitingForDrop", robot.spindexer.waitingForDrop);
+        telemetry.addData("clear cycles", robot.spindexer.clearCycles);
+        telemetry.addData("hadArtifactInitially", robot.spindexer.hadArtifactInitially);
+        telemetry.addData("lastArtifactPresent", robot.spindexer.lastArtifactPresent);
         
         telemetry.addData("isSpindexerClear", robot.spindexer.isSpindexerClear());
         telemetry.addData("isArtifactInHandoffZone", robot.spindexer.isArtifactInHandoffZone());
