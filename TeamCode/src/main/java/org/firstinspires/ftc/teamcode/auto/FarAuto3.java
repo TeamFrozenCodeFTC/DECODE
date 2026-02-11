@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
+import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
 
 @Autonomous
@@ -31,7 +32,10 @@ public class FarAuto3 extends Auto2 {
     
     @Override
     public void init() {
+        motifDetector= new MotifDetector(hardwareMap);
+        motifDetector.start();
         robot = new Robot(hardwareMap);
+        robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
@@ -100,5 +104,11 @@ public class FarAuto3 extends Auto2 {
 //        telemetry.addData("index", autoRoutine.getIndex());
 //        telemetry.addData("state", robot.state);
 //        telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        motifDetector.stop();
     }
 }
