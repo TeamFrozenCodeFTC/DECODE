@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.AllianceColor;
 import org.firstinspires.ftc.teamcode.Artifact;
 import org.firstinspires.ftc.teamcode.Haptics;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.ExecutorRegistry;
 
 import java.util.Arrays;
 
@@ -118,5 +119,10 @@ public class TeleOps extends OpMode {
         if (moved) {
             robot.update();
         }
+    }
+
+    @Override
+    public void stop() {
+        ExecutorRegistry.shutdownAll();
     }
 }

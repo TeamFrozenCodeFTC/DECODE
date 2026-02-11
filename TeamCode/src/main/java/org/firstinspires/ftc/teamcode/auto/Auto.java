@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.auto.steps.Step;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
+import org.firstinspires.ftc.teamcode.utils.ExecutorRegistry;
 
 import java.lang.reflect.Field;
 
@@ -148,6 +149,11 @@ public abstract class Auto extends OpMode {
                 telemetry.addLine("Cannot access " + field.getName());
             }
         }
+    }
+
+    @Override
+    public void stop() {
+        ExecutorRegistry.shutdownAll();
     }
     
 //    @Override
