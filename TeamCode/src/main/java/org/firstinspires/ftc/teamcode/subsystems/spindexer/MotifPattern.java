@@ -16,4 +16,18 @@ public enum MotifPattern {
     public Artifact[] getPattern() {
         return pattern;
     }
+
+    public String toString() {
+        StringBuilder buf = new StringBuilder();
+        for(Artifact a : pattern) {
+            if(a == Artifact.GREEN) {
+                buf.append("G");
+            } else if (a == Artifact.PURPLE) {
+                buf.append("P");
+            } else {
+                buf.append("N");
+            }
+        }
+        return buf.toString();
+    }
 }

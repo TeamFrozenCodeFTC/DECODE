@@ -12,7 +12,8 @@ import org.firstinspires.ftc.teamcode.utils.DelayWrapper;
 @Autonomous
 public class CloseAuto2 extends Auto2 {
     Pose startingPose = new Pose(33, 135.125, -90);
-    Pose launchingPose = new Pose(50, 87, -48);
+    //Pose launchingPose = new Pose(50, 87, -48);
+    Pose launchingPose = new Pose(55, 84, -48);
     
     Pose pickUpPose1ControlPoint = new Pose(45, 84+3, 180);
     Pose pickUpPose1 = new Pose(16, 84+3, 180);
@@ -25,6 +26,7 @@ public class CloseAuto2 extends Auto2 {
     
 //    Pose openGatePosition = new Pose(22, 67, 240);
     Pose openGatePosition = new Pose(22, 69, 240);
+    Pose endPose = new Pose(50, 76, -44.83);
 
     AutoRoutine autoRoutine;
     
@@ -65,11 +67,14 @@ public class CloseAuto2 extends Auto2 {
             .until(() -> {
                 MotifPattern pattern = motifDetector.getMotifPattern();
                 if (pattern != null) {
+                    telemetry.addData("Motif", pattern);
                     Robot.motifPattern = pattern;
                 }
+
                 return robot.spindexer.getNumberOfArtifacts() == 3;
             })
-            .withTimeout(4)
+                .withTimeout(5.5)
+            //.withTimeout(4)
             
             .addRoutine(fireArtifacts(pickUpPose1))
             
@@ -88,7 +93,8 @@ public class CloseAuto2 extends Auto2 {
             .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
             
             .addRoutine(fireArtifacts(pickUpPose3))
-            
+                .lineTo(endPose)
+                .stop()
             .build();
         
         autoRoutine.start();

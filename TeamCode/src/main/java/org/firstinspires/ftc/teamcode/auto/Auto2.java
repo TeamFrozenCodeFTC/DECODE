@@ -32,7 +32,8 @@ public abstract class Auto2 extends OpMode {
         
         robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
-
+        robot.transfer.feedFromSpindexer();
+        robot.transfer.update();
         motifDetector = new MotifDetector(hardwareMap);
         motifDetector.start();
     }
