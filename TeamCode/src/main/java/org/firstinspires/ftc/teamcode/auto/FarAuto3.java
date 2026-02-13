@@ -10,19 +10,21 @@ import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.MotifDetector;
 import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
+import org.firstinspires.ftc.teamcode.utils.DelayWrapper;
 
 @Autonomous
 public class FarAuto3 extends Auto2 {
-    Robot robot;
-    
+
     public Pose startingPose = new Pose(56, 17.75/2, -90);
     public Pose launchingPose = new Pose(57, 17, -65);
     
+    // corner 3
     public Pose prePickupPose = new Pose(9, 30, -90);
     public Pose pickupPose = new Pose(9, 10, -90);
     
+    // last 3
     public Pose prePickupPose1 = new Pose(43, 36, 180);
-    public Pose pickupPose1 = new Pose(11, 36, 180);
+    public Pose pickupPose1 = new Pose(9, 36, 180);
     
     public Pose farPickUp3 = new Pose(17.75/2, 15.5, 180);
     
@@ -32,59 +34,56 @@ public class FarAuto3 extends Auto2 {
     
     @Override
     public void init() {
-        motifDetector= new MotifDetector(hardwareMap);
-        motifDetector.start();
-        robot = new Robot(hardwareMap);
-        robot.spindexer.rotateToSlot(0.5);
-        robot.isAuto = true;
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
-            .getTelemetry());
+        super.init();
         
         robot.preload(
             new Artifact[]{Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE});
         
         robot.follower.setTelemetry(telemetry);
-        
-        autoRoutine = robot.follower.autoBuilder(startingPose)
-            .addRoutine(fireArtifacts(startingPose))
-            
-            .lineTo(prePickupPose)
-            .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(pickupPose)
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
-                .withTimeout(5)
-            
-            .addRoutine(fireArtifacts(pickupPose))
-            
-            .lineTo(prePickupPose1)
-            .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(pickupPose1)
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
-                .withTimeout(4)
-            
-            .addRoutine(fireArtifacts(pickupPose1))
-            
-            .addAction(() -> robot.setState(Robot.State.INTAKING))
-            .lineTo(farPickUp3)
-                .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
-                .withTimeout(5)
-            
-            .addRoutine(fireArtifacts(farPickUp3))
-            
-            .lineTo(endPose)
-                .stop()
-            .build();
     }
     
     @Override
     public void start() {
-        robot.follower.setCurrentPose(startingPose);
-        autoRoutine.start();
+        super.start();
         
+        robot.follower.setCurrentPose(startingPose);
+ 
         MotifPattern pattern = motifDetector.getMotifPattern();
         if (pattern != null) {
             Robot.motifPattern = pattern;
         }
+        
+        autoRoutine = robot.follower.autoBuilder(startingPose)
+            .addRoutine(fireArtifacts(startingPose))
+            
+            .lineTo(prePickupPose1)
+            .addAction(() -> robot.setState(Robot.State.INTAKING))
+            .lineTo(pickupPose1)
+            .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+            .withTimeout(4)
+            
+            .addRoutine(fireArtifacts(pickupPose1))
+            
+            .lineTo(prePickupPose).stop()
+            .addAction(() -> robot.setState(Robot.State.INTAKING))
+            .lineTo(pickupPose)
+            .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+            .withTimeout(5)
+            
+            .addRoutine(fireArtifacts(pickupPose))
+            
+            .addAction(() -> robot.setState(Robot.State.INTAKING))
+            .lineTo(farPickUp3)
+            .until(() -> robot.spindexer.getNumberOfArtifacts() == 3)
+            .withTimeout(5)
+            
+            .addRoutine(fireArtifacts(farPickUp3))
+            
+            .lineTo(endPose)
+            .stop()
+            .build();
+        
+        autoRoutine.start();
     }
     
     public AutoRoutine fireArtifacts(Pose startingPose) {
@@ -92,7 +91,7 @@ public class FarAuto3 extends Auto2 {
             .addAction(() -> robot.setState(Robot.State.REVVING))
             .lineTo(launchingPose).stop()
             .addAction(() -> robot.setState(Robot.State.LAUNCHING))
-            .holdLastPath().until(() -> robot.state == Robot.State.IDLE)
+            .holdLastPath().until(new DelayWrapper(350, () -> robot.state == Robot.State.IDLE))
             .build();
     }
     
@@ -101,9 +100,11 @@ public class FarAuto3 extends Auto2 {
         robot.update();
         autoRoutine.run();
         
-//        telemetry.addData("index", autoRoutine.getIndex());
-//        telemetry.addData("state", robot.state);
-//        telemetry.update();
+        telemetry.addData("state", robot.state);
+        telemetry.addData("firingTimer", robot.spindexer.firingTimer.seconds());
+        telemetry.addData("numOfArtifacts", robot.spindexer.getNumberOfArtifacts());
+        telemetry.addData("isUpToSpeed", robot.flywheel.isAtSpeed());
+        telemetry.update();
     }
 
     @Override

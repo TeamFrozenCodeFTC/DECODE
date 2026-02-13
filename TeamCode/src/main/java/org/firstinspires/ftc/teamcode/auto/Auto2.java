@@ -28,6 +28,8 @@ public abstract class Auto2 extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
             .getTelemetry());
         
+        robot.follower.setTelemetry(telemetry);
+        
         robot.spindexer.rotateToSlot(0.5);
         robot.isAuto = true;
 

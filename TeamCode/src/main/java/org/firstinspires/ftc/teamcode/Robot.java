@@ -33,6 +33,7 @@ public class Robot {
     
     public Robot.State state = Robot.State.IDLE;
     public Timeout stateTimer = new Timeout();
+    public Timeout stateTimer2 = new Timeout();
     
     // Prevents quick misfires
     public Timeout intakeTimer = new Timeout();
@@ -59,6 +60,7 @@ public class Robot {
         }
         state = newState;
         stateTimer.pauseAtZero();
+        stateTimer2.resetAndStart();
     }
     
     private void revLauncher() {

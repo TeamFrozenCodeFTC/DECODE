@@ -9,11 +9,10 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.blackice.core.commands.AutoRoutine;
 import org.firstinspires.ftc.teamcode.blackice.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.spindexer.MotifPattern;
+import org.firstinspires.ftc.teamcode.utils.DelayWrapper;
 
 @Autonomous
 public class FarAuto2 extends Auto2 {
-    Robot robot;
-    
     Pose startingPose = new Pose(60, 17.75/2, -90);
     Pose launchingPose = new Pose(60, 18, -67);
     Pose farPickUp = new Pose(12.5, 19.5, -135);
@@ -29,10 +28,7 @@ public class FarAuto2 extends Auto2 {
     
     @Override
     public void init() {
-        robot = new Robot(hardwareMap);
-        robot.isAuto = true;
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance()
-            .getTelemetry());
+        super.init();
         
         robot.preload(
             new Artifact[]{Artifact.GREEN, Artifact.PURPLE, Artifact.PURPLE});
@@ -73,13 +69,16 @@ public class FarAuto2 extends Auto2 {
     
     @Override
     public void start() {
+        super.start();
+        
         robot.follower.setCurrentPose(startingPose);
-        autoRoutine.start();
         
         MotifPattern pattern = motifDetector.getMotifPattern();
         if (pattern != null) {
             Robot.motifPattern = pattern;
         }
+        
+        autoRoutine.start();
     }
     
     public AutoRoutine fireArtifacts(Pose startingPose) {
@@ -87,7 +86,7 @@ public class FarAuto2 extends Auto2 {
             .addAction(() -> robot.setState(Robot.State.REVVING))
             .lineTo(launchingPose).stop()
             .addAction(() -> robot.setState(Robot.State.LAUNCHING))
-            .holdLastPath().until(() -> robot.state == Robot.State.IDLE)
+            .holdLastPath().until(new DelayWrapper(350, () -> robot.state == Robot.State.IDLE))
             .build();
     }
 
